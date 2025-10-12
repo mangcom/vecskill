@@ -1,11 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // --- ส่วนของการเลือก Elements ---
     const menuLinks = document.querySelectorAll('.menu a');
     const contentDisplay = document.getElementById('content-display');
     const menuItems = document.querySelectorAll('.menu li');
+    
+    // Elements ใหม่สำหรับ Responsive Menu
+    const menuToggle = document.getElementById('menu-toggle');
+    const closeMenuBtn = document.getElementById('close-menu-btn');
+    const mainMenu = document.getElementById('main-menu');
 
-    // ฟังก์ชันสำหรับโหลดเนื้อหา
+    // --- ส่วนของฟังก์ชัน loadContent ที่หายไป ---
     function loadContent(page) {
-        contentDisplay.innerHTML = '<h1>กำลังโหลด...</h1>';
+        contentDisplay.innerHTML = '<h1><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</h1>';
 
         fetch(`pages/${page}.html`)
             .then(response => {
@@ -23,25 +29,50 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // จัดการการคลิกเมนูหลัก
-    menuLinks.forEach(link => {
-        link.addEventListener('click', function(event) {
-            event.preventDefault();
+    // --- ฟังก์ชันสำหรับเปิด/ปิดเมนู ---
+    function toggleSidebar() {
+        document.body.classList.toggle('sidebar-visible');
+    }
 
+    // --- การจัดการ Event Listeners ---
+
+    // 1. คลิกที่ปุ่ม Hamburger เพื่อเปิดเมนู
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // 2. คลิกที่ปุ่ม X เพื่อปิดเมนู
+    if (closeMenuBtn) {
+        closeMenuBtn.addEventListener('click', toggleSidebar);
+    }
+
+    // 3. คลิกที่ลิงก์ในเมนู
+    mainMenu.addEventListener('click', function(event) {
+        // ตรวจสอบว่าสิ่งที่คลิกคือลิงก์ <a>
+        if (event.target.tagName === 'A') {
+            event.preventDefault(); // ป้องกันการเปลี่ยนหน้าเว็บ
+
+            // นำคลาส 'active' ออกจากทุกเมนู
             menuItems.forEach(item => item.classList.remove('active'));
-            this.parentElement.classList.add('active');
 
-            const page = this.getAttribute('data-page');
+            // เพิ่มคลาส 'active' ให้กับเมนูที่ถูกคลิก
+            event.target.parentElement.classList.add('active');
+
+            const page = event.target.getAttribute('data-page');
             loadContent(page);
-        });
+            
+            // ถ้าเป็นหน้าจอเล็ก ให้ปิดเมนูหลังจากเลือกหัวข้อแล้ว
+            if (window.innerWidth <= 800) {
+                toggleSidebar();
+            }
+        }
     });
 
-    // โหลดเนื้อหาแรกเมื่อเปิดหน้าเว็บ
+
+    // --- โหลดเนื้อหาแรกเมื่อเปิดหน้าเว็บ ---
     loadContent('0-ubuntu-setup');
 
-    // =============================================================
-    // ===== เริ่มส่วนโค้ดใหม่สำหรับจัดการแท็บ (เพิ่มส่วนนี้เข้ามา) =====
-    // =============================================================
+    // --- ส่วนจัดการแท็บที่หายไป ---
     contentDisplay.addEventListener('click', function(event) {
         // ตรวจสอบว่าสิ่งที่คลิกคือปุ่มแท็บหรือไม่
         if (event.target.classList.contains('tablinks')) {
@@ -67,7 +98,4 @@ document.addEventListener('DOMContentLoaded', function() {
             event.target.classList.add("active");
         }
     });
-    // =============================================================
-    // ======================= จบส่วนโค้ดใหม่ =======================
-    // =============================================================
 });

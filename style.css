@@ -1,34 +1,53 @@
 /* --- การตั้งค่าพื้นฐาน --- */
+:root {
+    --sidebar-width: 280px;
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
+    --accent-color: #1abc9c;
+    --text-color: #ecf0f1;
+    --background-color: #f4f7f9;
+}
+
 body {
     font-family: 'Sarabun', sans-serif;
     margin: 0;
-    background-color: #f4f7f9;
+    background-color: var(--background-color);
     color: #333;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
-.container {
+#container {
     display: flex;
     min-height: 100vh;
+    transition: transform 0.3s ease-in-out;
 }
+
 
 /* --- สไตล์ของเมนูด้านซ้าย (Sidebar) --- */
 .sidebar {
-    width: 280px;
-    background-color: #2c3e50;
-    color: #ecf0f1;
+    width: var(--sidebar-width);
+    background-color: var(--primary-color);
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100%;
+    left: 0;
+    top: 0;
+    z-index: 1000;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    transition: left 0.3s ease-in-out;
 }
 
 .sidebar-header {
     padding: 20px;
     text-align: center;
-    background-color: #34495e;
+    background-color: var(--secondary-color);
     border-bottom: 1px solid #4a627a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .sidebar-header h2 {
@@ -45,63 +64,68 @@ body {
 .menu li a {
     display: block;
     padding: 15px 20px;
-    color: #ecf0f1;
+    color: var(--text-color);
     text-decoration: none;
     transition: background-color 0.3s, padding-left 0.3s;
-    border-bottom: 1px solid #34495e;
+    border-bottom: 1px solid var(--secondary-color);
 }
 
 .menu li a:hover {
-    background-color: #34495e;
+    background-color: var(--secondary-color);
     padding-left: 25px;
 }
 
 .menu li.active a {
-    background-color: #1abc9c;
+    background-color: var(--accent-color);
     color: #fff;
     font-weight: bold;
 }
+
 
 /* --- สไตล์ของเนื้อหาด้านขวา (Content) --- */
 .content {
     flex-grow: 1;
     padding: 30px;
-    margin-left: 280px; /* เท่ากับความกว้างของ sidebar */
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    transition: margin-left 0.3s ease-in-out;
 }
 
 #content-display h1 {
-    color: #2c3e50;
-    border-bottom: 3px solid #1abc9c;
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--accent-color);
     padding-bottom: 10px;
     margin-top: 0;
 }
 
 #content-display h2 {
-    color: #34495e;
+    color: var(--secondary-color);
     margin-top: 40px;
 }
 
 /* --- สไตล์สำหรับองค์ประกอบอื่นๆ ในเนื้อหา --- */
 pre {
-    background-color: #2d2d2d;  /* พื้นหลังสีดำเข้มเหมือนเดิม */
-    color: #4CAF50;              /* เปลี่ยนสีตัวอักษรเป็นสีเขียว */
+    background-color: #2d2d2d;
+    color: #4CAF50; /* <-- ปรับสีโค้ดให้เป็นสีเขียวตามเดิม */
     padding: 15px;
     border-radius: 5px;
     overflow-x: auto;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.9em;
-    line-height: 1.5; /* เพิ่มระยะห่างระหว่างบรรทัดให้อ่านง่ายขึ้น */
+    line-height: 1.5;
+    text-align: left; /* <-- ทำให้ข้อความใน pre ชิดซ้ายเสมอ */
+    max-width: 90%; /* <-- จำกัดความกว้างสูงสุด */
+    margin-left: auto; /* <-- จัดให้อยู่กึ่งกลาง */
+    margin-right: auto; /* <-- จัดให้อยู่กึ่งกลาง */
 }
 
-/* ทำให้แท็ก <code> ที่อยู่ข้างใน <pre> ไม่มีพื้นหลังของตัวเอง */
 pre code {
     background-color: transparent;
     padding: 0;
     border-radius: 0;
-    color: inherit; /* ให้สีตัวอักษรสืบทอดมาจาก pre (สีเขียว) */
+    color: inherit;
 }
 
-/* สไตล์สำหรับโค้ดสั้นๆ ที่แทรกในประโยค (Inline Code) */
 code {
     background-color: #e8e8e8;
     padding: 2px 5px;
@@ -109,43 +133,36 @@ code {
     font-family: 'Courier New', Courier, monospace;
 }
 
-/* img.content-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin: 20px 0;
-} */
-/* --- ส่วนเพิ่มใหม่สำหรับรูปภาพ Responsive และจัดกึ่งกลาง --- */
 .image-container {
-    text-align: center; /* จัดเนื้อหาภายในให้อยู่กึ่งกลาง */
-    margin: 20px 0;    /* เพิ่มระยะห่างบน-ล่างเล็กน้อย */
+    text-align: center;
+    margin: 30px 0;
 }
 
 .image-container img.content-image {
-    max-width: 100%; /* ทำให้รูปภาพไม่เกินความกว้างของ container */
-    height: auto;    /* ปรับความสูงอัตโนมัติเพื่อรักษาสัดส่วน */
-    display: block;  /* ทำให้รูปภาพเป็น block เพื่อให้ margin auto ทำงานได้ */
-    margin-left: auto; /* จัดรูปให้อยู่กึ่งกลาง (ในกรณีที่ max-width น้อยกว่า 100%) */
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-left: auto;
     margin-right: auto;
-    border-radius: 8px; /* เพิ่มขอบมนเล็กน้อยเพื่อความสวยงาม */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* เพิ่มเงาเล็กน้อย */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .image-container p {
-    font-style: italic; /* ทำคำอธิบายเป็นตัวเอียง */
-    color: #555;       /* สีเทาอ่อนสำหรับคำอธิบาย */
-    margin-top: 10px;  /* ระยะห่างระหว่างรูปกับคำอธิบาย */
-    font-size: 0.9em;  /* ขนาดตัวอักษรเล็กกว่าปกติ */
+    font-style: italic;
+    color: #555;
+    margin-top: 10px;
+    font-size: 0.9em;
 }
+
 .video-container {
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
     max-width: 100%;
     background: #000;
-    margin: 20px 0;
+    margin: 20px auto; /* เพิ่ม auto เพื่อจัดกึ่งกลาง */
     border-radius: 5px;
 }
 
@@ -155,4 +172,71 @@ code {
     left: 0;
     width: 100%;
     height: 100%;
+}
+
+
+/* --- ปุ่มเปิด/ปิดเมนู --- */
+.menu-toggle, .close-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 10px;
+    color: var(--primary-color);
+}
+
+.close-btn {
+    color: var(--text-color);
+    font-size: 30px;
+}
+
+
+/* ############################################# */
+/* ########## RESPONSIVE DESIGN RULES ########## */
+/* ############################################# */
+
+@media (max-width: 800px) {
+    .sidebar {
+        left: calc(-1 * var(--sidebar-width));
+    }
+
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+
+    .menu-toggle {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1001;
+        background-color: rgba(255,255,255,0.8);
+        border-radius: 5px;
+    }
+    
+    .close-btn {
+        display: block;
+    }
+
+    body.sidebar-visible .sidebar {
+        left: 0;
+    }
+    
+    body.sidebar-visible::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+    
+    pre {
+        max-width: 100%; /* บนมือถือให้โค้ดบล็อกกว้างเต็มจอ */
+    }
 }
