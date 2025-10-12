@@ -1,0 +1,90 @@
+<h1>การติดตั้ง Portainer</h1>
+<p>
+    Portainer คือเครื่องมือที่มี User Interface (UI) บนเว็บ สำหรับใช้บริหารจัดการ Docker ของเรา ทำให้เราสามารถดูสถานะ, จัดการ Containers, Images, Volumes, Networks และอื่นๆ ได้อย่างง่ายดายผ่านเบราว์เซอร์ โดยไม่ต้องพิมพ์คำสั่งบน Command Line ตลอดเวลา
+</p>
+<p>
+    <strong>สิ่งที่ต้องมีก่อน:</strong> การติดตั้ง Portainer จะรันอยู่บน Docker ดังนั้นคุณจำเป็นต้อง <a href="#" onclick="document.querySelector('a[data-page=\'1-docker\']').click();">ติดตั้ง Docker</a> ให้เรียบร้อยก่อน
+</p>
+
+<h2>ขั้นตอนการติดตั้ง</h2>
+<p>
+    เราจะทำการติดตั้ง Portainer Community Edition (CE) ซึ่งเป็นเวอร์ชันที่ใช้งานได้ฟรีและมีฟังก์ชันครบถ้วน
+</p>
+
+<ol>
+    <li>
+        <strong>สร้าง Volume สำหรับเก็บข้อมูลของ Portainer:</strong><br>
+        เพื่อให้ข้อมูลและการตั้งค่าของ Portainer ยังคงอยู่แม้จะมีการสร้าง Container ใหม่ เราจึงควรสร้าง Volume แยกไว้สำหรับเก็บข้อมูลโดยเฉพาะ
+        <pre><code>sudo docker volume create portainer_data</code></pre>
+    </li>
+    <li>
+        <strong>รัน Container ของ Portainer:</strong><br>
+        ใช้คำสั่ง `docker run` เพื่อดาวน์โหลด Image และเริ่มการทำงานของ Portainer
+        <pre><code>sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
+    --restart=always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v portainer_data:/data \
+    portainer/portainer-ce:latest</code></pre>
+        <strong>อธิบายคำสั่ง:</strong>
+        <ul>
+            <li><code>-d</code>: รัน Container ในโหมด Detached (ทำงานอยู่เบื้องหลัง)</li>
+            <li><code>-p 8000:8000 -p 9443:9443</code>: ทำการ map port 8000 และ 9443 (สำหรับ UI) จากเครื่อง Server ไปยัง Container</li>
+            <li><code>--name portainer</code>: ตั้งชื่อ Container ว่า "portainer"</li>
+            <li><code>--restart=always</code>: ให้ Container นี้เริ่มทำงานใหม่เสมอเมื่อ Docker daemon เริ่มทำงาน (เช่น หลังรีสตาร์ทเครื่อง)</li>
+            <li><code>-v /var/run/docker.sock...</code>: ส่วนที่สำคัญที่สุด คือการเชื่อมต่อ Docker socket ของเครื่อง Server เข้าไปใน Container ทำให้ Portainer สามารถสั่งงาน Docker ได้</li>
+            <li><code>-v portainer_data:/data</code>: เชื่อมต่อ Volume ที่เราสร้างไว้ในขั้นตอนแรกเข้ากับ path <code>/data</code> ภายใน Container</li>
+            <li><code>portainer/portainer-ce:latest</code>: คือชื่อ Image ของ Portainer CE เวอร์ชันล่าสุด</li>
+        </ul>
+    </li>
+</ol>
+
+<h2>การตั้งค่าเริ่มต้น (Initial Setup)</h2>
+<ol>
+    <li>
+        <strong>เข้าสู่หน้าเว็บ Portainer:</strong><br>
+        เปิดเว็บเบราว์เซอร์แล้วเข้าไปที่ <code>https://[IP_ADDRESS_SERVER_ของคุณ]:9443</code><br>
+        <em>(<strong>หมายเหตุ:</strong> เบราว์เซอร์อาจจะแจ้งเตือนว่าการเชื่อมต่อไม่ปลอดภัย เนื่องจากเรายังไม่ได้ติดตั้ง SSL Certificate ให้คลิก "Advanced" และ "Proceed" เพื่อเข้าสู่หน้าเว็บ)</em>
+    </li>
+    <li>
+        <strong>สร้างบัญชีผู้ดูแลระบบ (Admin):</strong><br>
+        ในครั้งแรกที่เข้าใช้งาน Portainer จะให้เราสร้างบัญชีผู้ดูแลระบบ ให้กำหนด Username และรหัสผ่านที่คาดเดายาก แล้วกด "Create user"
+    </li>
+    <li>
+        <strong>เชื่อมต่อกับ Docker Environment:</strong><br>
+        หลังจากสร้างบัญชีแล้ว Portainer จะถามว่าต้องการจัดการ Environment ใด ให้เลือก "Docker" และกด "Connect" ได้เลย เพราะเราได้เชื่อมต่อ Docker Socket ไว้แล้ว
+    </li>
+</ol>
+<p>
+    เมื่อทำตามขั้นตอนเสร็จเรียบร้อย คุณจะเข้าสู่หน้า Dashboard หลักของ Portainer ซึ่งพร้อมใช้งานแล้ว
+</p>
+
+
+    <div class="image-container">
+        <img src="images/02-portainer-01.png" alt="หน้าจอ Portainer Create User" class="content-image">
+        <p><em>หน้าจอ Portainer Create User</em></p>
+    </div>
+</p>
+<p>
+    <div class="image-container">
+        <img src="images/02-portainer-02.png" alt="หน้าจอ Portainer Get Started" class="content-image">
+        <p><em>หน้าจอ Portainer Get Started</em></p>
+    </div>
+</p>
+<p>
+    <div class="image-container">
+        <img src="images/02-portainer-03.png" alt="หน้าจอ Portainer Home Environments" class="content-image">
+        <p><em>หน้าจอ Portainer Home Environments</em></p>
+    </div>
+</p>
+<p>
+    <div class="image-container">
+        <img src="images/02-portainer-04.png" alt="หน้าจอ Portainer Local Dashboard" class="content-image">
+        <p><em>หน้าจอ Portainer Local Dashboard</em></p>
+    </div>
+</p>
+<h2>วิดีโอสอนการติดตั้ง Portainer</h2>
+<p>สำหรับคำแนะนำแบบวิดีโอ คุณสามารถดูวิดีโอนี้จาก YouTube เพื่อทำตามขั้นตอนต่างๆ ได้</p>
+
+<div class="video-container">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/sILQ4DRl94A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+</div>

@@ -1,0 +1,237 @@
+<h1>บทที่ 7: การติดตั้งและใช้งาน Caddy Reverse Proxy</h1>
+<p>
+    ณ ตอนนี้ Service ต่างๆ ของเราเข้าถึงผ่าน Port ที่แตกต่างกัน (เช่น GitLab ที่ Port 80, Portainer ที่ 9443) ซึ่งไม่สะดวกและไม่ปลอดภัยนัก Caddy จะเข้ามาทำหน้าที่เป็น "ผู้จัดการด้านหน้า" หรือ Reverse Proxy คอยรับการจราจรทั้งหมดที่เข้ามาทาง Port มาตรฐาน (80 และ 443) แล้วแจกจ่ายไปยัง Service ที่ถูกต้องภายใน Server ของเราโดยอัตโนมัติ
+</p>
+
+<h3>ทำไมต้องใช้ Caddy Reverse Proxy?</h3>
+<ul>
+    <li>
+        <strong>เข้าถึงง่าย:</strong> เราสามารถเข้าถึงทุก Service ผ่านโดเมนสวยๆ ได้เลย เช่น <code>https://gitlab.vecskill.ovec</code> โดยไม่ต้องจำ Port อีกต่อไป
+    </li>
+    <li>
+        <strong>HTTPS อัตโนมัติ (Automatic HTTPS):</strong> นี่คือ "ไม้ตาย" ของ Caddy! มันจะทำการขอและต่ออายุ SSL Certificate จาก Let's Encrypt ให้กับทุกโดเมนโดยอัตโนมัติ ทำให้ทุกเว็บของเราเป็น HTTPS โดยไม่ต้องตั้งค่าอะไรเพิ่มเติมเลย
+    </li>
+    <li>
+        <strong>จัดการทุกอย่างในที่เดียว:</strong> ตั้งค่าโดเมนทั้งหมดของเราได้ในไฟล์ `Caddyfile` เพียงไฟล์เดียว
+    </li>
+    <li>
+        <strong>เพิ่มความปลอดภัย:</strong> ซ่อนโครงสร้างและ Port ภายในของ Server ของเราจากโลกภายนอก
+    </li>
+</ul>
+
+<hr style="margin: 40px 0;">
+
+<h2>ส่วนที่ 1: การตั้งค่า Caddy สำหรับ Public Domain (HTTPS ภายนอก)</h2>
+<p>
+    ในส่วนนี้ เราจะตั้งค่าให้ Caddy จัดการโดเมนที่เข้าถึงได้จากอินเทอร์เน็ต เช่น `gitlab.vecskill.ovec` และ `portainer.vecskill.ovec`
+</p>
+
+<h3>ขั้นตอนที่ 1.1: เตรียมความพร้อม (สำคัญมาก)</h3>
+<ol>
+    <li>
+        <strong>ตั้งค่า DNS:</strong> ตรวจสอบให้แน่ใจว่าคุณได้สร้าง A Record สำหรับ <strong>ทุกโดเมน</strong> ที่ต้องการใช้งาน ชี้มายัง <strong>Public IP Address</strong> ของ Server คุณ ตัวอย่างเช่น:
+        <pre><code># ในระบบ DNS ของ vecskill.ovec
+Host: gitlab    -> Points to: [YOUR_PUBLIC_IP]
+Host: portainer -> Points to: [YOUR_PUBLIC_IP]</code></pre>
+    </li>
+    <li>
+        <strong>เปิด Firewall:</strong> ตรวจสอบว่า Firewall (UFW) ของคุณได้เปิด Port 80 และ 443 ไว้แล้ว
+        <pre><code>sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp</code></pre>
+    </li>
+    <li style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 10px; list-style-position: inside;">
+        <strong>ลบ Port Bindings เก่า:</strong> เข้าไปแก้ไข Stack ของ GitLab และ Portainer เพื่อ <strong>ลบหรือคอมเมนต์</strong> ส่วน <code>ports</code> ที่ผูกกับ Port 80, 443, และ 9443 ออกไป เพราะ Caddy จะเป็นผู้จัดการ Port เหล่านี้แทนแล้ว ตัวอย่างการแก้ไขใน Stack GitLab:
+        <pre><code># ใน gitlab-stack ของคุณ
+services:
+  gitlab:
+    # ...
+    # ports:             <-- คอมเมนต์ หรือลบบรรทัดเหล่านี้ทิ้ง
+    #   - '80:80'
+    #   - '443:443'
+    # ...
+</code></pre>
+        หลังจากแก้ไขแล้ว ให้ทำการ Update Stack เพื่อให้การเปลี่ยนแปลงมีผล
+    </li>
+</ol>
+
+<h3>ขั้นตอนที่ 1.2: สร้างไฟล์คอนฟิก `Caddyfile`</h3>
+<p>
+    สร้างโฟลเดอร์สำหรับ Caddy และสร้างไฟล์ `Caddyfile` ขึ้นมา
+</p>
+<pre><code># สร้างโฟลเดอร์
+sudo mkdir -p /srv/caddy/config
+sudo mkdir -p /srv/caddy/data
+
+# สร้างและแก้ไขไฟล์ Caddyfile
+sudo nano /srv/caddy/Caddyfile</code></pre>
+<p>คัดลอกเนื้อหานี้ไปวางในไฟล์ `Caddyfile`. โค้ดนี้เป็นการบอก Caddy ว่า:</p>
+<ul>
+    <li>ถ้ามีคนเข้ามาที่ <code>https://gitlab.vecskill.ovec</code> ให้ส่งต่อไปที่ service ชื่อ `gitlab` ที่ port 80</li>
+    <li>ถ้ามีคนเข้ามาที่ <code>https://portainer.vecskill.ovec</code> ให้ส่งต่อไปที่ service ชื่อ `portainer` ที่ port 9443</li>
+</ul>
+<pre><code>gitlab.vecskill.ovec {
+    reverse_proxy gitlab:80
+}
+
+portainer.vecskill.ovec {
+    # Portainer ทำงานบน HTTPS ภายใน เราจึงต้องตั้งค่า transport เพิ่มเติม
+    reverse_proxy portainer:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}
+</code></pre>
+
+<h3>ขั้นตอนที่ 1.3: ติดตั้ง Caddy ผ่าน Portainer Stack</h3>
+<p>
+    ไปที่ <strong>Stacks > + Add stack</strong>, ตั้งชื่อ (เช่น `caddy-stack`) แล้วใช้โค้ด Docker Compose นี้:
+</p>
+<pre><code>version: '3.8'
+
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # สำหรับ HTTP/3
+    volumes:
+      - /srv/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - /srv/caddy/data:/data
+      - /srv/caddy/config:/config
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    external: true
+</code></pre>
+<p>
+    เมื่อ Deploy Stack สำเร็จ Caddy จะเริ่มทำงานโดยอัตโนมัติ มันจะเห็นว่ามีโดเมน `gitlab.vecskill.ovec` และ `portainer.vecskill.ovec` ในคอนฟิก และจะทำการขอ SSL Certificate จาก Let's Encrypt ให้ทันที รอสักครู่ (ประมาณ 1-2 นาที) แล้วลองเข้าเว็บ <code>https://gitlab.vecskill.ovec</code> คุณจะพบว่าเว็บเข้าได้และมี HTTPS เรียบร้อย!
+</p>
+
+<hr style="margin: 40px 0;">
+
+<h2>ส่วนที่ 2: การทำ Internal HTTPS (สำหรับ Service ภายใน)</h2>
+<p>
+    สมมติว่าคุณมี Service ภายในที่ไม่ต้องการเปิดเผยสู่อินเทอร์เน็ต แต่ยังต้องการให้การสื่อสารภายในเครือข่าย (เช่น จากเครื่องนักพัฒนาไปยัง Service) เป็น HTTPS ที่น่าเชื่อถือ Caddy ก็สามารถทำได้โดยใช้สิ่งที่เรียกว่า <strong>DNS Challenge</strong>
+</p>
+<p>
+    <strong>แนวคิด:</strong> แทนที่จะพิสูจน์ความเป็นเจ้าของโดเมนโดยการสร้างไฟล์บนเว็บเซิร์ฟเวอร์ (ซึ่งทำไม่ได้ถ้าเว็บไม่ได้เปิดเป็น Public) Caddy จะพิสูจน์โดยการสร้าง DNS Record (ชนิด TXT) ชั่วคราวผ่าน API ของผู้ให้บริการ DNS ของคุณแทน
+</p>
+
+<h3>ขั้นตอนที่ 2.1: เตรียมความพร้อม</h3>
+<ol>
+    <li>
+        <strong>ผู้ให้บริการ DNS ที่มี API:</strong> คุณต้องใช้ผู้ให้บริการ DNS ที่ Caddy รองรับ เช่น Cloudflare, DigitalOcean, GoDaddy, etc. (ในตัวอย่างนี้จะใช้ <strong>Cloudflare</strong> ซึ่งฟรีและเป็นที่นิยม)
+    </li>
+    <li>
+        <strong>สร้าง API Token:</strong>
+        <ul>
+            <li>ล็อกอินเข้า Cloudflare > ไปที่โดเมน `vecskill.ovec` ของคุณ</li>
+            <li>ไปที่เมนู <strong>API Tokens</strong> > <strong>Create Token</strong></li>
+            <li>เลือกใช้ Template "Edit zone DNS"</li>
+            <li>ตั้งค่า Permissions ให้ครอบคลุม Zone: `vecskill.ovec`</li>
+            <li>สร้าง Token และ <strong>คัดลอก Token นั้นเก็บไว้ให้ดี</strong> (จะเห็นได้แค่ครั้งเดียว)</li>
+        </ul>
+    </li>
+</ol>
+
+<h3>ขั้นตอนที่ 2.2: สร้าง Caddy Image แบบมี Plugin</h3>
+<p>
+    โดยปกติ Image ของ Caddy ไม่ได้มี Plugin สำหรับผู้ให้บริการ DNS ต่างๆ มาให้ เราต้องสร้าง Image ของเราเองที่มี Plugin นั้นๆ
+</p>
+<p>สร้างโฟลเดอร์ใหม่ (เช่น `caddy-custom-build`) และสร้างไฟล์ `Dockerfile` ข้างใน:</p>
+<pre><code># สร้างโฟลเดอร์และไฟล์
+mkdir caddy-custom-build
+cd caddy-custom-build
+nano Dockerfile</code></pre>
+<p>ใส่เนื้อหานี้ลงใน `Dockerfile`:</p>
+<pre><code># ใช้ Caddy เวอร์ชันล่าสุดเป็น Base
+ARG CADDY_VERSION=2.8.4
+FROM caddy:${CADDY_VERSION}-builder AS builder
+
+# ใช้ xcaddy เพื่อ build caddy พร้อมกับ plugin ของ cloudflare
+RUN xcaddy build \
+    --with github.com/caddy-dns/cloudflare
+
+# สร้าง Image สุดท้ายจาก caddy พื้นฐาน
+FROM caddy:${CADDY_VERSION}
+
+# คัดลอก binary ของ caddy ที่มี plugin แล้วเข้ามาทับของเดิม
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+</code></pre>
+<p>จากนั้น Build Image นี้:</p>
+<pre><code># ตั้งชื่อ image ว่า my-caddy-custom
+docker build -t my-caddy-custom .</code></pre>
+
+<h3>ขั้นตอนที่ 2.3: อัปเดต Stack และ `Caddyfile`</h3>
+<ol>
+    <li>
+        <strong>อัปเดต Caddy Stack:</strong><br>
+        กลับไปที่ `caddy-stack` ใน Portainer และแก้ไข Editor:
+        <ul>
+            <li>เปลี่ยน <code>image: caddy:latest</code> เป็น <code>image: my-caddy-custom:latest</code></li>
+            <li>เพิ่มส่วน <code>environment</code> เพื่อใส่ API Token ของคุณ (ปลอดภัยกว่าการใส่ใน Caddyfile)</li>
+        </ul>
+        <pre><code># โค้ด caddy-stack ที่อัปเดตแล้ว
+version: '3.8'
+
+services:
+  caddy:
+    image: my-caddy-custom:latest  # <--- เปลี่ยนตรงนี้
+    container_name: caddy
+    restart: always
+    environment: # <--- เพิ่มส่วนนี้เข้ามา
+      - CLOUDFLARE_API_TOKEN=[YOUR_CLOUDFLARE_API_TOKEN]
+    ports:
+      # ... ports เหมือนเดิม ...
+    volumes:
+      # ... volumes เหมือนเดิม ...
+    networks:
+      # ... networks เหมือนเดิม ...
+</code></pre>
+        จากนั้นกด <strong>Update the stack</strong>
+    </li>
+    <li>
+        <strong>อัปเดต `Caddyfile`:</strong><br>
+        สมมติว่าคุณมี Service ภายในชื่อ `internal-wiki` ที่ทำงานบน Port 8888 และต้องการเข้าถึงผ่าน <code>https://wiki.internal.vecskill.ovec</code><br>
+        (คุณต้องสร้าง DNS Record สำหรับ `wiki.internal` ชี้มาที่ <strong>Private IP</strong> ของ Server ก่อน)
+        <pre><code># แก้ไขไฟล์ /srv/caddy/Caddyfile
+sudo nano /srv/caddy/Caddyfile</code></pre>
+        เพิ่ม "Global Options Block" ไว้บนสุด และเพิ่มคอนฟิกสำหรับเว็บภายใน:
+        <pre><code># --- Global Options ---
+{
+    # บอก Caddy ให้ใช้ Cloudflare DNS challenge สำหรับการขอ Certificate
+    acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+}
+
+# --- Public Services ---
+gitlab.vecskill.ovec {
+    reverse_proxy gitlab:80
+}
+
+portainer.vecskill.ovec {
+    reverse_proxy portainer:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}
+
+# --- Internal Service with Trusted HTTPS ---
+wiki.internal.vecskill.ovec {
+    # Caddy จะใช้ DNS challenge ที่ตั้งไว้ใน Global Options
+    # เพื่อขอ Certificate ที่น่าเชื่อถือสำหรับโดเมนนี้
+    reverse_proxy internal-wiki:8888
+}
+</code></pre>
+        หลังจากบันทึกไฟล์ Caddy จะ Reload คอนฟิกใหม่โดยอัตโนมัติ และเริ่มกระบวนการขอ Certificate สำหรับ `wiki.internal.vecskill.ovec` ผ่าน DNS แม้ว่าเว็บนี้จะไม่ได้เปิด Public ก็ตาม
+    </li>
+</ol>
+<p>
+    ด้วยวิธีนี้ คุณจะสามารถมีการเชื่อมต่อแบบ HTTPS ที่สมบูรณ์และน่าเชื่อถือได้สำหรับทุก Service ไม่ว่าจะอยู่ภายในหรือภายนอกเครือข่ายก็ตาม
+</p>

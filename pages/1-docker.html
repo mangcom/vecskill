@@ -1,0 +1,49 @@
+<h1>การติดตั้ง Docker</h1>
+<p>Docker คือแพลตฟอร์มสำหรับพัฒนา, จัดส่ง, และรันแอปพลิเคชันในสิ่งที่เรียกว่า "Containers" ซึ่งช่วยให้เราสามารถแยกแอปพลิเคชันออกจากสภาพแวดล้อมและทำให้มั่นใจได้ว่ามันจะทำงานเหมือนกันในทุกที่</p>
+
+<h2>ขั้นตอนการติดตั้งบน Ubuntu</h2>
+<p>การติดตั้ง Docker บนระบบปฏิบัติการ Ubuntu สามารถทำได้ง่ายๆ ผ่าน Command Line ดังนี้</p>
+
+<ol>
+    <li><strong>Uninstall เวอร์ชั่นเก่าออก </strong>
+        <pre><code>for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done</code></pre>
+    </li>
+    <li><strong>อัปเดต Package Index ติดตั้ง Package ที่จำเป็น และ เพิ่ม Docker’s official GPG key:</strong>
+        <pre><code>sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg lsb-release
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg</code></pre>
+    </li>
+    <li><strong>ตั้งค่า Repository:</strong>
+        <pre><code>echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null</code></pre>
+    </li>
+    <li><strong>ติดตั้ง Docker Engine:</strong>
+        <pre><code>sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y</code></pre>
+    </li>
+        <li><strong>ตรวจสอบการทำงาน Service Docker และให้ทำงานอัตโนมัติทุกครั้งที่ Reboot</strong><br>
+        <pre><code>sudo systemctl status docker
+sudo systemctl enable docker</code></pre>
+    </li>
+    <li><strong>ทดสอบการติดตั้ง:</strong><br>
+    รัน image `hello-world` เพื่อตรวจสอบว่า Docker ทำงานถูกต้อง
+        <pre><code>sudo docker run hello-world</code></pre>
+    </li>
+</ol>
+<p>
+    <div class="image-container">
+        <img src="images/01-docker-run-hellow-world.png" alt="Docker Hello World Output" class="content-image">
+        <p><em>ภาพตัวอย่างผลลัพธ์จากการรัน `hello-world`</em></p>
+    </div>
+</p>
+
+
+<h2>วิดีโอสอนการติดตั้ง Docker</h2>
+<p>สำหรับคำแนะนำแบบวิดีโอ คุณสามารถดูวิดีโอนี้จาก YouTube เพื่อทำตามขั้นตอนต่างๆ ได้</p>
+
+<div class="video-container">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/p-de2d-g3s4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
