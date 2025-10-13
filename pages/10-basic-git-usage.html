@@ -1,0 +1,105 @@
+<h1>บทที่ 10: การใช้งาน Git เบื้องต้นกับ GitLab Server</h1>
+<p>
+    หลังจากที่เราได้ติดตั้งและตั้งค่าระบบทั้งหมดเรียบร้อยแล้ว ในบทนี้เราจะมาดูขั้นตอนการใช้งานจริงในฝั่งของนักพัฒนา (Developer) ซึ่งก็คือการนำซอร์สโค้ดของโปรเจกต์เราเข้าไปจัดเก็บและควบคุมเวอร์ชันบน GitLab Server โดยใช้คำสั่ง Git พื้นฐาน
+</p>
+<p>
+    Git คือระบบควบคุมเวอร์ชัน (Version Control System) ที่ทำหน้าที่ติดตามการเปลี่ยนแปลงของไฟล์ต่างๆ ในโปรเจกต์ของเรา ทำให้เราสามารถย้อนกลับไปดูเวอร์ชันก่อนหน้า, ทำงานร่วมกับผู้อื่นได้ง่าย, และสร้างสาขา (Branch) เพื่อพัฒนาฟีเจอร์ใหม่ๆ ได้อย่างปลอดภัย
+</p>
+
+<h3>สิ่งที่ต้องเตรียมก่อนเริ่มต้น</h3>
+<ul>
+    <li>
+        <strong>ติดตั้ง Git บนเครื่องคอมพิวเตอร์ของคุณ:</strong> หากยังไม่มี สามารถดาวน์โหลดและติดตั้งได้จาก <a href="https://git-scm.com/downloads" target="_blank">git-scm.com</a>
+    </li>
+    <li>
+        <strong>สร้างโปรเจกต์ว่าง (Blank Project) บน GitLab:</strong> ล็อกอินเข้า <code>http://gitlab.vecskill.ovec</code> และสร้างโปรเจกต์ใหม่ไว้รอ ตัวอย่างเช่น โปรเจกต์ชื่อ `demo-task` ภายใต้ Group `devops_app`
+    </li>
+    <li>
+        <strong>เตรียมโฟลเดอร์โปรเจกต์บนเครื่องของคุณ:</strong> สร้างโฟลเดอร์ว่างๆ สำหรับโปรเจกต์นี้บนเครื่องคอมพิวเตอร์ของคุณ
+    </li>
+</ul>
+
+<hr style="margin: 40px 0;">
+
+<h2>ขั้นตอนการนำโปรเจกต์ขึ้น GitLab</h2>
+<p>
+    เราจะทำตามขั้นตอนมาตรฐานในการนำโค้ดจากเครื่อง local ของเรา push ขึ้นไปเก็บไว้ที่ GitLab เป็นครั้งแรก
+</p>
+
+<h3>ขั้นตอนที่ 1: สร้างโฟลเดอร์และไฟล์เริ่มต้น</h3>
+<p>
+    เปิด Terminal หรือ Command Prompt ขึ้นมา แล้วสร้างโฟลเดอร์สำหรับโปรเจกต์ใหม่ของคุณ
+</p>
+<pre><code># สร้างโฟลเดอร์และเข้าไปข้างใน
+mkdir demo-task
+cd demo-task
+
+# สร้างไฟล์ README.md สำหรับทดสอบ
+echo "# Demo Task Project" >> README.md
+</code></pre>
+
+<h3>ขั้นตอนที่ 2: เริ่มต้นใช้งาน Git (`git init`)</h3>
+<p>
+    คำสั่งนี้จะเปลี่ยนโฟลเดอร์ธรรมดาของคุณให้กลายเป็น "Git Repository" โดยการสร้างโฟลเดอร์ย่อยที่ซ่อนอยู่ชื่อว่า <code>.git</code> เพื่อเริ่มติดตามการเปลี่ยนแปลงทั้งหมด
+</p>
+<pre><code>git init</code></pre>
+<p>คุณจะเห็นข้อความตอบกลับว่า "Initialized empty Git repository..."</p>
+
+<h3>ขั้นตอนที่ 3: เชื่อมต่อกับ GitLab Server (`git remote add`)</h3>
+<p>
+    ขั้นตอนนี้คือการ "บอก" Git ในเครื่องของเราว่า Repository ปลายทางบนเซิร์ฟเวอร์ (ที่เราเรียกว่า "Remote") อยู่ที่ไหน เราจะตั้งชื่อ Remote หลักของเราว่า <code>origin</code>
+</p>
+<ol>
+    <li>
+        ไปที่หน้าโปรเจกต์ของคุณบน GitLab แล้วคลิกที่ปุ่มสีฟ้า "Clone" เพื่อคัดลอก URL แบบ HTTP
+        <div class="image-container">
+            <img src="https://i.imgur.com/L7s7v9c.png" alt="Clone URL on GitLab" class="content-image">
+            <p>คัดลอก Clone with HTTP URL จากหน้าโปรเจกต์บน GitLab</p>
+        </div>
+    </li>
+    <li>
+        ใช้คำสั่ง <code>git remote add</code> ใน Terminal ของคุณ
+        <pre><code>git remote add origin http://gitlab.vecskill.ovec/devops_app/demo-task.git</code></pre>
+    </li>
+</ol>
+
+
+<h3>ขั้นตอนที่ 4: เพิ่มไฟล์เข้าสู่ Staging Area (`git add`)</h3>
+<p>
+    ก่อนที่เราจะบันทึกการเปลี่ยนแปลง (Commit) เราต้องเลือกว่าจะเอาไฟล์ไหนบ้างเข้าสู่การบันทึกครั้งนี้ ขั้นตอนนี้เรียกว่าการ "Stage" ไฟล์ คำสั่ง <code>git add .</code> คือการเลือกไฟล์ที่มีการเปลี่ยนแปลงทั้งหมดในโฟลเดอร์ปัจจุบัน
+</p>
+<pre><code># เพิ่มไฟล์ทั้งหมดที่เปลี่ยนแปลงเข้าสู่ Staging Area
+git add .</code></pre>
+
+<h3>ขั้นตอนที่ 5: บันทึกการเปลี่ยนแปลง (`git commit`)</h3>
+<p>
+    การ Commit คือการ "ถ่ายภาพ" หรือสร้าง Snapshot ของไฟล์ที่เราได้ Stage ไว้ พร้อมกับแนบข้อความ (Message) เพื่ออธิบายว่าการเปลี่ยนแปลงครั้งนี้เกี่ยวกับอะไร
+</p>
+<pre><code># ใช้ -m เพื่อใส่ commit message
+git commit -m "Initial project with README file"</code></pre>
+
+<h3>ขั้นตอนที่ 6: Push โค้ดขึ้นไปยัง GitLab (`git push`)</h3>
+<p>
+    นี่คือขั้นตอนสุดท้าย คือการส่งข้อมูล Commit ทั้งหมดจากเครื่องของเราขึ้นไปยัง Remote ที่ชื่อ <code>origin</code> บน GitLab Server
+</p>
+<pre><code># -u origin main คือการตั้งค่าให้ branch 'main' ของเราติดตาม 'origin/main'
+# ทำให้ครั้งต่อไปเราสามารถใช้แค่ git push ได้เลย
+git push -u origin main</code></pre>
+<p>
+    Git อาจจะถาม Username และ Password สำหรับล็อกอิน GitLab ของคุณ ให้กรอกข้อมูลให้ถูกต้อง
+</p>
+
+<h3>ตรวจสอบผลลัพธ์และดู Pipeline ทำงาน!</h3>
+<p>
+    หลังจาก Push สำเร็จ ให้คุณกลับไปที่หน้าโปรเจกต์บน GitLab แล้วรีเฟรช คุณจะเห็นไฟล์ <code>README.md</code> ที่คุณสร้างปรากฏขึ้นมา
+</p>
+<p style="background-color: #d4edda; border-left: 5px solid #28a745; padding: 15px;">
+    <strong>และที่สำคัญที่สุด:</strong> ลองคลิกไปที่เมนู <strong>CI/CD > Pipelines</strong> คุณจะเห็นว่า Pipeline ใหม่ได้เริ่มทำงานโดยอัตโนมัติแล้ว! นี่คือผลลัพธ์จากการตั้งค่าทั้งหมดที่เราทำมาตั้งแต่บทที่ 5 การ `git push` ครั้งนี้คือตัวจุดชนวนให้กระบวนการ CI/CD ทั้งหมดเริ่มต้นขึ้น
+</p>
+<div class="image-container">
+    <img src="https://i.imgur.com/i9dY6Wn.png" alt="GitLab Pipeline Running after push" class="content-image">
+    <p>Pipeline เริ่มทำงานอัตโนมัติทันทีหลังจาก git push สำเร็จ</p>
+</div>
+<p>
+    จากนี้ไป ทุกครั้งที่คุณและทีมทำการ `git push` การเปลี่ยนแปลงใหม่ๆ ขึ้นมา, GitLab CI/CD ก็จะทำงานตามที่คุณกำหนดไว้ในไฟล์ <code>.gitlab-ci.yml</code> โดยอัตโนมัติ
+</p>
