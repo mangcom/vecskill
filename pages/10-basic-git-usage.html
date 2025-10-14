@@ -28,13 +28,12 @@
 
 <h3>ขั้นตอนที่ 1: สร้างโฟลเดอร์และไฟล์เริ่มต้น</h3>
 <p>
-    เปิด Terminal หรือ Command Prompt ขึ้นมา แล้วสร้างโฟลเดอร์สำหรับโปรเจกต์ใหม่ของคุณ
+    เปิด Terminal หรือ Command Prompt ขึ้นมา แล้วสร้างโฟลเดอร์สำหรับโปรเจกต์ใหม่ของคุณ<br>
+    # สร้างโฟลเดอร์และเข้าไปข้างใน<br>
+    # สร้างไฟล์ README.md สำหรับทดสอบ
 </p>
-<pre><code># สร้างโฟลเดอร์และเข้าไปข้างใน
-mkdir demo-task
+<pre><code>mkdir demo-task
 cd demo-task
-
-# สร้างไฟล์ README.md สำหรับทดสอบ
 echo "# Demo Task Project" >> README.md
 </code></pre>
 
@@ -66,25 +65,30 @@ echo "# Demo Task Project" >> README.md
 
 <h3>ขั้นตอนที่ 4: เพิ่มไฟล์เข้าสู่ Staging Area (`git add`)</h3>
 <p>
-    ก่อนที่เราจะบันทึกการเปลี่ยนแปลง (Commit) เราต้องเลือกว่าจะเอาไฟล์ไหนบ้างเข้าสู่การบันทึกครั้งนี้ ขั้นตอนนี้เรียกว่าการ "Stage" ไฟล์ คำสั่ง <code>git add .</code> คือการเลือกไฟล์ที่มีการเปลี่ยนแปลงทั้งหมดในโฟลเดอร์ปัจจุบัน
+    ก่อนที่เราจะบันทึกการเปลี่ยนแปลง (Commit) เราต้องเลือกว่าจะเอาไฟล์ไหนบ้างเข้าสู่การบันทึกครั้งนี้ ขั้นตอนนี้เรียกว่าการ "Stage" ไฟล์ คำสั่ง <code>git add .</code> คือการเลือกไฟล์ที่มีการเปลี่ยนแปลงทั้งหมดในโฟลเดอร์ปัจจุบัน<br>
+    # เพิ่มไฟล์ทั้งหมดที่เปลี่ยนแปลงเข้าสู่ Staging Area
 </p>
-<pre><code># เพิ่มไฟล์ทั้งหมดที่เปลี่ยนแปลงเข้าสู่ Staging Area
-git add .</code></pre>
+<pre><code>git add .</code></pre>
 
 <h3>ขั้นตอนที่ 5: บันทึกการเปลี่ยนแปลง (`git commit`)</h3>
 <p>
-    การ Commit คือการ "ถ่ายภาพ" หรือสร้าง Snapshot ของไฟล์ที่เราได้ Stage ไว้ พร้อมกับแนบข้อความ (Message) เพื่ออธิบายว่าการเปลี่ยนแปลงครั้งนี้เกี่ยวกับอะไร
+    การ Commit คือการ "ถ่ายภาพ" หรือสร้าง Snapshot ของไฟล์ที่เราได้ Stage ไว้ พร้อมกับแนบข้อความ (Message) เพื่ออธิบายว่าการเปลี่ยนแปลงครั้งนี้เกี่ยวกับอะไร <br># ใช้ -m เพื่อใส่ commit message
 </p>
-<pre><code># ใช้ -m เพื่อใส่ commit message
-git commit -m "Initial project with README file"</code></pre>
+<pre><code>git commit -m "Initial project with README file"</code></pre>
 
-<h3>ขั้นตอนที่ 6: Push โค้ดขึ้นไปยัง GitLab (`git push`)</h3>
+<h3>ขั้นตอนที่ 6: เปลี่ยนชื่อ Branch ให้เป็น main (`git branch`)</h3>
 <p>
-    นี่คือขั้นตอนสุดท้าย คือการส่งข้อมูล Commit ทั้งหมดจากเครื่องของเราขึ้นไปยัง Remote ที่ชื่อ <code>origin</code> บน GitLab Server
+    ใช้ -M เพื่อบังคับเปลี่ยนชื่อ branch เป็น main
 </p>
-<pre><code># -u origin main คือการตั้งค่าให้ branch 'main' ของเราติดตาม 'origin/main'
+<pre><code>git commit branch -M main</code></pre>
+
+<h3>ขั้นตอนที่ 7: Push โค้ดขึ้นไปยัง GitLab (`git push`)</h3>
+<p>
+    นี่คือขั้นตอนสุดท้าย คือการส่งข้อมูล Commit ทั้งหมดจากเครื่องของเราขึ้นไปยัง Remote ที่ชื่อ <code>origin</code> บน GitLab Server<br>
+    # -u origin main คือการตั้งค่าให้ branch 'main' ของเราติดตาม 'origin/main'<br>
 # ทำให้ครั้งต่อไปเราสามารถใช้แค่ git push ได้เลย
-git push -u origin main</code></pre>
+</p>
+<pre><code>git push -u origin main</code></pre>
 <p>
     Git อาจจะถาม Username และ Password สำหรับล็อกอิน GitLab ของคุณ ให้กรอกข้อมูลให้ถูกต้อง
 </p>
