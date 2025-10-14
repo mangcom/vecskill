@@ -40,6 +40,32 @@ sudo systemctl enable docker</code></pre>
     </div>
 </p>
 
+<h2>การจัดการและทวงคืนพื้นที่ (Disk Space) จาก Docker</h2>
+<p>คำสั่งสำหรับเคลียร์และลบ Container, Image, Network, และ Volume ที่ไม่ได้ใช้งานเพื่อทวงคืนพื้นที่ในเครื่อง</p>
+<ol>
+    <li><strong>ลบคอนเทนเนอร์ที่หยุดทำงานแล้วทั้งหมด</strong>
+        <pre><code>docker container prune</code></pre>
+    </li>
+    <li><strong>ลบ Image ที่ไม่มี Container ใดใช้งาน</strong>
+        <pre><code>docker image prune -a</code></pre>
+    </li>
+    <li><strong>ลบ Network ที่ไม่ได้ใช้</strong>
+        <pre><code>docker network prune</code></pre>
+    </li>
+    <li><strong>ลบ Volume ที่ไม่ได้ใช้ (ข้อควรระวัง: ข้อมูลถาวรจะถูกลบ)</strong>
+        <pre><code>docker volume prune</code></pre>
+    </li>
+    <li><strong>ลบ Build Cache ที่ไม่ได้ใช้งาน</strong>
+        <pre><code>docker builder prune</code></pre>
+    </li>
+    <li><strong>ลบทุกอย่างที่ไม่ได้ใช้งานในคำสั่งเดียว (ยกเว้น Volume)</strong>
+        <pre><code>docker system prune -a</code></pre>
+    </li>
+    <li><strong>ลบทุกอย่างที่ไม่ได้ใช้งานทั้งหมด (รวม Volume - ระวังข้อมูลหาย)</strong>
+        <pre><code>docker system prune -a --volumes</code></pre>
+    </li>
+</ol>
+
 
 <h2>วิดีโอสอนการติดตั้ง Docker</h2>
 <p>สำหรับคำแนะนำแบบวิดีโอ คุณสามารถดูวิดีโอนี้จาก YouTube เพื่อทำตามขั้นตอนต่างๆ ได้</p>
