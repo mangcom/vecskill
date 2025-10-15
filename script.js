@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeMenuBtn = document.getElementById('close-menu-btn');
     const mainMenu = document.getElementById('main-menu');
 
-    // --- ส่วนของฟังก์ชัน loadContent ที่หายไป ---
+    // --- ส่วนของฟังก์ชัน loadContent ---
     function loadContent(page) {
         contentDisplay.innerHTML = '<h1><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</h1>';
 
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- โหลดเนื้อหาแรกเมื่อเปิดหน้าเว็บ ---
     loadContent('project-overview'); // เปลี่ยนเป็นหน้าที่ต้องการโหลดแรก
 
-    // --- ส่วนจัดการแท็บที่หายไป ---
+    // --- ส่วนจัดการแท็บ ---
     contentDisplay.addEventListener('click', function(event) {
         // ตรวจสอบว่าสิ่งที่คลิกคือปุ่มแท็บหรือไม่
         if (event.target.classList.contains('tablinks')) {
