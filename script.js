@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
     // --- โหลดเนื้อหาแรกเมื่อเปิดหน้าเว็บ ---
     loadContent('project-overview'); // เปลี่ยนเป็นหน้าที่ต้องการโหลดแรก
 
