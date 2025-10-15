@@ -50,6 +50,11 @@ body {
     align-items: center;
 }
 
+.menu {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
 .sidebar-header h2 {
     margin: 0;
     font-size: 1.5em;
@@ -69,6 +74,7 @@ body {
     transition: background-color 0.3s, padding-left 0.3s;
     border-bottom: 1px solid var(--secondary-color);
 }
+
 
 .menu li a:hover {
     background-color: var(--secondary-color);

@@ -1,0 +1,45 @@
+<h1>ภาพรวมการพัฒนาและสถาปัตยกรรม</h1>
+<p>
+    หน้านี้คือบทสรุปภาพรวมของโปรเจกต์คู่มือการตั้งค่า Server ทั้งหมด เพื่อให้เห็นความเชื่อมโยงของเครื่องมือแต่ละชิ้น ตั้งแต่อุปกรณ์พื้นฐาน, ผังการเชื่อมต่อ, ไปจนถึงแหล่งข้อมูลเอกสารสำคัญที่เกี่ยวข้องกับโปรเจกต์
+</p>
+
+<hr style="margin: 40px 0;">
+
+<h2>1. ภาพรวมและอุปกรณ์ที่เกี่ยวข้อง (Project & Hardware)</h2>
+<p>
+    โปรเจกต์นี้มีเป้าหมายเพื่อสร้างสภาพแวดล้อม DevOps/Homelab แบบครบวงจรบน Server เครื่องเดียว โดยใช้เทคโนโลยี Virtualization (ผ่าน Docker) เพื่อให้แต่ละ Service ทำงานแยกจากกันอย่างเป็นอิสระ อุปกรณ์ที่แนะนำสำหรับโปรเจกต์นี้ประกอบด้วย:
+</p>
+<ul>
+    <li>
+        <strong>Server/Mini PC:</strong> เครื่องคอมพิวเตอร์หลักที่ใช้ในการติดตั้ง Ubuntu Server และ Docker ควรมีสเปคตามที่แนะนำในหัวข้อ การเตรียม Ubuntu Server (CPU 4+ Cores, RAM 8GB+, SSD 100GB+) หรือใช้ เครื่องคอมพิวเตอร์ที่สามารถติดตั้งระบบ Virtualization เช่น Proxmox, VMware ESXi หรือ VirtualBox ก็ได้ 
+    </li>
+    <li>
+        <strong>Router:</strong> อุปกรณ์เครือข่ายสำหรับจัดการการเชื่อมต่อภายในบ้าน/องค์กร และเชื่อมต่อกับอินเทอร์เน็ต มีหน้าที่แจกจ่าย IP Address และทำ Port Forwarding หากจำเป็น แนะนำ Mikrotik Router และ Switch L3 ที่มีฟีเจอร์ ที่รองรับ เช่น VLAN , Routing , DHCP Snooping เป็นต้น
+    </li>
+    <li>
+        <strong>Client Machine:</strong> เครื่องคอมพิวเตอร์ส่วนตัวของคุณ (PC/Laptop) ที่ใช้สำหรับ SSH เข้าไปจัดการ Server และใช้งาน Git เพื่อ push โค้ด
+    </li>
+</ul>
+
+<hr style="margin: 40px 0;">
+
+<h2>2. ผังการเชื่อมต่อ (Connection Diagram)</h2>
+<p>
+    แผนภาพด้านล่างแสดงสถาปัตยกรรมและการเชื่อมต่อของระบบ DevOps Server ที่เราจะสร้างขึ้น โดยมีส่วนประกอบหลักดังนี้:ห
+</p>
+<div class="image-container">
+    <img src="./images/00-ConnectionDiagram.png" alt="Project Architecture Diagram" class="content-image">
+    <p>แผนภาพสถาปัตยกรรมของระบบ DevOps Server</p>
+</div>
+
+<hr style="margin: 40px 0;">
+
+<h2>3. ไฟล์ และเอกสารที่เกี่ยวข้อง</h2>
+<div class="gdrive-container" style="border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
+    <iframe 
+        src="https://drive.google.com/embeddedfolderview?id=1qOm4cW8NtwHQJk_Um6IkKoffriaR41l7"
+        width="100%" 
+        height="400" 
+        style="border:0;">
+    </iframe>
+</div>

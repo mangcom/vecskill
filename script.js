@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- โหลดเนื้อหาแรกเมื่อเปิดหน้าเว็บ ---
-    loadContent('0-ubuntu-setup');
+    loadContent('project-overview'); // เปลี่ยนเป็นหน้าที่ต้องการโหลดแรก
 
     // --- ส่วนจัดการแท็บที่หายไป ---
     contentDisplay.addEventListener('click', function(event) {
