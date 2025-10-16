@@ -1,0 +1,118 @@
+<h1>ตัวอย่าง: ระบบประเมินครู (PES - Personnel Evaluation System)</h1>
+<p>
+    นี่คือโปรเจกต์ตัวอย่างเพื่อสาธิตการนำสภาพแวดล้อม DevOps ที่เราได้ตั้งค่ามาทั้งหมดไปใช้งานจริง โปรเจกต์ "ระบบประเมินครู" (PES) เป็นเว็บแอปพลิเคชันที่พัฒนาขึ้นโดยแบ่งส่วน Backend และ Frontend ออกจากกัน และใช้ Docker Compose ในการรัน Service ทั้งหมด
+</p>
+<p>
+    คุณสามารถดาวน์โหลดซอร์สโค้ดของโปรเจกต์เพื่อนำไปศึกษาและทดสอบบนเครื่องของคุณเองได้
+</p>
+<div style="text-align: center; margin: 30px 0;">
+    <a href="./files/PES.zip" download style="background-color: #1abc9c; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 1.1em;">
+        <i class="fas fa-download"></i> ดาวน์โหลดไฟล์ PES.zip
+    </a>
+</div>
+<ul>
+    <hr style="margin: 40px 0;">
+    <p><h3>ตัวอย่างโปรเจคอื่น ๆ </h3></p>
+    <li>
+        <strong>ตัวอย่าง Project demo-task :</strong> ตัวอย่างสำหรับนำไปทดลองใช้งานจริง <a href="./files/demo-task.zip" target="_blank">ดาวน์โหลดที่นี่</a> (ไฟล์ zip ข้างในมี 3 ส่วนได้แก่ Database, Backend, Frontend)
+    </li>
+    <li>
+        <strong>ตัวอย่าง Project skill_test_2568_v1 :</strong> ตัวอย่างสำหรับนำไปพัฒนาต่อ ระดับ ปวช. <a href="./files/skill_test_2568_v1.zip" target="_blank">ดาวน์โหลดที่นี่</a> หรือ <a href="https://github.com/kruoakai/skill_test_2568_v1.git" target="_blank">Github</a>
+    </li>
+    <li>
+        <strong>ตัวอย่าง .env ที่ใช้กับ skill_test_2568</strong> ตัวอย่างไฟล์ .env สำหรับนำไปพัฒนาต่อ ระดับ ปวช. <a href="./files/env.zip" target="_blank">ดาวน์โหลดที่นี่</a>
+    </li>
+    <li>
+        <strong>ตัวอย่าง Database :</strong> ตัวอย่าง Database สำหรับนำไปพัฒนาต่อ ระดับ ปวช. <a href="./files/skills_db.sql" target="_blank">ดาวน์โหลดที่นี่</a> 
+    </li>
+    <li>
+        <strong>ตัวอย่าง Project skill_test_2568_v2 :</strong> ตัวอย่างสำหรับนำไปพัฒนาต่อ ระดับ ปวส. <a href="./files/skill_test_2568_v2.zip" target="_blank">ดาวน์โหลดที่นี่</a> หรือ <a href="https://github.com/kruoakai/skill_test_2568_v2.git" target="_blank">Github</a>
+    </li>
+</ul>
+<hr style="margin: 40px 0;">
+
+<h2>วิธีการนำไปทดสอบ</h2>
+<p>
+    หลังจากดาวน์โหลดและเตรียมไฟล์เรียบร้อยแล้ว ให้ทำตามขั้นตอนต่อไปนี้เพื่อรันโปรเจกต์
+</p>
+<h3>1. Unzip ไฟล์และตรวจสอบโครงสร้าง</h3>
+<p>
+    แตกไฟล์ `PES.zip` ไปยังตำแหน่งที่คุณต้องการ ในตัวอย่างนี้จะใช้ `C:\PES` โครงสร้างภายในโฟลเดอร์ควรมีลักษณะดังนี้:
+</p>
+<pre><code>C:\PES
+├── backend/
+├── frontend/
+├── .env
+├── .gitignore
+├── docker-compose.yml
+└── schema.sql</code></pre>
+
+<h3>2. ติดตั้ง Docker</h3>
+<p>
+    ตรวจสอบให้แน่ใจว่าคุณได้ติดตั้ง Docker บนเครื่องคอมพิวเตอร์ของคุณเรียบร้อยแล้ว เช่น Docker Desktop สำหรับ Windows หรือ Mac
+</p>
+
+<h3>3. รันโปรเจกต์ด้วย Docker Compose</h3>
+<p>
+    เปิดโปรแกรม Command Prompt (CMD) หรือ PowerShell ขึ้นมา แล้วรันคำสั่งต่อไปนี้ทีละบรรทัด
+</p>
+<pre><code>c:
+cd \
+cd PES
+docker compose up -d --build</code></pre>
+<p>
+    รอสักครู่เพื่อให้ Docker ทำการดาวน์โหลด Image, สร้าง (Build) และเริ่มการทำงานของ Container ทั้งหมด
+</p>
+
+<h3>4. เข้าสู่ระบบเพื่อทดสอบ</h3>
+<p>
+    เมื่อ Container ทำงานเรียบร้อยแล้ว คุณสามารถเข้าถึงส่วนต่างๆ ของระบบได้ผ่านเว็บเบราว์เซอร์
+</p>
+<ul>
+    <li><strong>หน้าเว็บหลัก (Frontend):</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+    <li><strong>หน้าจัดการฐานข้อมูล (Adminer):</strong> <a href="http://localhost:8080" target="_blank">http://localhost:8080</a></li>
+</ul>
+<p>
+    ใช้ข้อมูลต่อไปนี้เพื่อล็อกอินเข้าสู่ระบบ:
+</p>
+<ul>
+    <li><strong>Username:</strong> <code>admin@ccollege.ac.th</code></li>
+    <li><strong>Password:</strong> <code>12345678</code></li>
+</ul>
+
+
+<p>
+    ตัวอย่างกระบวนการนำไปทดสอบใช้งานเพื่อเป็นต้นแบบ
+</p>
+<div class="image-container">
+        <img src="images/11-pes-01.png" alt="การ Build และ UP" class="content-image">
+        <p><em>การ Build และ  UP</em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-02.png" alt="Build" class="content-image">
+        <p><em>กระบวนการตอน Build</em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-03.png" alt="Build Success" class="content-image">
+        <p><em>กระบวนการ Running</em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-04.png" alt="Login Page" class="content-image">
+        <p><em>หน้าจอสำหรับล็อกอินเข้าระบบประเมินครู</em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-05.png" alt="Login Success" class="content-image">
+        <p><em>หน้าจอระบบประเมินครู เมื่อ login สำเร็จ</em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-06.png" alt="Upload" class="content-image">
+        <p><em>หน้าจอระบบประเมินครู ตัวอย่างการ Upload </em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-07.png" alt="wagger" class="content-image">
+        <p><em>หน้าจอ ระบบประเมินครู ในส่วนของ Swagger (API Document) </em></p>
+</div>
+<div class="image-container">
+        <img src="images/11-pes-08.png" alt="phpMyAdmin " class="content-image">
+        <p><em>หน้าจอสำหรับบริหารจัดการระบบฐานข้อมูลด้วย phpMyAdmin </em></p>
+</div>
