@@ -37,7 +37,75 @@
     <p>ตัวอย่างที่ 2</p>
 </div>
 <hr style="margin: 40px 0;">
+<h2>การจัดเตรียม Server ของคณะกรรมการ</h2>
 
+<h3>1. Caddy</h3>
+<p><strong>คืออะไร:</strong> Reverse proxy + ออกใบรับรอง TLS ภายใน (มี Root CA ของตัวเอง)</p>
+<p><strong>ใช้ทำอะไร:</strong> รวมทุกบริการไว้ภายใต้ HTTPS เดียว (เช่น https://gitlab.vecskill.ovec, https://registry.vecskill.ovec), ออก cert ให้อัตโนมัติ, จัดเส้นทาง/โดเมน</p>
+<p><strong>ประโยชน์:</strong> ผู้ใช้เชื่อมต่อแบบปลอดภัย, ตั้งค่า TLS ง่ายกว่าทำในแต่ละบริการ, ใช้ร่วมกับ CA ภายในของคุณได้ดี</p>
+<p><strong>พอร์ตหลัก:</strong> 80, 443</p>
+<p><strong>ทดสอบ:</strong> <code>curl -kI https://gitlab.vecskill.ovec/</code></p>
+
+<h3>2. Registry (Docker Registry v2)</h3>
+<p><strong>คืออะไร:</strong> ที่เก็บ Docker images แบบ private และ/หรือ pull-through cache จาก Docker Hub</p>
+<p><strong>ใช้ทำอะไร:</strong> เก็บอิมเมจของคุณ, เร่งความเร็ว docker pull, ทำงานได้แม้เน็ตล่ม (ถ้าเคยแคชไว้)</p>
+<p><strong>ประโยชน์:</strong> ควบคุมซัพพลายเชน, ลดการพึ่งพาอินเทอร์เน็ต, ทำงานแบบ air-gapped/กึ่งออฟไลน์</p>
+<p><strong>พอร์ตหลัก (หลัง Caddy):</strong> ผ่าน https://registry.vecskill.ovec (จริง ๆ service ฟังที่ 5000)</p>
+<p><strong>ทดสอบ:</strong></p>
+<pre><code>API: curl -k https://registry.vecskill.ovec/v2/
+ใช้งาน: docker login registry.vecskill.ovec && docker push/pull</code></pre>
+
+<h3>3. Registry-UI</h3>
+<p><strong>คืออะไร:</strong> เว็บ UI สำหรับดูรายการ image/tag ใน Docker Registry</p>
+<p><strong>ใช้ทำอะไร:</strong> ค้นดูรีโพ/แท็ก, ลบแท็ก, ดู digest ได้สะดวก</p>
+<p><strong>ประโยชน์:</strong> บริหาร Registry แบบ “คลิก” ไม่ต้องใช้คำสั่ง CLI อย่างเดียว</p>
+<p><strong>พอร์ตหลัก:</strong> เข้าผ่าน Caddy (เช่น https://regui.vecskill.ovec)</p>
+
+<h3>4. GitLab</h3>
+<p><strong>คืออะไร:</strong> แพลตฟอร์มซอร์สโค้ด + Issue/MR + Wiki + (มี Container Registry ในตัวถ้าต้องการ)</p>
+<p><strong>ใช้ทำอะไร:</strong> โฮสต์โค้ดภายใน, ทำโฟลว์ Git (PR/MR), จัดการผู้ใช้/สิทธิ์, เก็บ CI variables/Secrets</p>
+<p><strong>ประโยชน์:</strong> ศูนย์กลาง DevSecOps ภายใน, ควบคุมสิทธิ์/การเปลี่ยนแปลง, ทำงานร่วมกับ Runner/Registry</p>
+<p><strong>พอร์ตหลัก:</strong> SSH 2222 (clone via SSH), HTTP/S ผ่าน Caddy (https://gitlab.vecskill.ovec)</p>
+<p><strong>ทดสอบ:</strong> เปิดเว็บ GitLab; SSH: <code>ssh -p 2222 git@gitlab.vecskill.ovec</code></p>
+
+<h3>5. GitLab-Runner</h3>
+<p><strong>คืออะไร:</strong> เอเจนต์ที่ “รัน” งาน CI/CD ตาม .gitlab-ci.yml</p>
+<p><strong>ใช้ทำอะไร:</strong> build/test/push/deploy อัตโนมัติ (เช่น build image แล้ว docker push เข้า Registry, จากนั้น SSH ไป rollout)</p>
+<p><strong>ประโยชน์:</strong> ทำให้ทุกโปรเจกต์มีขั้นตอนมาตรฐาน, trace ได้, reproducible, ไม่ต้องพึ่งเครื่อง Dev</p>
+<p><strong>โหมดยอดนิยม:</strong> shell (ง่าย), docker (แยก environment ชัด)</p>
+<p><strong>ทดสอบ:</strong> <code>docker exec -it gitlab-runner gitlab-runner status</code> และดู jobs จาก GitLab UI</p>
+
+<h3>6. Verdaccio (npm upstream/proxy)</h3>
+<p><strong>คืออะไร:</strong> npm registry ภายใน (proxy ไป registry.npmjs.org หรือเก็บ package เองก็ได้)</p>
+<p><strong>ใช้ทำอะไร:</strong> ให้ npm install ของ Dev/CI ชี้เข้าคลังภายใน, แคชแพ็กเกจ, เผยแพร่แพ็กเกจภายในองค์กร</p>
+<p><strong>ประโยชน์:</strong> เร็วขึ้น, เสถียร, ใช้งานได้แม้อินเทอร์เน็ตสะดุด (มีแคช), คุมซัพพลายเชน JavaScript</p>
+<p><strong>พอร์ตหลัก:</strong> ผ่าน Caddy ที่ https://npm.vecskill.ovec (จริง ๆ service 4873)</p>
+<p><strong>ทดสอบ:</strong></p>
+<pre><code>npm ping --registry https://npm.vecskill.ovec/
+ตั้ง ~/.npmrc: registry=https://npm.vecskill.ovec/</code></pre>
+
+<h3>7. devpi (PyPI upstream/mirror)</h3>
+<p><strong>คืออะไร:</strong> เซิร์ฟเวอร์ดัชนี Python (PyPI) ภายใน ใช้ mirror/proxy และสร้าง index ขององค์กร</p>
+<p><strong>ใช้ทำอะไร:</strong> ให้ pip install ชี้เข้าภายใน, เก็บ wheel ไว้ล่วงหน้า, เผยแพร่แพ็กเกจภายใน</p>
+<p><strong>ประโยชน์:</strong> เร็ว เสถียร คุมแหล่งแพ็กเกจ Python, รองรับงานวิจัย/สอนที่ต้องล็อกเวอร์ชัน</p>
+<p><strong>พอร์ตหลัก:</strong> ผ่าน Caddy ที่ https://pypi.vecskill.ovec (จริง ๆ service 3141)</p>
+<p><strong>ทดสอบ:</strong> ตั้ง <code>~/.pip/pip.conf</code>:</p>
+<pre><code>[global]
+index-url = https://pypi.vecskill.ovec/simple
+trusted-host = pypi.vecskill.ovec</code></pre>
+<p>แล้ว <code>pip install &lt;pkg&gt;</code></p>
+
+<h3>8. apt-cacher-ng (APT cache)</h3>
+<p><strong>คืออะไร:</strong> พร็อกซี/แคชสำหรับ apt ของ Debian/Ubuntu</p>
+<p><strong>ใช้ทำอะไร:</strong> ให้เครื่อง Ubuntu ในองค์กร apt update/apt install ผ่าน cache นี้ ลดปริมาณอินเทอร์เน็ต/เร่งความเร็ว</p>
+<p><strong>ประโยชน์:</strong> ประหยัดแบนด์วิธ, ควบคุมทราฟฟิกออกนอก, ใช้งานซ้ำในคลาส/แลบได้ลื่น</p>
+<p><strong>พอร์ตหลัก:</strong> ผ่าน Caddy https://apt.vecskill.ovec → พอร์ตจริง 3142 (โหมด proxy)</p>
+<p><strong>ทดสอบ/ตั้งค่าเครื่องลูก:</strong></p>
+<p>สร้าง <code>/etc/apt/apt.conf.d/01proxy</code>:</p>
+<pre><code>Acquire::http::Proxy "http://apt.vecskill.ovec:3142";
+Acquire::https::Proxy "http://apt.vecskill.ovec:3142";</code></pre>
+<p>แล้ว <code>apt update</code> (ดูรายงานที่ /acng-report.html)</p>
+<hr style="margin: 40px 0;">
 <h2>3. ไฟล์ และเอกสารที่เกี่ยวข้อง</h2>
 <div class="gdrive-container" style="border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
     <iframe 

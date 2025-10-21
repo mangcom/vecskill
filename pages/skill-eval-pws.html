@@ -1,0 +1,247 @@
+    <h1>ทักษะเทคโนโลยีสารสนเทศด้านโปรแกรมและเครือข่ายด้วยกระบวนการ DevOps (ปวส.)</h1>
+    <p>
+        หน้านี้สรุปคุณลักษณะขั้นต่ำของอุปกรณ์ (Hardware) และซอฟต์แวร์ (Software) ที่จำเป็นต้องใช้ในการแข่งขันทักษะเทคโนโลยีสารสนเทศด้านโปรแกรมและเครือข่ายด้วยกระบวนการ DevOps ระดับ ปวส. โดยอ้างอิงจากเกณฑ์การแข่งขัน ปีการศึกษา 2568 - 2572
+    </p>
+
+    <hr style="margin: 40px 0;">
+    <h2>สเปคเครื่อง สำหรับพัฒนาระบบ ที่แนะนำ (Computer Specifications)</h2>
+    <p>
+        เพื่อให้การแข่งขันดำเนินการ อย่างราบรื่น เครื่องคอมพิวเตอร์ที่ใช้ในการพัฒนา ของคุณควรมีสเปคขั้นต่ำและสเปคที่แนะนำดังนี้:
+    </p>
+    <table style="width:60%; border-collapse: collapse;">
+        <tr style="background-color:#f2f2f2;">
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ทรัพยากร</th>
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ขั้นต่ำ (พอใช้งานได้)</th>
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">แนะนำ (สำหรับใช้งานจริง)</th>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>CPU</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">4 Cores</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>8 Cores ขึ้นไป</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>RAM</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">4 GB</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>8 GB - 16 GB ขึ้นไป</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Storage</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">250 GB (SSD)</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>500 GB+ (แนะนำ NVMe/SSD)</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>OS</strong></td>
+            <td colspan="2" style="padding: 8px; border: 1px solid #ddd;">Windows 11 / Ubuntu Desktop 24 </td>
+        </tr>
+    </table>
+        <p>
+        เครื่องแม่ข่าย Service ที่จะติดตั้งทำงานได้อย่างราบรื่น Server ของคุณควรมีสเปคขั้นต่ำและสเปคที่แนะนำดังนี้
+    </p>
+    <table style="width:60%; border-collapse: collapse;">
+        <tr style="background-color:#f2f2f2;">
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ทรัพยากร</th>
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ขั้นต่ำ (พอใช้งานได้)</th>
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">แนะนำ (สำหรับใช้งานจริง)</th>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>CPU</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">8 Cores</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>12 Cores ขึ้นไป</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>RAM</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">16 GB</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>32 GB ขึ้นไป</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Storage</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">500 GB (SSD)</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>1 TB+ (แนะนำ NVMe/SSD/SAS/RAID)</strong></td>
+        </tr>
+            <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>OS</strong></td>
+            <td colspan="2" style="padding: 8px; border: 1px solid #ddd;">Ubuntu Server 24.04 LTS (หรือเวอร์ชัน LTS ล่าสุด)</td>
+        </tr>
+    </table>
+    <p style="margin-top:10px;"><em>*LTS (Long-Term Support) คือเวอร์ชันที่ได้รับการสนับสนุนด้านความปลอดภัยในระยะยาว ทำให้เหมาะกับงาน Server</em></p>
+    <h2>สเปคเครื่อง Server กรรมการ ที่แนะนำ (Server Specifications)</h2>
+    <p>
+        เพื่อให้ทุก Service ที่เราจะติดตั้งทำงานได้อย่างราบรื่น Server ของคุณควรมีสเปคขั้นต่ำและสเปคที่แนะนำดังนี้
+    </p>
+    <table style="width:60%; border-collapse: collapse;">
+        <tr style="background-color:#f2f2f2;">
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ทรัพยากร</th>
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ขั้นต่ำ (พอใช้งานได้)</th>
+            <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">แนะนำ (สำหรับใช้งานจริง)</th>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>CPU</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">8 Cores</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>12 Cores ขึ้นไป</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>RAM</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">8 GB</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>16 GB ขึ้นไป</strong></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Storage</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">250 GB (SSD)</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>500 GB+ (แนะนำ NVMe/SSD)</strong></td>
+        </tr>
+            <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>OS</strong></td>
+            <td colspan="2" style="padding: 8px; border: 1px solid #ddd;">Ubuntu Server 24.04 LTS (หรือเวอร์ชัน LTS ล่าสุด)</td>
+        </tr>
+    </table>
+    <p style="margin-top:10px;"><em>*LTS (Long-Term Support) คือเวอร์ชันที่ได้รับการสนับสนุนด้านความปลอดภัยในระยะยาว ทำให้เหมาะกับงาน Server</em></p>
+    <hr style="margin: 40px 0;">
+   <h2>1. สิ่งที่ผู้เข้าแข่งขันต้องเตรียม</h2>
+<p>
+    ผู้เข้าแข่งขันแต่ละทีมจะต้องนำอุปกรณ์ดังต่อไปนี้มาเองในวันแข่งขัน.
+</p>
+<table style="width:60%; border-collapse: collapse;">
+    <tr style="background-color:#f2f2f2;">
+        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">อุปกรณ์</th>
+        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">จำนวน/รายละเอียด</th>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>เครื่องคอมพิวเตอร์ หรือ โน้ตบุ๊ก</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">1 เครื่องต่อทีม</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>เครื่องคอมพิวเตอร์ แม่ข่าย</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">1 เครื่องต่อทีม</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>จอภาพเพิ่มเติม (External Monitor)</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">1 จอภาพต่อทีม</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>ไดรเวอร์ (Driver)</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">ไดรเวอร์ที่จำเป็นสำหรับเครื่องคอมพิวเตอร์และอุปกรณ์ที่นำมา</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>IoT Device</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">1 ชุด ESP32 + BME/BMP280 + สาย Pair + สายสำหรับ Upload </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Broadband Router</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">1 ตัว โดยมี WAN , LAN , WLAN ในตัว(แนะนำ Mikrotik hAP)</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Switch Layer 3</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">1 ตัว สามารถจัดการ VLAN , DHCP snooping , IP Route ได้ (แนะนำ Cisco C1300-8T)</td>
+    </tr>
+</table>
+<p style="margin-top: 10px;">
+    <em><strong>หมายเหตุ:</strong> อุปกรณ์นี้ต้องส่งในวันแรกของการลงทะเบียน คณะกรรมการดำเนินการต้องลบข้อมูลในเครื่องผู้เข้าแข่งขัน และให้ผู้เข้าแข่งขันติดตั้งโปรแกรมใหม่ทั้งหมดตามเกณฑ์ที่กำหนด.</em>
+</p>
+
+
+    <hr style="margin: 40px 0;">
+<h2>2. สิ่งที่คณะกรรมการจัดการแข่งขันเตรียมให้</h2>
+<p>
+    คณะกรรมการจะจัดเตรียมสภาพแวดล้อมหลักสำหรับการแข่งขันไว้ให้ดังนี้:
+</p>
+<h3>Hardware และ Network</h3>
+<table style="width:60%; border-collapse: collapse;">
+    <tr style="background-color:#f2f2f2;">
+        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ประเภท</th>
+        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">คุณลักษณะ / รายละเอียด</th>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>เครื่องคอมพิวเตอร์</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">2 เครื่องต่อทีม (ระบบปฏิบัติการไม่ต่ำกว่า <strong>Windows 11</strong>)</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>ระบบเครือข่าย</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">เครื่องแม่ข่ายและระบบเครือข่ายแบบสายสัญญาณ </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Firewall</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">สำหรับกำหนดนโยบายในกรณีใช้งานอินเทอร์เน็ต </td>
+    </tr>
+</table>
+
+   <h3 style="margin-top: 30px;">Software และ Tools ที่ติดตั้งไว้ให้</h3>
+<table style="width:60%; border-collapse: collapse;">
+    <tr style="background-color:#f2f2f2;">
+        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ประเภทซอฟต์แวร์</th>
+        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">รายการ</th>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Code Editor</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">
+            <ul>
+                <li><strong>VSCode</strong> พร้อม Extension พื้นฐาน:
+                    <ul>
+                        <li>VS Code for Node.js</li>
+                        <li>npm Intellisense</li>
+                        <li>ESLint</li>
+                        <li>Prettier-Code formatter</li>
+                        <li>Path Intellisense</li>
+                        <li>DotENV</li>
+                        <li>Thunder Client</li>
+                        <li>Vue 3 Snippets</li>
+                        <li>Vue VSCode Snippets</li>
+                        <li>Git</li>
+                    </ul>
+                </li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Containerization</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">
+            <ul>
+                <li><strong>Docker Desktop</strong> </li>
+                <li>Docker Images ที่จำเป็น (ไฟล์ Docker Compose ต่าง ๆ เช่น Node, phpMyAdmin, MariaDB, MySQL) </li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Runtime</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Node.js</strong> (เวอร์ชันไม่ต่ำกว่า 18)</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Database Tools</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">HeidiSQL, DBeaver</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Diagram Tool</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Draw.io (แบบ Offline)</strong></td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Templates (Node.js)</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">
+            <ul>
+                <li>express</li>
+                <li>cors</li>
+                <li>dotenv</li>
+                <li>jsonwebtoken</li>
+                <li>express-validator</li>
+                <li>multer</li>
+                <li>express-fileupload </li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Templates (Vue.js)</strong></td>
+        <td style="padding: 8px; border: 1px solid #ddd;">
+            <ul>
+                <li>vite-plugin-vuetify</li>
+                <li>vuetifyjs</li>
+                <li>@mdi/font</li>
+                <li>axios</li>
+                <li>jwt-decode</li>
+                <li>nuxt</li>
+                <li>pinia</li>
+                <li>router</li>
+                <li>vue</li>
+                <li>vue-router</li>
+                <li>tailwindcss</li>
+            </ul>
+        </td>
+    </tr>
+</table>
