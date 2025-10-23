@@ -2,6 +2,9 @@
 <p>
     ก่อนที่เราจะเริ่มติดตั้งเครื่องมือ DevOps ต่างๆ เช่น Docker, GitLab, และอื่นๆ การเตรียมความพร้อมของ Server ให้มีสถานะที่ "สะอาด", "ปลอดภัย", และ "พร้อมใช้งาน" ถือเป็นขั้นตอนที่สำคัญที่สุด หน้านี้จะแนะนำขั้นตอนพื้นฐานที่ควรทำกับ Ubuntu Server ที่เพิ่งติดตั้งใหม่ทุกครั้ง
 </p>
+<p>
+    โดยตัวอย่างนี้จะใช้ <strong>Ubuntu Server 24.04 LTS</strong> ซึ่งเป็นเวอร์ชันล่าสุดในขณะที่เขียนคู่มือนี้ และจะใช้ชื่อเครื่องว่า <strong><code>devops-server</code> </strong> และ Domain name ชื่อว่า <strong>vecskill.ovec</strong> พร้อม IP Address แบบ Static เป็น <code>172.16.3.101</code> สำหรับขาฝั่ง WAN และ <code>10.20.30.101</code> สำหรับขาฝั่ง LAN (ปรับเปลี่ยนตามความเหมาะสมกับเครือข่ายของคุณ)
+</p>
 
 <h2>1. สเปคเครื่องที่แนะนำ (Server Specifications)</h2>
 <p>
@@ -84,15 +87,20 @@ sudo nano /etc/hosts</code></pre>
         <p><strong>ให้แก้ไขเป็นคอนฟิกใหม่ (Static IP) ตามข้อมูลที่คุณให้มา:</strong> (<strong>สำคัญ:</strong> ต้องรักษาระยะย่อหน้า (indentation) ของไฟล์ YAML ให้ถูกต้อง)</p>
         <pre><code>network:
   ethernets:
-    ens33: # <-- สำคัญ: ใช้ชื่อ Interface เดิมที่คุณเห็นในไฟล์
+    ens33: # <-- สำคัญ: ใช้ชื่อ Interface เดิมที่คุณเห็นในไฟล์ ซึ่งจะใช้สำหรับขา WAN
       dhcp4: no
       addresses:
         - 172.16.3.101/24
       gateway4: 172.16.3.1
       nameservers:
-        addresses: [10.97.4.1, 8.8.8.8, 1.1.1.1]
+        addresses: [172.16.3.101, 8.8.8.8, 1.1.1.1]
+        
+    ens37: # <-- ถ้ามี Interface ที่สองสำหรับ LAN
+            dhcp4: no
+            addresses:
+              - 10.20.30.101/25
   version: 2
-</code></pre>
+ </code></pre>
     </li>
     <li>
         <strong>นำการตั้งค่าไปใช้งาน (Apply):</strong><br>
