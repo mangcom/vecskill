@@ -395,25 +395,55 @@ code {
     }
 }
 
+/* --- สไตล์ของเนื้อหาด้านขวา (Content) --- */
+.content {
+    flex-grow: 1;
+    /* เพิ่ม padding-bottom เท่ากับความสูงของ Footer (โดยประมาณ) */
+    padding: 30px 30px 80px 30px; /* Top Right Bottom Left */
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    transition: margin-left 0.3s ease-in-out;
+    /* ทำให้ content scroll ได้ */
+    height: 100vh; /* ให้ content สูงเต็ม viewport */
+    overflow-y: auto; /* ให้มี scrollbar แนวตั้งเมื่อเนื้อหาล้น */
+    box-sizing: border-box; /* รวม padding เข้าไปใน height */
+}
+
 /* --- Footer Styles --- */
 .main-footer {
-    margin-top: 40px; /* เพิ่มระยะห่างจากเนื้อหาด้านบน */
-    padding: 20px 0;
+    position: fixed; /* ทำให้ Footer ลอยอยู่กับที่ */
+    bottom: 0;       /* ชิดขอบล่าง */
+    left: var(--sidebar-width); /* เริ่มต้นต่อจาก Sidebar */
+    width: calc(100% - var(--sidebar-width)); /* กว้างเท่ากับ content area */
+    padding: 10px 0; /* ลด padding ลงเล็กน้อย */
     text-align: center;
-    border-top: 1px solid #ddd; /* เพิ่มเส้นคั่นบางๆ */
     background-color: var(--primary-color);
-    color: var(--text-color); 
+    color: var(--text-color);
     font-size: 0.9em;
+    z-index: 998; /* ให้อยู่เหนือ content แต่ต่ำกว่า sidebar */
+    transition: left 0.3s ease-in-out, width 0.3s ease-in-out; /* เพิ่ม transition */
 }
 
-/* ปรับแก้ margin ของ content เพื่อให้ Footer ไม่ทับเนื้อหา */
-.content {
-    padding-bottom: 20px; /* เพิ่ม padding ด้านล่างให้เพียงพอสำหรับ Footer */
+/* --- ปรับ Footer เมื่อ Sidebar ย่อ (จอใหญ่) --- */
+body.sidebar-collapsed .main-footer {
+    left: 60px; /* ชิดขอบ Sidebar ที่ย่อแล้ว */
+    width: calc(100% - 60px); /* ปรับความกว้างตาม */
 }
 
-/* Responsive adjustments for footer if needed */
+
+/* --- Responsive adjustments --- */
 @media (max-width: 800px) {
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 20px 80px 20px; /* ปรับ padding บนจอเล็ก */
+    }
+
     .main-footer {
+        left: 0;      /* Footer เต็มความกว้างบนจอเล็ก */
+        width: 100%;
         font-size: 0.8em;
     }
+
+    /* ไม่จำเป็นต้องมี rule สำหรับ body.sidebar-collapsed .main-footer บนจอเล็ก */
 }
