@@ -394,3 +394,26 @@ code {
         display: none !important; /* Always hide collapse button on small screens */
     }
 }
+
+/* --- Footer Styles --- */
+.main-footer {
+    margin-top: 40px; /* เพิ่มระยะห่างจากเนื้อหาด้านบน */
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid #ddd; /* เพิ่มเส้นคั่นบางๆ */
+    background-color: var(--primary-color);
+    color: var(--text-color); 
+    font-size: 0.9em;
+}
+
+/* ปรับแก้ margin ของ content เพื่อให้ Footer ไม่ทับเนื้อหา */
+.content {
+    padding-bottom: 20px; /* เพิ่ม padding ด้านล่างให้เพียงพอสำหรับ Footer */
+}
+
+/* Responsive adjustments for footer if needed */
+@media (max-width: 800px) {
+    .main-footer {
+        font-size: 0.8em;
+    }
+}
