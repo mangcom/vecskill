@@ -281,3 +281,116 @@ code {
         width: 30%; /* ทำให้คอลัมน์แรกมีความกว้างคงที่ */
     }
 /* <<< ลบ } ที่เกินมาตรงนี้ */
+/* --- ส่วนเพิ่มใหม่สำหรับปุ่ม Copy Code --- */
+
+/* 1. กรอบสำหรับ pre และ button */
+.code-container {
+    position: relative; /* สำคัญ: เพื่อให้ปุ่มอ้างอิงตำแหน่ง */
+    margin: 30px auto;  /* ใช้ margin เดิมของ pre เพื่อจัดกลาง */
+    max-width: 90%;     /* ใช้ max-width เดิมของ pre */
+}
+
+/* 2. ปรับแต่ง pre ที่อยู่ในกรอบ */
+.code-container pre {
+    margin: 0;          /* ลบ margin ของ pre ออก เพราะ container จัดการแล้ว */
+    max-width: 100%;    /* ให้ pre กว้างเต็ม container */
+    padding-top: 40px;  /* เพิ่มช่องว่างด้านบนให้ปุ่ม ไม่ให้ทับโค้ด */
+}
+
+/* 3. สไตล์ของปุ่ม Copy */
+.copy-btn {
+    position: absolute; /* ทำให้ปุ่มลอยได้ */
+    top: 8px;           /* ระยะห่างจากขอบบน */
+    right: 8px;         /* ระยะห่างจากขอบขวา */
+    background-color: #4a5568; /* สีพื้นหลัง */
+    color: white;       /* สีตัวอักษร */
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Sarabun', sans-serif; /* ใช้ฟอนต์เดียวกับเว็บ */
+    font-size: 0.9em;
+    opacity: 0.8;       /* ทำให้จางลงเล็กน้อย */
+    transition: all 0.2s ease;
+    z-index: 1;         /* ให้อยู่เหนือ pre */
+}
+
+.copy-btn:hover {
+    opacity: 1;         /* ชัดขึ้นเมื่อเมาส์ชี้ */
+    background-color: #2d3748; /* เข้มขึ้น */
+}
+
+/* 4. สไตล์เมื่อกดปุ่ม Copy แล้ว */
+.copy-btn.copied {
+    background-color: var(--accent-color); /* ใช้สีเขียวเดียวกับเมนู */
+    color: white;
+}
+
+/* --- Styles for Sidebar Collapse Button --- */
+.collapse-btn {
+    display: none; /* Hide by default */
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0 10px;
+    margin-right: 10px; /* Space between button and title */
+    transition: transform 0.3s ease;
+}
+
+/* --- Styles for Collapsed Sidebar State (Large Screens Only) --- */
+@media (min-width: 801px) {
+    .collapse-btn {
+        display: block; /* Show collapse button on large screens */
+    }
+
+    /* Styles when sidebar is collapsed */
+    body.sidebar-collapsed .sidebar {
+        width: 60px; /* Narrow width */
+    }
+
+    body.sidebar-collapsed .sidebar-header h2 {
+        display: none; /* Hide title */
+    }
+    
+    body.sidebar-collapsed .sidebar-header .collapse-btn {
+         margin-left: auto; /* Center button when title is hidden */
+         margin-right: auto;
+    }
+
+    body.sidebar-collapsed .menu li a {
+        padding-left: 18px; /* Adjust padding for icon alignment */
+        padding-right: 18px;
+        text-align: center; /* Center icon */
+    }
+
+    body.sidebar-collapsed .menu li a span {
+        display: none; /* Hide menu text */
+    }
+
+    body.sidebar-collapsed .menu li a:hover {
+         padding-left: 18px; /* Keep padding consistent on hover */
+         background-color: var(--secondary-color); /* Add hover effect */
+    }
+    
+    body.sidebar-collapsed .menu li.active a {
+        background-color: var(--accent-color); /* Highlight active icon */
+    }
+
+    body.sidebar-collapsed .content {
+        margin-left: 60px; /* Adjust content margin */
+        width: calc(100% - 60px);
+    }
+
+    body.sidebar-collapsed .collapse-btn i {
+        transform: rotate(180deg); /* Flip arrow icon */
+    }
+}
+
+/* Adjust close button display for different states */
+@media (max-width: 800px) {
+    .collapse-btn {
+        display: none !important; /* Always hide collapse button on small screens */
+    }
+}

@@ -8,37 +8,40 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
     <div id="container">
         <aside class="sidebar" id="sidebar">
             <header class="sidebar-header">
+                <button class="collapse-btn" id="collapse-sidebar-btn" title="Toggle Sidebar">
+                    <i class="fas fa-angle-left"></i>
+                </button>
                 <h2>IT VECSkill Guide</h2>
                 <button class="close-btn" id="close-menu-btn">&times;</button>
             </header>
             <nav class="menu" id="main-menu">
                 <ul>
-                    <li class="active"><a href="#" data-page="project-overview">ภาพรวมการพัฒนา</a></li>
-                    
-                    <li><a href="#" data-page="ubuntu-setup">1.การเตรียม Ubuntu Server</a></li>
-                    <li><a href="#" data-page="docker">2.การติดตั้ง Docker</a></li>
-                    <li><a href="#" data-page="portainer">3.การติดตั้ง Portainer</a></li>
-                    <li><a href="#" data-page="registry">4.การติดตั้ง Registry Server + UI</a></li>
-                    <li><a href="#" data-page="gitlab">5.การติดตั้ง GitLab</a></li>
-                    <li><a href="#" data-page="basic-git-usage">6.การใช้งาน Git เบื้องต้น</a></li>
-                    <li><a href="#" data-page="technitium-dns">7.การติดตั้ง DNS Server</a></li>
-                    <li><a href="#" data-page="caddy-internal-ca">8. การทำ HTTPS ภายใน</a></li>
-                    <li><a href="#" data-page="skill-eval-pwa">Specifications ปวช.</a></li>
-                    <li><a href="#" data-page="skill-eval-pws">Specifications ปวส.</a></li>
-                    <li><a href="#" data-page="skill-pes">ตัวอย่าง ระบบประเมินครู</a></li>
-                    <li><a href="#" data-page="under-construction"># AptCacherNg</a></li>
-                    <li><a href="#" data-page="under-construction"># Verdaccio</a></li>
-                    <li><a href="#" data-page="under-construction"># PyPI server</a></li>
-                    <li><a href="#" data-page="under-construction"># Gitlab CI/CD</a></li>
-                    <li><a href="#" data-page="under-construction"># Gitlab Runner</a></li>
-                    <li><a href="#" data-page="under-construction"># Nginx Proxy Manager</a></li>
-                    <li><a href="#" data-page="under-construction"># Cloudflare</a></li>
+                    <li class="active"><a href="#" data-page="project-overview"><i class="fas fa-tachometer-alt fa-fw"></i> <span>ภาพรวมการพัฒนา</span></a></li>
+                    <li><a href="#" data-page="ubuntu-setup"><i class="fab fa-ubuntu fa-fw"></i> <span>การเตรียม Ubuntu Server</span></a></li>
+                    <li><a href="#" data-page="docker"><i class="fab fa-docker fa-fw"></i> <span>การติดตั้ง Docker</span></a></li>
+                    <li><a href="#" data-page="portainer"><i class="fas fa-cubes fa-fw"></i> <span>การติดตั้ง Portainer</span></a></li>
+                    <li><a href="#" data-page="registry"><i class="fas fa-database fa-fw"></i> <span>การติดตั้ง Registry Server + UI</span></a></li>
+                    <li><a href="#" data-page="gitlab"><i class="fab fa-gitlab fa-fw"></i> <span>การติดตั้ง GitLab</span></a></li>
+                    <li><a href="#" data-page="basic-git-usage"><i class="fab fa-git-alt fa-fw"></i> <span>การใช้งาน Git เบื้องต้น</span></a></li>
+                    <li><a href="#" data-page="technitium-dns"><i class="fas fa-network-wired fa-fw"></i> <span>การติดตั้ง DNS Server</span></a></li>
+                    <li><a href="#" data-page="caddy-internal-ca"><i class="fas fa-lock fa-fw"></i> <span>การทำ HTTPS ภายใน</span></a></li>
+                    <li><a href="#" data-page="skill-eval-pwa"><i class="fas fa-clipboard-list fa-fw"></i> <span>Specifications ปวช.</span></a></li>
+                    <li><a href="#" data-page="skill-eval-pws"><i class="fas fa-clipboard-list fa-fw"></i> <span>Specifications ปวส.</span></a></li>
+                    <li><a href="#" data-page="skill-pes"><i class="fas fa-file-alt fa-fw"></i> <span>ตัวอย่าง ระบบประเมินครู</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-cogs fa-fw"></i> <span>Gitlab CI/CD</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-running fa-fw"></i> <span>Gitlab Runner</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i> <span>AptCacherNg</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i> <span>Verdaccio</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i> <span>PyPI</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i> <span>Nginx Proxy Manager</span></a></li>
+                    <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i> <span>Cloudflare</span></a></li>
                 </ul>
             </nav>
         </aside>
