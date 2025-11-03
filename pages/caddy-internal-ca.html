@@ -143,9 +143,7 @@ docker volume create caddy_config</code></pre>
     <li>
         <strong>สร้าง Stack ใน Portainer:</strong><br>
         ไปที่ Portainer > Stacks > + Add stack, ตั้งชื่อ (เช่น `caddy-internal`) แล้วใช้โค้ด Docker Compose นี้:
-        <pre><code>version: '3.8'
-
-services:
+        <pre><code>services:
   caddy:
     image: caddy:latest # ใช้เวอร์ชันล่าสุด หรือระบุเวอร์ชัน 2.x.x
     container_name: caddy
@@ -196,7 +194,8 @@ volumes:
     <li>
         <strong>ดึงไฟล์ Root CA (`root.crt`) ออกมาจาก Caddy Container:</strong><br>
         รันคำสั่งนี้บน Server ที่รัน Caddy Container
-        <pre><code>docker cp caddy:/config/caddy/pki/authorities/local/root.crt /opt/caddy/caddy-root.crt</code></pre>
+        <pre><code>docker cp caddy:/data/caddy/pki/authorities/local/root.crt /opt/caddy/caddy-root.crt
+          sudo chmod 644 /opt/caddy/caddy-root.crt</code></pre>
         ตอนนี้คุณจะได้ไฟล์ Certificate ชื่อ `caddy-root.crt` อยู่ใน `/opt/caddy/` บน Server ของคุณ
     </li>
     <li>

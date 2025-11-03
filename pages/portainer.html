@@ -20,11 +20,14 @@
     <li>
         <strong>รัน Container ของ Portainer:</strong><br>
         ใช้คำสั่ง `docker run` เพื่อดาวน์โหลด Image และเริ่มการทำงานของ Portainer
+        <p>สำหรับ Linux</p>
         <pre><code>sudo docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
     --restart=always \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v portainer_data:/data \
     portainer/portainer-ce:latest</code></pre>
+    <p>สำหรับ Windows / Linux แบบ Single Line</p>
+    <pre><code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest</code></pre>
         <strong>อธิบายคำสั่ง:</strong>
         <ul>
             <li><code>-d</code>: รัน Container ในโหมด Detached (ทำงานอยู่เบื้องหลัง)</li>
