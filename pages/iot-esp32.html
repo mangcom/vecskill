@@ -178,6 +178,314 @@ void loop() {
     }
   }
 }</code></pre>
+<p>ตัวอย่างที่ 2</p>
+<pre><code>#define MQTT_VERSION MQTT_VERSION_3_1_1
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_Sensor.h&gt;
+#include &lt;Adafruit_BME280.h&gt; // เปลี่ยนจาก BMP280 เป็น BME280
+// --- ตั้งค่า WiFi ---
+const char* ssid = "YOUR_WIFI_SSID";       // ใส่ชื่อ WiFi ของคุณ
+const char* password = "YOUR_WIFI_PASSWORD"; // ใส่รหัสผ่าน WiFi
+// --- ตั้งค่า MQTT ---
+const char* mqtt_server = "YOUR_NODE_RED_SERVER_IP"; // IP ของ Server ที่รัน MQTT Broker
+const int mqtt_port = 1883;                    // Port มาตรฐานของ MQTT
+const char* mqtt_topic = "vecskill";           // Topic ที่ต้องการส่งข้อมูลไป
+// --- ตั้งค่า Sensor ---
+Adafruit_BME280 bme; // ใช้งาน I2C
+// หมายเหตุ: ถ้าใช้ BMP280, ค่าความชื้น (Humidity) จะอ่านไม่ได้ 
+// --- ตัวแปรจัดการเวลา ---
+unsigned long previousMillis = 0;
+const long interval = 10000; // ส่งข้อมูลทุก 10 วินาที (10000 ms)
+// --- Clients ---
+WiFiClient espClient;
+PubSubClient client(espClient);
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(21, 22); // SDA = 21, SCL = 22
+
+  Serial.println("\nI2C Scanner");
+  for (uint8_t address = 1; address < 127; address++) {
+    Wire.beginTransmission(address);
+    if (Wire.endTransmission() == 0) {
+      Serial.print(" Found I2C device at 0x");
+      Serial.println(address, HEX);
+    }
+  }
+  Serial.println("Scan done!");
+  Serial.print("Connecting to WiFi...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\n WiFi connected");
+  Serial.print("ESP32 IP: ");
+  Serial.println(WiFi.localIP());
+
+  //  เริ่มต้นเซนเซอร์ BME280
+  if (!bme.begin(0x76)) {   // address ปกติคือ 0x76 หรือ 0x77
+    Serial.println("Could not find BME280 sensor!");
+    while (1);
+  }
+  Serial.println(" BME280 sensor initialized!");
+  // ตั้งค่า MQTT
+  client.setServer(mqtt_server, mqtt_port);
+
+  while (!client.connected()) {
+    Serial.print("Connecting to MQTT...");
+    if (client.connect("ESP32_Client_01")) {
+      Serial.println("connected!");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" retrying in 2 seconds...");
+      delay(2000);
+    }
+  }
+}
+
+void loop() {
+  if (!client.connected()) {
+    while (!client.connected()) {
+      Serial.print("Reconnecting MQTT...");
+      if (client.connect("ESP32_Client_01")) {
+        Serial.println("connected!");
+      } else {
+        delay(2000);
+      }
+    }
+  }
+
+  client.loop();
+  // อ่านค่าจาก BME280
+  float temperature = bme.readTemperature(); // *c
+  float humidity = bme.readHumidity(); // %RH
+  float pressure = bme.readPressure() / 100.0F; // hPa 
+  // สร้างข้อความ JSON ที่ถูกต้อง (ไม่มี , เกิน)
+  char payload[128];
+  snprintf(payload, sizeof(payload),
+          "{\"temperature\": %.2f, \"humidity\": %.2f, \"pressure\": %.2f}",
+           temperature, humidity, pressure);
+  // แสดงใน Serial และส่งขึ้น MQTT
+  Serial.print("Publish payload: ");
+  Serial.println(payload);
+  client.publish(mqtt_topic, payload);
+
+  delay(2000); // ส่งทุก 2 วินาที
+}
+
+</code></pre>
+<p>ตัวอย่างที่ 3</p>
+<pre><code>// ====== ESP32 + BME280 + MQTT (Robust Reconnect) : commented line-by-line ======
+#define MQTT_VERSION MQTT_VERSION_3_1_1           // กำหนดเวอร์ชันโปรโตคอล MQTT ที่ใช้กับ PubSubClient (3.1.1)
+
+// ---------------------- ส่วนรวมไลบรารีที่ต้องใช้ ----------------------
+#include &lt;WiFi.h&gt;                                 // ไลบรารี Wi-Fi สำหรับ ESP32
+#include &lt;PubSubClient.h&gt;                         // ไลบรารี MQTT client (ใช้กับ broker เช่น Mosquitto/Node-RED)
+#include &lt;Wire.h&gt;                                 // ไลบรารี I2C (สำหรับคุยกับ BME280)
+#include &lt;Adafruit_Sensor.h&gt;                      // อินเทอร์เฟซเซนเซอร์แบบ Unified ของ Adafruit
+#include &lt;Adafruit_BME280.h&gt;                      // ไดรเวอร์เซนเซอร์ BME280 (อุณหภูมิ/ความชื้น/ความดัน)
+
+// ---------------------- การตั้งค่าพื้นฐาน (แก้ให้ตรงสภาพจริง) ----------------------
+const char* WIFI_SSID     = "YOUR_WIFI_SSID";     // ชื่อเครือข่าย Wi-Fi ที่จะเชื่อมต่อ
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"; // รหัสผ่านของ Wi-Fi
+
+const char* MQTT_HOST     = "192.168.1.10";       // IP/โฮสต์ของ MQTT broker (เช่น เครื่อง Node-RED หรือ Mosquitto)
+const uint16_t MQTT_PORT  = 1883;                 // พอร์ต MQTT (ปกติ 1883 สำหรับแบบไม่เข้ารหัส)
+
+// ตั้งชื่อหัวข้อ (topic) ที่ใช้งาน
+const char* TELE_TOPIC   = "vecskill/telemetry";  // หัวข้อสำหรับส่งค่าจากเซนเซอร์ (telemetry)
+const char* STATUS_TOPIC = "vecskill/status";     // หัวข้อสำหรับประกาศสถานะอุปกรณ์ (online/offline)
+
+// กำหนดรอบเวลา (มิลลิวินาที) สำหรับงานต่าง ๆ
+const uint32_t WIFI_RETRY_MS = 10'000;            // เวลาห่างระหว่างความพยายามเชื่อม Wi-Fi ใหม่ (ทุก 10 วินาที)
+const uint32_t MQTT_RETRY_MS = 5'000;             // เวลาห่างระหว่างความพยายามเชื่อม MQTT ใหม่ (ทุก 5 วินาที)
+const uint32_t PUBLISH_EVERY = 2'000;             // ส่งข้อมูลเทเลเมทรีทุก ๆ 2 วินาที
+
+// ที่อยู่ I2C ของ BME280 (ขึ้นกับบอร์ด/โมดูลที่ใช้)
+#define BME280_I2C_ADDR 0x76                      // ค่ามาตรฐานที่พบได้บ่อยคือ 0x76 (บางรุ่นอาจเป็น 0x77)
+
+// ---------------------- สร้างออบเจ็กต์หลัก ----------------------
+WiFiClient      espClient;                        // ออบเจ็กต์ TCP client สำหรับให้ PubSubClient ใช้สื่อสารกับ broker
+PubSubClient    mqtt(espClient);                  // ออบเจ็กต์ MQTT client
+Adafruit_BME280 bme;                              // ออบเจ็กต์ BME280 สำหรับอ่านค่าจากเซนเซอร์
+
+// ---------------------- ตัวแปรสถานะ/ตัวช่วยด้านเวลา ----------------------
+unsigned long lastWifiAttempt = 0;                // จับเวลาครั้งล่าสุดที่พยายามเชื่อมต่อ Wi-Fi
+unsigned long lastMqttAttempt = 0;                // จับเวลาครั้งล่าสุดที่พยายามเชื่อมต่อ MQTT
+unsigned long lastPublish     = 0;                // จับเวลาครั้งล่าสุดที่ส่งข้อมูลเทเลเมทรี
+bool          bmeReady        = false;            // ธงบอกว่า BME280 พร้อมใช้งานแล้วหรือยัง
+
+// ---------------------- กำหนดขา LED สำหรับกะพริบยืนยันการส่ง ----------------------
+#if defined(LED_BUILTIN)                           // ถ้ามีมาโคร LED_BUILTIN (บางบอร์ดกำหนดไว้)
+const int LED_PIN = LED_BUILTIN;                  // ใช้ขา LED บนบอร์ด
+#else
+const int LED_PIN = 2;                            // ถ้าไม่มีก็ใช้ GPIO2 (บน ESP32 หลายบอร์ดต่อกับ LED ออนบอร์ด)
+#endif
+
+// ---------------------- ฟังก์ชันรับเหตุการณ์ Wi-Fi (event handler) ----------------------
+void onWiFiEvent(WiFiEvent_t event) {             // ฟังก์ชันนี้จะถูกเรียกเมื่อมีเหตุการณ์ของ Wi-Fi เกิดขึ้น
+  switch (event) {                                // ตรวจชนิดของเหตุการณ์
+    case ARDUINO_EVENT_WIFI_STA_CONNECTED:        // เหตุการณ์: เชื่อมต่อกับจุดกระจายสัญญาณ (AP) สำเร็จ
+      Serial.println(F("[WiFi] Connected to AP")); // แสดงข้อความใน Serial Monitor
+      break;                                      // ออกจาก switch สำหรับเคสนี้
+
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:           // เหตุการณ์: ได้รับ IP address จาก DHCP ของ AP แล้ว
+      Serial.print(F("[WiFi] Got IP: "));         // พิมพ์ข้อความบอกว่าได้ IP แล้ว
+      Serial.println(WiFi.localIP());             // พิมพ์ IP ที่ได้รับ
+      break;                                      // ออกจาก switch
+
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:     // เหตุการณ์: หลุดการเชื่อมต่อจาก AP
+      Serial.print(F("[WiFi] Disconnected, reason=")); // พิมพ์ข้อความสาเหตุ
+      Serial.println(WiFi.reasonCode());          // พิมพ์รหัสเหตุผลการหลุด (ดูปัญหาเบื้องต้นได้)
+      if (mqtt.connected()) mqtt.disconnect();    // ถ้า MQTT ยังเชื่อมอยู่ให้ตัดก่อน เพื่อบังคับให้ต่อใหม่หลัง Wi-Fi กลับมา
+      break;                                      // ออกจาก switch
+
+    default:                                      // เหตุการณ์อื่น ๆ ที่ไม่ได้จัดการเฉพาะ
+      break;                                      // ไม่ทำอะไรเพิ่มเติม
+  }
+}
+
+// ---------------------- ฟังก์ชันดูแลการเชื่อมต่อ Wi-Fi (non-blocking) ----------------------
+bool ensureWiFi() {                               // คืนค่า true ถ้าเชื่อม Wi-Fi อยู่แล้ว
+  if (WiFi.status() == WL_CONNECTED) return true; // ถ้าเชื่อมต่อแล้วก็จบ (true)
+
+  unsigned long now = millis();                   // เวลาปัจจุบันนับจากเปิดเครื่อง (มิลลิวินาที)
+  if (now - lastWifiAttempt < WIFI_RETRY_MS)      // ถ้ายังไม่ถึงรอบเวลาที่ต้องพยายามใหม่
+    return false;                                 // ออกจากฟังก์ชัน (false เพราะยังไม่เชื่อม)
+
+  lastWifiAttempt = now;                          // บันทึกเวลาที่พยายามล่าสุดเป็นตอนนี้
+  Serial.print(F("[WiFi] Connecting to "));       // พิมพ์ข้อความว่ากำลังเชื่อมต่อ
+  Serial.print(WIFI_SSID);                        // พิมพ์ชื่อ SSID
+  Serial.println(F(" ..."));                      // ปิดท้ายด้วยจุด ๆ
+
+  WiFi.mode(WIFI_STA);                            // ตั้งโหมดเป็นสถานี (เชื่อมกับ AP)
+  WiFi.setAutoReconnect(true);                    // ขอให้ core พยายาม reconnect อัตโนมัติ
+  WiFi.persistent(false);                         // ไม่เขียนข้อมูล Wi-Fi ลงแฟลชทุกครั้ง (ยืดอายุแฟลช)
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);           // เริ่มกระบวนการเชื่อมต่อ (ไม่บล็อก loop)
+  return false;                                   // ณ จุดนี้ยังไม่เชื่อม จึงคืน false (ลูปจะกลับมาเช็คอีก)
+}
+
+// ---------------------- ฟังก์ชันดูแลการเชื่อมต่อ MQTT (non-blocking) ----------------------
+bool ensureMQTT() {                               // คืน true ถ้าเชื่อม MQTT แล้ว
+  if (WiFi.status() != WL_CONNECTED) return false;// ถ้า Wi-Fi ยังไม่พร้อม ก็ยังเชื่อม MQTT ไม่ได้
+  if (mqtt.connected()) return true;              // ถ้า MQTT เชื่อมแล้ว ก็จบ (true)
+
+  unsigned long now = millis();                   // อ่านเวลา ณ ตอนนี้
+  if (now - lastMqttAttempt < MQTT_RETRY_MS)      // ถ้ายังไม่ถึงรอบที่ต้องลองเชื่อมใหม่
+    return false;                                 // ออกไปก่อน (false)
+
+  lastMqttAttempt = now;                          // บันทึกเวลาพยายามล่าสุด
+  mqtt.setServer(MQTT_HOST, MQTT_PORT);           // กำหนดที่อยู่และพอร์ตของ broker
+  mqtt.setKeepAlive(30);                          // ตั้งค่า keep-alive เป็น 30 วินาที (broker จะคาดหวัง ping ภายในช่วงนี้)
+  mqtt.setSocketTimeout(30);                      // ตั้ง timeout การอ่าน/เขียน socket 30 วินาที
+
+  char clientId[40];                              // บัฟเฟอร์สำหรับเก็บ clientID (ต้องไม่ซ้ำใน broker)
+  uint64_t mac = ESP.getEfuseMac();               // อ่านเลข MAC ของ ESP32 (ยูนีค)
+  snprintf(clientId, sizeof(clientId),            // สร้าง clientID จาก MAC (เช่น ESP32_ABCDEF12)
+           "ESP32_%llX", mac);
+
+  Serial.print(F("[MQTT] Connecting as "));       // พิมพ์ว่ากำลังเชื่อม MQTT
+  Serial.print(clientId);                         // พิมพ์ clientID
+  Serial.print(F(" to "));                        // ข้อความต่อ
+  Serial.print(MQTT_HOST);                        // พิมพ์โฮสต์ของ broker
+  Serial.print(F(":"));                           // คั่นด้วย colon
+  Serial.println(MQTT_PORT);                      // พิมพ์พอร์ตของ broker
+
+  // เชื่อม MQTT พร้อมตั้งค่า Last Will & Testament (LWT)
+  bool ok = mqtt.connect(                         // เรียกเชื่อมต่อไปยัง broker
+    clientId,                                     // clientID ที่ยูนีค
+    STATUS_TOPIC,                                 // willTopic: หัวข้อที่จะส่งให้เองถ้าคลายเชื่อมต่อแบบผิดปกติ
+    1,                                            // willQoS: ใช้ QoS 1 สำหรับ LWT
+    true,                                         // willRetain: เก็บ retain ให้ผู้มาทีหลังเห็นสถานะล่าสุด
+    "offline"                                     // willMessage: ข้อความ LWT เมื่อหลุด
+  );
+
+  if (ok) {                                       // ถ้าเชื่อมต่อสำเร็จ
+    Serial.println(F("[MQTT] Connected"));        // พิมพ์ใน Serial ว่าสำเร็จ
+    mqtt.publish(STATUS_TOPIC, "online", true);   // ประกาศว่า online (retain=true) เพื่ออัปเดตสถานะ
+    // (ถ้าต้องการ subscribe หัวข้อใด ๆ ให้เพิ่ม mqtt.subscribe(...) ที่นี่)
+  } else {                                        // ถ้าเชื่อมไม่สำเร็จ
+    Serial.print(F("[MQTT] Failed, rc="));        // พิมพ์รหัสความผิดพลาด
+    Serial.println(mqtt.state());                 // mqtt.state() แสดงเหตุผล (เช่น -2, -4, ฯลฯ)
+  }
+  return ok;                                      // คืนค่าผลลัพธ์การเชื่อม
+}
+
+// ---------------------- ฟังก์ชันอ่าน BME280 และส่งขึ้น MQTT ----------------------
+void publishTelemetry() {                         // ฟังก์ชันส่งข้อมูลเทเลเมทรี (JSON)
+  if (!bmeReady || !mqtt.connected()) return;     // ถ้าเซนเซอร์ไม่พร้อม หรือ MQTT ยังไม่เชื่อม ให้ยกเลิก
+
+  float t = bme.readTemperature();                // อ่านอุณหภูมิ (°C)
+  float h = bme.readHumidity();                   // อ่านความชื้นสัมพัทธ์ (%RH)
+  float p = bme.readPressure() / 100.0F;          // อ่านความดัน (Pa) แล้วแปลงเป็น hPa โดยหาร 100
+
+  if (isnan(t) || isnan(h) || isnan(p)) {         // ป้องกันกรณีอ่านค่าได้ NaN (อ่านพลาด)
+    Serial.println(F("[BME280] NAN reading, skip"));// แจ้งเตือนแล้วไม่ส่ง
+    return;                                       // ออกจากฟังก์ชัน
+  }
+
+  char payload[160];                              // บัฟเฟอร์เก็บ JSON ที่จะส่ง
+  snprintf(payload, sizeof(payload),              // สร้างสตริง JSON ด้วย snprintf
+           "{\"temperature\":%.2f,\"humidity\":%.2f,\"pressure\":%.2f,\"rssi\":%d}",
+           t, h, p, WiFi.RSSI());                 // ฝังค่าที่วัดได้และความแรงสัญญาณ Wi-Fi (RSSI)
+
+  Serial.print(F("[PUB] "));                      // พิมพ์ prefix สำหรับดูใน Serial
+  Serial.println(payload);                        // พิมพ์เนื้อหา JSON ที่จะส่ง
+
+  mqtt.publish(TELE_TOPIC, payload, false);       // ส่งขึ้น MQTT ที่หัวข้อ telemetry (retain=false สำหรับข้อมูลไหล)
+
+  digitalWrite(LED_PIN, HIGH); delay(20);         // กะพริบ LED สั้น ๆ เพื่อยืนยันการส่ง
+  digitalWrite(LED_PIN, LOW);                     // ปิด LED
+}
+
+// ---------------------- setup(): รันครั้งเดียวตอนบูต ----------------------
+void setup() {
+  pinMode(LED_PIN, OUTPUT);                       // ตั้งโหมดขา LED เป็นเอาต์พุต
+  digitalWrite(LED_PIN, LOW);                     // เริ่มต้นให้ LED ปิดไว้ก่อน
+
+  Serial.begin(115200);                           // เปิดพอร์ต Serial ที่ความเร็ว 115200 bps
+  delay(300);                                     // หน่วงสั้น ๆ เพื่อให้ Serial พร้อม
+  Serial.println();                               // ขึ้นบรรทัดใหม่
+  Serial.println(F("=== ESP32+BME280+MQTT (Robust Reconnect) ===")); // พิมพ์หัวเรื่อง
+
+  WiFi.onEvent(onWiFiEvent);                      // ลงทะเบียน callback เพื่อรับเหตุการณ์ Wi-Fi
+
+  if (bme.begin(BME280_I2C_ADDR)) {               // พยายามเริ่มต้น BME280 ที่ที่อยู่ 0x76
+    bmeReady = true;                              // ถ้าพบและตั้งค่าผ่าน ให้ธงพร้อมใช้งาน = true
+    Serial.println(F("[BME280] initialized (0x76)")); // แจ้งผลสำเร็จ
+  } else {                                        // ถ้าไม่พบที่ 0x76
+    Serial.println(F("[BME280] NOT found at 0x76, try 0x77...")); // แจ้งว่าจะลอง 0x77
+    if (bme.begin(0x77)) {                        // ลองเริ่มต้นที่ 0x77
+      bmeReady = true;                            // ถ้าสำเร็จ ให้ธงพร้อมใช้งาน = true
+      Serial.println(F("[BME280] initialized (0x77)")); // แจ้งผลสำเร็จ
+    } else {                                      // ถ้ายังไม่พบ
+      Serial.println(F("[BME280] sensor not found, continue without sensor")); // แจ้งว่าไม่พบเซนเซอร์
+      bmeReady = false;                           // ตั้งธงว่าไม่พร้อม (ลูปยังคงทำงานส่วนอื่น ๆ ต่อได้)
+    }
+  }
+
+  ensureWiFi();                                   // เริ่มขั้นตอนการเชื่อม Wi-Fi รอบแรก (ไม่บล็อก)
+}
+
+// ---------------------- loop(): วนซ้ำตลอดเวลาที่อุปกรณ์ทำงาน ----------------------
+void loop() {
+  ensureWiFi();                                   // 1) ดูแลการเชื่อมต่อ Wi-Fi (ถ้าหลุดจะพยายามต่อใหม่เป็นช่วง ๆ)
+  ensureMQTT();                                   // 2) ดูแลการเชื่อมต่อ MQTT (ทำหลัง Wi-Fi พร้อม)
+
+  if (mqtt.connected()) mqtt.loop();              // 3) ถ้า MQTT เชื่อมแล้ว ให้หมุน loop ภายในเพื่อจัดการ keep-alive/callback
+
+  unsigned long now = millis();                   // อ่านเวลาปัจจุบัน
+  if (now - lastPublish >= PUBLISH_EVERY) {       // 4) ถึงรอบเวลาที่ต้องส่งเทเลเมทรีหรือยัง?
+    lastPublish = now;                            // บันทึกเวลาไว้
+    publishTelemetry();                           // เรียกฟังก์ชันส่งข้อมูล
+  }
+
+  delay(5);                                       // หน่วงสั้น ๆ เพื่อลดภาระ CPU และคงความ responsive ของลูป
+}
+</code></pre>
 <p>
     หลังจากอัปโหลดโค้ดนี้ไปยัง ESP32 ของคุณแล้ว ให้เปิด Serial Monitor (ตั้งค่า Baud Rate เป็น 115200) เพื่อดู Log การเชื่อมต่อและการส่งข้อมูล
 </p>
