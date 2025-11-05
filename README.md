@@ -88,11 +88,11 @@ COPY . /usr/share/nginx/html
 ```
 2.Build และ Run Docker image:
 
-# Build image ชื่อ vecskill-guide
+#Build image ชื่อ vecskill-guide
 ```
 docker build -t vecskill-guide .
 ```
-# รัน container ที่ Port 8080
+#รัน container ที่ Port 8080
 ```
 docker run -d -p 8080:80 --name vecskill-guide-web vecskill-guide
 ```
