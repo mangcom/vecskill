@@ -113,4 +113,4 @@ Internal Services: Technitium DNS, Caddy (Internal CA), Apt-Cacher-Ng, Devpi (Pr
 
 ตัวอย่าง: ระบบประเมินครู (PES), เกณฑ์การแข่งขัน (ปวช./ปวส.), ตัวอย่าง IoT (ESP32 + MQTT)
 
-(กำลังพัฒนา): GitLab CI/CD, GitLab Runner, Node-Red, Verdaccio, Nginx Proxy Manager, Cloudflare
+(กำลังพัฒนา): GitLab CI/CD, GitLab Runner,Verdaccio, Nginx Proxy Manager, Cloudflare
