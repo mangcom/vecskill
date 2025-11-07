@@ -1,0 +1,176 @@
+<h1><i class="fas fa-compact-disc fa-fw"></i> การนำ VM Image (VMWare) ไปใช้งาน</h1>
+<p>
+    หน้านี้เป็นคู่มือสำหรับผู้ที่ดาวน์โหลดไฟล์ VM สำเร็จรูป (<code>UbuntuServer_24.04_VM.7z</code>) เพื่อนำไปเปิดใช้งานใน VMWare Workstation Pro/Player โดยข้ามขั้นตอนการติดตั้ง Server, Docker, GitLab ฯลฯ ทั้งหมด
+</p>
+<p style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 15px;">
+    <strong>ข้อควรระวัง:</strong> VM นี้ถูกตั้งค่า IP Address และ Network ไว้ตายตัว คุณต้องทำตาม <strong>ขั้นตอนที่ 2 (ตั้งค่าเครือข่าย VMWare)</strong> ให้ถูกต้อง 100% <strong>ก่อนเปิด VM</strong> มิฉะนั้น VM จะไม่สามารถเชื่อมต่อเครือข่ายได้
+</p>
+
+<hr style="margin: 40px 0;">
+
+<h2><i class="fas fa-file-archive"></i> ขั้นตอนที่ 1: เตรียมไฟล์ VM (Unzip)</h2>
+<ol>
+    <li>คุณมีไฟล์ <code>UbuntuServer_24.04_VM.7z</code> ซึ่งเป็นไฟล์บีบอัด ซึ่ง Download ได้จาก Link ในหน้า <a href="#" onclick="document.querySelector('a[data-page=\'project-overview\']').click();">ภาพรวมการพัฒนา</a> </li>
+    <li>ใช้โปรแกรม 7-Zip (หรือโปรแกรมที่รองรับ .7z เช่น WinRAR) คลิกขวาที่ไฟล์</li>
+    <li>เลือก "Extract Here" หรือ "Extract to UbuntuServer_24.04_VM/"</li>
+    <li>คุณจะได้โฟลเดอร์ใหม่ ภายในจะมีไฟล์ VM หลายตัว รวมถึงไฟล์ <code>.vmx</code> (เช่น <code>UUbuntuServer_24.04_VM_LinuxVMImages.COM</code>) ซึ่งเป็นไฟล์หลักสำหรับเปิด VM</li>
+</ol>
+<div class="image-container">
+    <img src="./images/01_vm_extract.png" alt="Extract" class="content-image">
+    <p>ใช้ 7-Zip หรือ WinRAR เพื่อแตกไฟล์ .7z</p>
+</div>
+
+<hr style="margin: 40px 0;">
+
+<h2><i class="fas fa-network-wired"></i> ขั้นตอนที่ 2: ตั้งค่าเครือข่าย VMWare (สำคัญมาก)</h2>
+<p>
+    ก่อนเปิด VM คุณต้องตั้งค่าเครือข่ายใน VMWare Workstation ให้ตรงกับที่ VM นี้ถูกกำหนดค่ามาเสียก่อน
+</p>
+<ol>
+    <li>เปิดโปรแกรม VMWare Workstation (ห้ามเปิด VM)</li>
+    <li>ไปที่เมนู <strong>Edit > Virtual Network Editor...</strong></li>
+    <li>คุณอาจต้องกดปุ่ม <strong>Change Settings</strong> (และกดยืนยัน Admin) เพื่อแก้ไข</li>
+</ol>
+
+<h3>A. ตั้งค่าเครือข่าย NAT (VMnet8)</h3>
+<p><strong>เป้าหมาย:</strong> เครือข่าย <code>172.16.3.0/24</code> และ <strong>เปิด</strong> DHCP</p>
+<ul>
+    <li>ใน Virtual Network Editor, คลิกเลือก <strong>VMnet8 (NAT)</strong></li>
+    <li><strong>Subnet IP:</strong> ตั้งค่าเป็น <code>172.16.3.0</code></li>
+    <li><strong>Subnet mask:</strong> ตั้งค่าเป็น <code>255.255.255.0</code> (ซึ่งก็คือ /24)</li>
+    <li>ตรวจสอบให้แน่ใจว่า <strong>"Use local DHCP service..."</strong> ถูกติ๊ก (เปิด)</li>
+</ul>
+<div class="image-container">
+    <img src="./images/01_vm_nat_setting.png" alt="NAT Setting" class="content-image">
+    <p>การตั้งค่า VMnet8 (NAT) ใน Virtual Network Editor</p>
+</div>
+
+<h3>B. ตั้งค่าเครือข่าย Host-Only (เช่น VMnet1)</h3>
+<p><strong>เป้าหมาย:</strong> เครือข่าย <code>10.20.30.0/25</code> และ <strong>ปิด</strong> DHCP</p>
+<ul>
+    <li>ใน Virtual Network Editor, คลิกเลือก <strong>VMnet1 (Host-Only)</strong> (หรือ VMnet อื่นที่เป็น Host-Only)</li>
+    <li><strong>Subnet IP:</strong> ตั้งค่าเป็น <code>10.20.30.0</code></li>
+    <li><strong>Subnet mask:</strong> ตั้งค่าเป็น <code>255.255.255.128</code> (นี่คือ /25)</li>
+    <li>ตรวจสอบให้แน่ใจว่า <strong>"Use local DHCP service..."</strong> ถูก <strong>เอาติ๊กออก</strong> (ปิด)</li>
+</ul>
+<div class="image-container">
+    <img src="./images/01_vm_ho_setting.png" alt="Host-Only Setting" class="content-image">
+    <p>การตั้งค่า VMnet1 (Host-Only) ใน Virtual Network Editor</p>
+</div>
+<p>กด <strong>Apply</strong> แล้วกด <strong>OK</strong> เพื่อบันทึกการตั้งค่าเครือข่าย</p>
+
+<hr style="margin: 40px 0;">
+
+<h2><i class="fas fa-cog"></i> ขั้นตอนที่ 3: เปิดและตรวจสอบการตั้งค่า VM</h2>
+<ol>
+    <li>ใน VMWare Workstation, ไปที่ <strong>File > Open...</strong></li>
+    <li>ไปที่โฟลเดอร์ที่คุณ Unzip ไว้ในขั้นตอนที่ 1 และเลือกไฟล์ <code>.vmx</code></li>
+    <li>VM จะปรากฏในรายการด้านซ้าย (อย่าเพิ่งเปิดเครื่อง)</li>
+    <li>คลิกขวาที่ VM ใหม่ > <strong>Settings...</strong></li>
+    <li>
+        <strong>ตรวจสอบการตั้งค่าฮาร์ดแวร์:</strong>
+        <ul>
+            <li><strong>Memory:</strong> ตั้งค่าเป็น <strong>16 GB</strong> (หรืออย่างน้อย 8GB)</li>
+            <li><strong>Processors:</strong> ตั้งค่าเป็น <strong>8 cores</strong> (เช่น 2 Processors, 4 Cores per processor)</li>
+            <li><strong>Hard Disk:</strong> ตรวจสอบว่ามีขนาด 60 GB</li>
+        </ul>
+    </li>
+    <li>
+        <strong>ตรวจสอบการตั้งค่า Network Adapter (สำคัญ):</strong>
+        <ul>
+            <li><strong>Network Adapter 1:</strong> ต้องเชื่อมต่อกับ <strong>NAT (VMnet8)</strong> (เครือข่าย 172.16.3.0/24)</li>
+            <li><strong>Network Adapter 2:</strong> ต้องเชื่อมต่อกับ <strong>Host-Only (VMnet1)</strong> (เครือข่าย 10.20.30.0/25)</li>
+        </ul>
+        <p><em>(หาก VM นี้มี Network Adapter แค่อันเดียว ให้คลิก Add... > Network Adapter เพื่อเพิ่มอันที่สองและตั้งค่าตามนี้)</em></p>
+    </li>
+    <li>กด <strong>OK</strong></li>
+</ol>
+<div class="image-container">
+    <img src="./images/01_vm_vmsetting.png" alt="Host-Only Setting" class="content-image">
+    <p>ตรวจสอบว่า Network Adapters เชื่อมต่อกับ VMnet8 และ VMnet1 ถูกต้อง</p>
+</div>
+
+<hr style="margin: 40px 0;">
+
+<h2><i class="fas fa-rocket"></i> ขั้นตอนที่ 4: เริ่มใช้งานและตั้งค่า Host File</h2>
+<ol>
+    <li>กด <strong>Power on this virtual machine</strong> และรอให้ Ubuntu Server บูตจนเสร็จ หากมีให้เลือก Move It กับ Copy It ให้เลือก Move It</li>
+    <li>VM นี้ถูกตั้งค่า IP ไว้เรียบร้อยแล้ว (NAT IP: <code>172.16.3.101</code> และ Host-Only IP: <code>10.20.30.101</code>)</li>
+    <li>
+        <strong>การตั้งค่า Host File (เพื่อให้เข้าผ่านชื่อ Domain ได้):</strong><br>
+        เพื่อให้คุณสามารถใช้ชื่อ <code>gitlab.vecskill.ovec</code> หรือ <code>dns.vecskill.ovec</code> ได้ คุณต้องแก้ไขไฟล์ <code>hosts</code> <strong>บนเครื่องคอมพิวเตอร์หลักของคุณ (Host)</strong>
+    </li>
+    <li>เปิด <strong>Notepad</strong> แบบ <strong>Run as Administrator</strong></li>
+    <li>ไปที่ <strong>File > Open</strong></li>
+    <li>ไปที่ <code>C:\Windows\System32\drivers\etc\</code></li>
+    <li>เปลี่ยนประเภทไฟล์จาก "Text Documents (*.txt)" เป็น "All Files (*.*)"</li>
+    <li>เปิดไฟล์ชื่อ <code>hosts</code></li>
+    <li>
+        เพิ่มบรรทัดต่อไปนี้ลงไปท้ายไฟล์:
+        <pre><code># VECSkill VM
+172.16.3.101 gitlab.vecskill.ovec portainer.vecskill.ovec dns.vecskill.ovec
+</code></pre>
+    </li>
+    <li>กด <strong>File > Save</strong></li>
+</ol>
+
+<hr style="margin: 40px 0;">
+
+<h2><i class="fas fa-key"></i> สรุปข้อมูลการเข้าใช้งาน (Logins)</h2>
+<p>
+    ตอนนี้คุณพร้อมใช้งานบริการต่างๆ แล้ว ข้อมูลการล็อกอินเริ่มต้นสำหรับทุก Service คือ:
+</p>
+<table class="spec-table">
+    <thead>
+        <tr>
+            <th>บริการ (Service)</th>
+            <th>การเข้าถึง (URL / Command)</th>
+            <th>Username</th>
+            <th>Password</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>SSH</strong></td>
+            <td><code>ssh devops@172.16.3.101</code></td>
+            <td><code>devops</code></td>
+            <td><code>VECSki11@0vec2025</code></td>
+        </tr>
+        <tr>
+            <td><strong>Portainer</strong></td>
+            <td>https://172.16.3.101:9443<br>https://portainer.vecskill.ovec</td>
+            <td><code>admin</code></td>
+            <td><code>VECSki11@0vec2025</code></td>
+        </tr>
+        <tr>
+            <td><strong>Technitium DNS</strong></td>
+            <td>http://172.16.3.101:5380<br>https://dns.vecskill.ovec</td>
+            <td><code>admin</code></td>
+            <td><code>VECSki11@0vec2025</code></td>
+        </tr>
+        <tr>
+            <td><strong>GitLab</strong></td>
+            <td>https://gitlab.vecskill.ovec</td>
+            <td><code>root</code></td>
+            <td><code>VECSki11@0vec2025</code></td>
+        </tr>
+        <tr>
+            <td><strong>EMQX</strong></td>
+            <td>http://172.16.3.101:18083</td>
+            <td><code>admin</code></td>
+            <td><code>VECSki11@0vec2025</code></td>
+        </tr>
+        <tr>
+            <td><strong>Node-RED</strong></td>
+            <td>http://172.16.3.101:1880</td>
+            <td><code>admin</code></td>
+            <td><code>VECSki11@0vec2025</code></td>
+        </tr>
+    </tbody>
+</table>
+
+<h3 style="margin-top: 20px;">IP Address ของ VM</h3>
+<ul>
+    <li>IP สำหรับเชื่อมต่อจากภายนอก (NAT): <code>172.16.3.101</code></li>
+    <li>IP สำหรับเครือข่ายภายใน (Host-Only): <code>10.20.30.101</code></li>
+</ul>
