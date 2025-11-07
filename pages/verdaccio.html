@@ -58,7 +58,9 @@ docker volume create verdaccio_storage</code></pre>
 <p>
     ไปที่ Portainer > Stacks > + Add stack, ตั้งชื่อ (เช่น `verdaccio-stack`) แล้วใช้โค้ด Docker Compose นี้:
 </p>
-<pre><code>services:
+<pre><code>version: '3.8'
+
+services:
   verdaccio:
     image: verdaccio/verdaccio:latest
     container_name: verdaccio
@@ -98,26 +100,26 @@ volumes:
 <p>Verdaccio ต้องการ Node.js ในการทำงาน แนะนำให้ติดตั้งเวอร์ชัน LTS ล่าสุด:</p>
 <pre><code>sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs</code></pre>
 
 <h4>4.2.2 ติดตั้ง Verdaccio</h4>
 <p>ติดตั้ง Verdaccio แบบ Global โดยใช้ `npm`:</p>
 <pre><code># -g หมายถึงการติดตั้งแบบ Global
-sudo npm install -g verdaccio</code></pre>
+sudo npm install -g verdaccio@5</code></pre>
 
 <h4>4.2.3 สร้าง User และโฟลเดอร์</h4>
 <p>เพื่อความปลอดภัย เราจะสร้าง User `verdaccio` แยกต่างหากสำหรับรัน Service:</p>
 <pre><code># สร้าง user และ group ชื่อ verdaccio (แบบ system)
 sudo adduser --system --group --home /srv/verdaccio verdaccio
 
-# สร้างโฟลเดอร์สำหรับเก็บ config, storage (packages), และ plugins
+# สร้างโฟลเดอร์สำหรับเก็บ config, storage (packages), และ htpasswd
 sudo mkdir -p /srv/verdaccio/{storage,plugins}
 sudo mkdir -p /etc/verdaccio
+sudo touch /srv/verdaccio/htpasswd
 
 # โอนสิทธิ์ความเป็นเจ้าของให้ user verdaccio
-sudo chown -R verdaccio:verdaccio /srv/verdaccio
-sudo chown -R verdaccio:verdaccio /etc/verdaccio
+sudo chown -R verdaccio:verdaccio /srv/verdaccio /etc/verdaccio
 </code></pre>
 
 <h4>4.2.4 สร้างไฟล์ Config (`config.yaml`)</h4>
@@ -130,29 +132,36 @@ sudo chown -R verdaccio:verdaccio /etc/verdaccio
 storage: /srv/verdaccio/storage
 # ที่เก็บปลั๊กอิน
 plugins: /srv/verdaccio/plugins
+
 # ตั้งค่า Web UI
 web:
   title: Verdaccio Private NPM
-# ตั้งค่าการยืนยันตัวตน (ใช้ไฟล์ htpasswd)
+
+# ตั้งค่าการยืนยันตัวตน (ใช้ไฟล์ htpasswd ที่เราสร้างไว้)
 auth:
   htpasswd:
-    file: ./htpasswd # จะถูกสร้างขึ้นใน /etc/verdaccio/htpasswd
+    file: /srv/verdaccio/htpasswd
+    max_users: 1000
+
 # กำหนด Proxy ไปยัง npmjs.org
 uplinks:
   npmjs:
     url: https://registry.npmjs.org/
+
 # กฎการเข้าถึงแพ็กเกจ
 packages:
   # แพ็กเกจที่มี @scope (เช่น @vecskill/...)
   '@*/*':
-    access: $all
+    access: $authenticated
     publish: $authenticated
-    unpublish: $authenticated
+    proxy: npmjs
+  
   # แพ็กเกจทั่วไป
   '**':
     access: $all
     publish: $authenticated
-    unpublish: $authenticated
+    proxy: npmjs
+
 # Port ที่จะให้ Service ทำงาน (รับการเชื่อมต่อจากทุก IP)
 listen: 0.0.0.0:4873
 </code></pre>
@@ -170,10 +179,9 @@ User=verdaccio
 Group=verdaccio
 # ระบุตำแหน่งไฟล์ config ผ่าน Environment Variable
 Environment=VERDACCIO_CONFIG_PATH=/etc/verdaccio/config.yaml
-# หาตำแหน่งที่ติดตั้ง verdaccio (ปกติจะอยู่ที่ /usr/bin/verdaccio หรือ /usr/local/bin/verdaccio)
+# หาตำแหน่งที่ติดตั้ง verdaccio (ปกติจะอยู่ที่ /usr/bin/verdaccio หรือ /usr/lib/node_modules/verdaccio/bin/verdaccio)
 ExecStart=/usr/bin/verdaccio --config ${VERDACCIO_CONFIG_PATH}
 Restart=on-failure
-LimitNOFILE=65535
 
 [Install]
 WantedBy=multi-user.target
@@ -223,7 +231,16 @@ npm.vecskill.ovec {
     หลังจาก Server พร้อมใช้งานแล้ว เครื่อง Client (เช่น คอมพิวเตอร์ของคุณ หรือ GitLab Runner) ต้องถูกตั้งค่าให้ชี้มาที่ Verdaccio Server แทน npmjs.org
 </p>
 
-<h3>6.1 ตั้งค่า Registry (ทำครั้งเดียว)</h3>
+<h3>6.1 (สำคัญ) ติดตั้ง Root CA ของ Caddy</h3>
+<p>
+    หากคุณใช้ Caddy <code>tls internal</code> (HTTPS ภายใน) คุณต้องติดตั้งไฟล์ <code>caddy-root.crt</code> ลงใน Trusted Root Store ของเครื่อง Client ก่อน ไม่เช่นนั้น Client จะฟ้อง lỗi SSL (<code>SELF_SIGNED_CERT_IN_CHAIN</code>)
+</p>
+<ul>
+    <li><strong>Windows:</strong> <code>Import-Certificate -FilePath "C:\path\to\caddy-root.crt" -CertStoreLocation Cert:\LocalMachine\Root</code> (Run as Admin)</li>
+    <li><strong>Linux:</strong> <code>sudo cp caddy-root.crt /usr/local/share/ca-certificates/</code> แล้วรัน <code>sudo update-ca-certificates</code></li>
+</ul>
+
+<h3>6.2 ตั้งค่า NPM Registry และ Login</h3>
 <p>
     รันคำสั่งนี้ใน Terminal ของเครื่อง Client เพื่อบอกให้ `npm` ใช้ Verdaccio Server ของคุณเป็น Registry หลัก:
 </p>
@@ -233,11 +250,8 @@ npm set registry https://npm.vecskill.ovec
 # (ถ้าเข้าผ่าน IP ตรง และใช้ HTTP)
 # npm set registry http://10.20.30.101:4873
 </code></pre>
-<p>
-    <strong>สำคัญ (สำหรับ HTTPS):</strong> หากคุณใช้ Caddy Internal CA คุณต้องแน่ใจว่าเครื่อง Client ได้ติดตั้ง Root CA ของ Caddy แล้ว ไม่เช่นนั้น `npm` จะรายงานข้อผิดพลาด SSL (SSL Error)
-</p>
 
-<h3>6.2 สร้าง User (ทำครั้งแรก)</h3>
+<h3>6.3 สร้าง User (ทำครั้งแรก)</h3>
 <p>
     ในการ Publish แพ็กเกจส่วนตัว คุณต้องสร้าง User บน Verdaccio ก่อน
 </p>
@@ -245,7 +259,7 @@ npm set registry https://npm.vecskill.ovec
 npm adduser --registry https://npm.vecskill.ovec</code></pre>
 <p>ระบบจะถามให้คุณตั้งค่า: Username, Password, และ Email</p>
 
-<h3>6.3 การใช้งาน</h3>
+<h3>6.4 การใช้งาน</h3>
 <ul>
     <li>
         <strong>การติดตั้งแพ็กเกจ (Install):</strong>
@@ -260,7 +274,7 @@ npm publish</code></pre>
     </li>
 </ul>
 
-<h3>6.4 การสลับกลับไปใช้ Registry สาธารณะ</h3>
+<h3>6.5 การสลับกลับไปใช้ Registry สาธารณะ</h3>
 <p>
     หากคุณต้องการสลับกลับไปใช้ npmjs.org ชั่วคราว ให้รัน:
 </p>
