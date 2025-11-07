@@ -29,7 +29,6 @@ if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
 
 // 4. เชื่อมต่อ DB (จากไฟล์ config)
 require_once __DIR__ . '/../db-config.php'; // เรียกไฟล์ config ที่อยู่โฟลเดอร์บน
-echo "ok";
 try {
     // 5. บันทึก Log (ใช้ Prepared Statements เพื่อความปลอดภัย)
     $sql = "INSERT INTO page_views (page_name, ip_address) VALUES (?, ?)";
