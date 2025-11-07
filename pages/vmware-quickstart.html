@@ -1,6 +1,6 @@
 <h1><i class="fas fa-compact-disc fa-fw"></i> การนำ VM Image (VMWare) ไปใช้งาน</h1>
 <p>
-    หน้านี้เป็นคู่มือสำหรับผู้ที่ดาวน์โหลดไฟล์ VM สำเร็จรูป (<code>UbuntuServer_24.04_VM.7z</code>) เพื่อนำไปเปิดใช้งานใน VMWare Workstation Pro/Player Version 17 ขึ้นไป <a href="https://www.techspot.com/downloads/downloadnowfile/189/?evp=c586bb6e63bfc21b5d54b9e454969b40&file=11957">Download</a>  Server, Docker, GitLab ฯลฯ ทั้งหมด
+    หน้านี้เป็นคู่มือสำหรับผู้ที่ดาวน์โหลดไฟล์ VM สำเร็จรูป (<code>UbuntuServer_24.04_VM.7z</code>) เพื่อนำไปเปิดใช้งานใน VMWare Workstation Pro Version 17 ขึ้นไป <a href="https://www.techspot.com/downloads/downloadnowfile/189/?evp=c586bb6e63bfc21b5d54b9e454969b40&file=11957">Download</a>  Server, Docker, GitLab ฯลฯ ทั้งหมด
 </p>
 <p style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 15px;">
     <strong>ข้อควรระวัง:</strong> VM นี้ถูกตั้งค่า IP Address และ Network ไว้ตายตัว คุณต้องทำตาม <strong>ขั้นตอนที่ 2 (ตั้งค่าเครือข่าย VMWare)</strong> ให้ถูกต้อง 100% <strong>ก่อนเปิด VM</strong> มิฉะนั้น VM จะไม่สามารถเชื่อมต่อเครือข่ายได้
@@ -24,6 +24,9 @@
 
 <h2><i class="fas fa-network-wired"></i> ขั้นตอนที่ 2: ตั้งค่าเครือข่าย VMWare (สำคัญมาก)</h2>
 <p>
+    ในการนำไปใช้งานจริง ควรใช้การ์ดเครือข่าย 2 ตัว โดยตัวแรกจะเชื่อมต่อกับ Network ที่จะให้ VM สามารถเข้าถึง Internet ได้ ส่วนตัวที่สองจะเชื่อมต่อกับ Network ภายใน เพื่อใช้สำหรับการสื่อสารภายในเครือข่ายส่วนตัว (Intranet) เท่านั้น
+</p>
+<p>
     ก่อนเปิด VM คุณต้องตั้งค่าเครือข่ายใน VMWare Workstation ให้ตรงกับที่ VM นี้ถูกกำหนดค่ามาเสียก่อน
 </p>
 <ol>
@@ -32,7 +35,7 @@
     <li>คุณอาจต้องกดปุ่ม <strong>Change Settings</strong> (และกดยืนยัน Admin) เพื่อแก้ไข</li>
 </ol>
 
-<h3>A. ตั้งค่าเครือข่าย NAT (VMnet8)</h3>
+<h3>A. ตั้งค่าเครือข่าย NAT (VMnet8) Network ที่เชื่อมต่อกับ Internet</h3>
 <p><strong>เป้าหมาย:</strong> เครือข่าย <code>172.16.3.0/24</code> และ <strong>เปิด</strong> DHCP หรือต่อ Bridge กับการ์ดเครือข่ายที่ใช้งาน Internet ได้</p>
 <ul>
     <li>ใน Virtual Network Editor, คลิกเลือก <strong>VMnet8 (NAT)</strong></li>
@@ -45,7 +48,7 @@
     <p>การตั้งค่า VMnet8 (NAT) ใน Virtual Network Editor</p>
 </div>
 
-<h3>B. ตั้งค่าเครือข่าย Host-Only (เช่น VMnet1)</h3>
+<h3>B. ตั้งค่าเครือข่าย Host-Only (เช่น VMnet1) Network ที่เชื่อมต่อกับ Intranet</h3>
 <p><strong>เป้าหมาย:</strong> เครือข่าย <code>10.20.30.0/25</code> และ <strong>ปิด</strong> DHCP </p>
 <ul>
     <li>ใน Virtual Network Editor, คลิกเลือก <strong>VMnet1 </strong> (Host-Only กรณีติดตั้งเครื่องลูกข่ายและทดสอบบนเครื่องที่ใช้งานเดียวกันกับ VMWare หรือต่อกับ Bridge ที่ต่อกับการ์ดเครือข่ายที่ใช้งาน Intranet ที่ไม่สามารถใช้งาน Internet ได้)</li>
