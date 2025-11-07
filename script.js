@@ -46,60 +46,75 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- (ฟังก์ชัน populateStatistics อัปเดตใหม่) ---
+    // --- (ฟังก์ชัน populateStatistics อัปเดตสำหรับ DataTables) ---
     async function populateStatistics() {
         const statsPlaceholder = document.getElementById('stats-placeholder');
-        if (!statsPlaceholder) return;
-        statsPlaceholder.innerHTML = '<p>กำลังโหลดสถิติจาก Server...</p>';
+        
+        // 1. ตรวจสอบว่า DataTables โหลดมาหรือยัง
+        if (typeof jQuery === 'undefined' || !jQuery.fn.DataTable) {
+            if (statsPlaceholder) statsPlaceholder.innerHTML = "<p style='color: red;'>ข้อผิดพลาด: ไม่สามารถโหลด Library ของ DataTables ได้</p>";
+            console.error("DataTables library not found!");
+            return;
+        }
+
+        const statsTable = document.getElementById('stats-table');
+        if (!statsTable) return;
+        
+        // 2. (สำคัญ) ทำลายตารางเก่าทิ้งถ้ามี (กรณีคลิกซ้ำ)
+        if (jQuery.fn.DataTable.isDataTable('#stats-table')) {
+            jQuery('#stats-table').DataTable().destroy();
+        }
+
+        // 3. แสดงสถานะกำลังโหลดใน tbody
+        const tableBody = statsTable.querySelector('tbody');
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="3">กำลังโหลดสถิติจาก Server...</td></tr>';
 
         try {
-            // 1. ยิง API ไปยัง Backend (vecskill.bncc.ac.th/api/stats.php)
+            // 4. ยิง API ไปยัง Backend
             const response = await fetch('/api/stats.php'); 
-            
             if (!response.ok) {
                 throw new Error(`Server error: ${response.statusText}`);
             }
-            
             const allCounts = await response.json();
 
-            // --- (อัปเดต) --- กรองทั้ง 'project-overview' และ 'statistics' ออก ---
+            // 5. กรองข้อมูล
             const filteredCounts = allCounts.filter(item => 
                 item.page_name !== 'project-overview' && 
                 item.page_name !== 'statistics'
             );
-            // ---------------------------------------------------
 
-            // 3. สร้าง HTML ตาราง (ใช้ filteredCounts)
-            if (!filteredCounts || filteredCounts.length === 0) {
-                statsPlaceholder.innerHTML = '<p>ยังไม่มีสถิติการเข้าชม (ยกเว้นหน้าภาพรวมและสถิติ)</p>';
-                return;
-            }
-
-            let tableHTML = '<table class="spec-table">';
-            tableHTML += '<thead><tr><th>อันดับ</th><th>ชื่อหน้า (Page ID)</th><th>จำนวนครั้งที่เข้าชม (รวม)</th></tr></thead>';
-            tableHTML += '<tbody>';
-
-            // 4. วนลูปด้วยข้อมูลที่กรองแล้ว
-            filteredCounts.forEach((item, index) => {
-                // ค้นหาชื่อเมนูที่แสดง (DisplayName) จากเมนู
+            // 6. (ใหม่) เตรียมข้อมูลสำหรับ DataTables
+            const dataForTable = filteredCounts.map((item, index) => {
                 const menuLink = document.querySelector(`.menu a[data-page="${item.page_name}"] span`);
                 const displayName = menuLink ? menuLink.textContent.trim() : item.page_name;
-
-                tableHTML += `
-                    <tr>
-                        <td><strong>${index + 1}</strong></td>
-                        <td>${displayName} (<code>${item.page_name}</code>)</td>
-                        <td><strong>${item.views}</strong></td>
-                    </tr>
-                `;
+                return {
+                    rank: index + 1,
+                    name: `${displayName} (<code>${item.page_name}</code>)`,
+                    views: item.views
+                };
             });
 
-            tableHTML += '</tbody></table>';
-            statsPlaceholder.innerHTML = tableHTML;
+            // 7. (ใหม่) เริ่มใช้งาน DataTables
+            jQuery('#stats-table').DataTable({
+                data: dataForTable,
+                columns: [
+                    { data: 'rank', title: 'อันดับ' },
+                    { data: 'name', title: 'ชื่อหน้า (Page ID)' },
+                    { data: 'views', title: 'จำนวนครั้งที่เข้าชม' }
+                ],
+                order: [[2, 'desc']], // เรียงลำดับตามยอดวิว (คอลัมน์ 2) จากมากไปน้อย
+                paging: true,        // เปิดการแบ่งหน้า
+                searching: true,     // เปิดการค้นหา
+                info: true,
+                responsive: true,    // รองรับการแสดงผลบนมือถือ
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json" // ใช้ภาษาไทย
+                }
+            });
 
         } catch (error) {
             console.error('Failed to fetch stats:', error);
-            statsPlaceholder.innerHTML = '<p style="color: red;">ไม่สามารถโหลดสถิติได้</Vp>';
+            if (tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="color: red;">ไม่สามารถโหลดสถิติได้</td></tr>';
         }
     }
 
@@ -108,13 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
         contentDisplay.innerHTML = '<h1><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</h1>';
 
         // --- View Counting Logic (Server-side) ---
-        // !!! เพิ่มเงื่อนไข: ตรวจสอบว่าหน้าไม่ใช่ 'statistics' ถึงจะนับ !!!
         if (page !== 'statistics') {
             fetch('/api/track.php', { 
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ page: page })
             }).catch(err => {
                 console.warn('Failed to track page view:', err.message);
@@ -124,16 +136,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch(`pages/${page}.html`)
             .then(response => {
-                if (!response.ok) { throw new Error(`ไม่พบไฟล์: ${page}.html`); }
+                if (!response.ok) { throw new Error(`ไม่พบไฟล์: ${page.html}`); }
                 return response.text();
             })
             .then(data => {
                 contentDisplay.innerHTML = data;
-                
                 addCopyButtons(); // เรียกใช้ฟังก์ชันปุ่ม Copy
 
-                // ตรวจสอบถ้าเป็นหน้าสถิติ ให้เรียกฟังก์ชันสร้างตาราง
-                // (ส่วนนี้ยังทำงานปกติ)
                 if (page === 'statistics') {
                     populateStatistics();
                 }
@@ -145,12 +154,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- (ส่วนที่เหลือของ script.js ... toggle functions, event listeners ... เหมือนเดิม) ---
-    function toggleMobileSidebar() {
-        body.classList.toggle('sidebar-visible');
-    }
-    function toggleDesktopCollapse() {
-        body.classList.toggle('sidebar-collapsed');
-    }
+    function toggleMobileSidebar() { body.classList.toggle('sidebar-visible'); }
+    function toggleDesktopCollapse() { body.classList.toggle('sidebar-collapsed'); }
     if (menuToggle) { menuToggle.addEventListener('click', toggleMobileSidebar); }
     if (closeMenuBtn) { closeMenuBtn.addEventListener('click', toggleMobileSidebar); }
     if (collapseSidebarBtn) { collapseSidebarBtn.addEventListener('click', toggleDesktopCollapse); }

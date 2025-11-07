@@ -36,7 +36,7 @@ body {
     left: 0;
     top: 0;
     z-index: 1000;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     transition: left 0.3s ease-in-out;
 }
 
@@ -112,17 +112,22 @@ body {
 /* --- สไตล์สำหรับองค์ประกอบอื่นๆ ในเนื้อหา --- */
 pre {
     background-color: #2d2d2d;
-    color: #4CAF50; /* <-- ปรับสีโค้ดให้เป็นสีเขียวตามเดิม */
+    color: #4CAF50;
+    /* <-- ปรับสีโค้ดให้เป็นสีเขียวตามเดิม */
     padding: 15px;
     border-radius: 5px;
     overflow-x: auto;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.9em;
     line-height: 1.5;
-    text-align: left; /* <-- ทำให้ข้อความใน pre ชิดซ้ายเสมอ */
-    max-width: 90%; /* <-- จำกัดความกว้างสูงสุด */
-    margin-left: auto; /* <-- จัดให้อยู่กึ่งกลาง */
-    margin-right: auto; /* <-- จัดให้อยู่กึ่งกลาง */
+    text-align: left;
+    /* <-- ทำให้ข้อความใน pre ชิดซ้ายเสมอ */
+    max-width: 90%;
+    /* <-- จำกัดความกว้างสูงสุด */
+    margin-left: auto;
+    /* <-- จัดให้อยู่กึ่งกลาง */
+    margin-right: auto;
+    /* <-- จัดให้อยู่กึ่งกลาง */
 }
 
 pre code {
@@ -168,7 +173,8 @@ code {
     overflow: hidden;
     max-width: 100%;
     background: #000;
-    margin: 20px auto; /* เพิ่ม auto เพื่อจัดกึ่งกลาง */
+    margin: 20px auto;
+    /* เพิ่ม auto เพื่อจัดกึ่งกลาง */
     border-radius: 5px;
 }
 
@@ -219,10 +225,10 @@ code {
         top: 10px;
         left: 10px;
         z-index: 1001;
-        background-color: rgba(255,255,255,0.8);
+        background-color: rgba(255, 255, 255, 0.8);
         border-radius: 5px;
     }
-    
+
     .close-btn {
         display: block;
     }
@@ -230,7 +236,7 @@ code {
     body.sidebar-visible .sidebar {
         left: 0;
     }
-    
+
     body.sidebar-visible::before {
         content: '';
         position: fixed;
@@ -241,157 +247,202 @@ code {
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 999;
     }
-    
+
     pre {
-        max-width: 100%; /* บนมือถือให้โค้ดบล็อกกว้างเต็มจอ */
+        max-width: 100%;
+        /* บนมือถือให้โค้ดบล็อกกว้างเต็มจอ */
     }
 }
 
 .spec-table {
-        width: 100%;
-        max-width: 800px; /* จำกัดความกว้างสูงสุดให้อ่านง่าย */
-        margin: 20px auto; /* จัดตารางให้อยู่กึ่งกลาง */
-        border-collapse: collapse;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-radius: 8px;
-        overflow: hidden; /* สำหรับขอบมน */
-    }
-    .spec-table th, .spec-table td {
-        padding: 12px 15px;
-        border: 1px solid #ddd;
-        text-align: left;
-        vertical-align: top; /* <<< เพิ่มส่วนนี้เพื่อให้ชิดบน */
-    }
-    .spec-table th {
-        background-color: #f2f2f2;
-        font-weight: 600;
-        color: #333;
-    }
+    width: 100%;
+    max-width: 800px;
+    /* จำกัดความกว้างสูงสุดให้อ่านง่าย */
+    margin: 20px auto;
+    /* จัดตารางให้อยู่กึ่งกลาง */
+    border-collapse: collapse;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    /* สำหรับขอบมน */
+}
 
-    .spec-table td ul {
-        margin: 0;
-        padding-left: 20px;
-        list-style-type: disc; /* ใช้ bullet point */
-    }
-    .spec-table td ul li {
-        margin-bottom: 5px; /* ระยะห่างระหว่างรายการย่อย */
-    }
-    .spec-table td:first-child {
-        font-weight: bold;
-        width: 30%; /* ทำให้คอลัมน์แรกมีความกว้างคงที่ */
-    }
+.spec-table th, .spec-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: top;
+    /* <<< เพิ่มส่วนนี้เพื่อให้ชิดบน */
+}
+
+.spec-table th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+    color: #333;
+}
+
+.spec-table td ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: disc;
+    /* ใช้ bullet point */
+}
+
+.spec-table td ul li {
+    margin-bottom: 5px;
+    /* ระยะห่างระหว่างรายการย่อย */
+}
+
+.spec-table td:first-child {
+    font-weight: bold;
+    width: 30%;
+    /* ทำให้คอลัมน์แรกมีความกว้างคงที่ */
+}
+
 /* <<< ลบ } ที่เกินมาตรงนี้ */
 /* --- ส่วนเพิ่มใหม่สำหรับปุ่ม Copy Code --- */
 
 /* 1. กรอบสำหรับ pre และ button */
 .code-container {
-    position: relative; /* สำคัญ: เพื่อให้ปุ่มอ้างอิงตำแหน่ง */
-    margin: 30px auto;  /* ใช้ margin เดิมของ pre เพื่อจัดกลาง */
-    max-width: 90%;     /* ใช้ max-width เดิมของ pre */
+    position: relative;
+    /* สำคัญ: เพื่อให้ปุ่มอ้างอิงตำแหน่ง */
+    margin: 30px auto;
+    /* ใช้ margin เดิมของ pre เพื่อจัดกลาง */
+    max-width: 90%;
+    /* ใช้ max-width เดิมของ pre */
 }
 
 /* 2. ปรับแต่ง pre ที่อยู่ในกรอบ */
 .code-container pre {
-    margin: 0;          /* ลบ margin ของ pre ออก เพราะ container จัดการแล้ว */
-    max-width: 100%;    /* ให้ pre กว้างเต็ม container */
-    padding-top: 40px;  /* เพิ่มช่องว่างด้านบนให้ปุ่ม ไม่ให้ทับโค้ด */
+    margin: 0;
+    /* ลบ margin ของ pre ออก เพราะ container จัดการแล้ว */
+    max-width: 100%;
+    /* ให้ pre กว้างเต็ม container */
+    padding-top: 40px;
+    /* เพิ่มช่องว่างด้านบนให้ปุ่ม ไม่ให้ทับโค้ด */
 }
 
 /* 3. สไตล์ของปุ่ม Copy */
 .copy-btn {
-    position: absolute; /* ทำให้ปุ่มลอยได้ */
-    top: 8px;           /* ระยะห่างจากขอบบน */
-    right: 8px;         /* ระยะห่างจากขอบขวา */
-    background-color: #4a5568; /* สีพื้นหลัง */
-    color: white;       /* สีตัวอักษร */
+    position: absolute;
+    /* ทำให้ปุ่มลอยได้ */
+    top: 8px;
+    /* ระยะห่างจากขอบบน */
+    right: 8px;
+    /* ระยะห่างจากขอบขวา */
+    background-color: #4a5568;
+    /* สีพื้นหลัง */
+    color: white;
+    /* สีตัวอักษร */
     border: none;
     padding: 6px 12px;
     border-radius: 5px;
     cursor: pointer;
-    font-family: 'Sarabun', sans-serif; /* ใช้ฟอนต์เดียวกับเว็บ */
+    font-family: 'Sarabun', sans-serif;
+    /* ใช้ฟอนต์เดียวกับเว็บ */
     font-size: 0.9em;
-    opacity: 0.8;       /* ทำให้จางลงเล็กน้อย */
+    opacity: 0.8;
+    /* ทำให้จางลงเล็กน้อย */
     transition: all 0.2s ease;
-    z-index: 1;         /* ให้อยู่เหนือ pre */
+    z-index: 1;
+    /* ให้อยู่เหนือ pre */
 }
 
 .copy-btn:hover {
-    opacity: 1;         /* ชัดขึ้นเมื่อเมาส์ชี้ */
-    background-color: #2d3748; /* เข้มขึ้น */
+    opacity: 1;
+    /* ชัดขึ้นเมื่อเมาส์ชี้ */
+    background-color: #2d3748;
+    /* เข้มขึ้น */
 }
 
 /* 4. สไตล์เมื่อกดปุ่ม Copy แล้ว */
 .copy-btn.copied {
-    background-color: var(--accent-color); /* ใช้สีเขียวเดียวกับเมนู */
+    background-color: var(--accent-color);
+    /* ใช้สีเขียวเดียวกับเมนู */
     color: white;
 }
 
 /* --- Styles for Sidebar Collapse Button --- */
 .collapse-btn {
-    display: none; /* Hide by default */
+    display: none;
+    /* Hide by default */
     background: none;
     border: none;
     color: var(--text-color);
     cursor: pointer;
     font-size: 1.2em;
     padding: 0 10px;
-    margin-right: 10px; /* Space between button and title */
+    margin-right: 10px;
+    /* Space between button and title */
     transition: transform 0.3s ease;
 }
 
 /* --- Styles for Collapsed Sidebar State (Large Screens Only) --- */
 @media (min-width: 801px) {
     .collapse-btn {
-        display: block; /* Show collapse button on large screens */
+        display: block;
+        /* Show collapse button on large screens */
     }
 
     /* Styles when sidebar is collapsed */
     body.sidebar-collapsed .sidebar {
-        width: 60px; /* Narrow width */
+        width: 60px;
+        /* Narrow width */
     }
 
     body.sidebar-collapsed .sidebar-header h2 {
-        display: none; /* Hide title */
+        display: none;
+        /* Hide title */
     }
-    
+
     body.sidebar-collapsed .sidebar-header .collapse-btn {
-         margin-left: auto; /* Center button when title is hidden */
-         margin-right: auto;
+        margin-left: auto;
+        /* Center button when title is hidden */
+        margin-right: auto;
     }
 
     body.sidebar-collapsed .menu li a {
-        padding-left: 18px; /* Adjust padding for icon alignment */
+        padding-left: 18px;
+        /* Adjust padding for icon alignment */
         padding-right: 18px;
-        text-align: center; /* Center icon */
+        text-align: center;
+        /* Center icon */
     }
 
     body.sidebar-collapsed .menu li a span {
-        display: none; /* Hide menu text */
+        display: none;
+        /* Hide menu text */
     }
 
     body.sidebar-collapsed .menu li a:hover {
-         padding-left: 18px; /* Keep padding consistent on hover */
-         background-color: var(--secondary-color); /* Add hover effect */
+        padding-left: 18px;
+        /* Keep padding consistent on hover */
+        background-color: var(--secondary-color);
+        /* Add hover effect */
     }
-    
+
     body.sidebar-collapsed .menu li.active a {
-        background-color: var(--accent-color); /* Highlight active icon */
+        background-color: var(--accent-color);
+        /* Highlight active icon */
     }
 
     body.sidebar-collapsed .content {
-        margin-left: 60px; /* Adjust content margin */
+        margin-left: 60px;
+        /* Adjust content margin */
         width: calc(100% - 60px);
     }
 
     body.sidebar-collapsed .collapse-btn i {
-        transform: rotate(180deg); /* Flip arrow icon */
+        transform: rotate(180deg);
+        /* Flip arrow icon */
     }
 }
 
 /* Adjust close button display for different states */
 @media (max-width: 800px) {
     .collapse-btn {
-        display: none !important; /* Always hide collapse button on small screens */
+        display: none !important;
+        /* Always hide collapse button on small screens */
     }
 }
 
@@ -399,35 +450,48 @@ code {
 .content {
     flex-grow: 1;
     /* เพิ่ม padding-bottom เท่ากับความสูงของ Footer (โดยประมาณ) */
-    padding: 30px 30px 80px 30px; /* Top Right Bottom Left */
+    padding: 30px 30px 80px 30px;
+    /* Top Right Bottom Left */
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     transition: margin-left 0.3s ease-in-out;
     /* ทำให้ content scroll ได้ */
-    height: 100vh; /* ให้ content สูงเต็ม viewport */
-    overflow-y: auto; /* ให้มี scrollbar แนวตั้งเมื่อเนื้อหาล้น */
-    box-sizing: border-box; /* รวม padding เข้าไปใน height */
+    height: 100vh;
+    /* ให้ content สูงเต็ม viewport */
+    overflow-y: auto;
+    /* ให้มี scrollbar แนวตั้งเมื่อเนื้อหาล้น */
+    box-sizing: border-box;
+    /* รวม padding เข้าไปใน height */
 }
 
 /* --- Footer Styles --- */
 .main-footer {
-    position: fixed; /* ทำให้ Footer ลอยอยู่กับที่ */
-    bottom: 0;       /* ชิดขอบล่าง */
-    left: var(--sidebar-width); /* เริ่มต้นต่อจาก Sidebar */
-    width: calc(100% - var(--sidebar-width)); /* กว้างเท่ากับ content area */
-    padding: 10px 0; /* ลด padding ลงเล็กน้อย */
+    position: fixed;
+    /* ทำให้ Footer ลอยอยู่กับที่ */
+    bottom: 0;
+    /* ชิดขอบล่าง */
+    left: var(--sidebar-width);
+    /* เริ่มต้นต่อจาก Sidebar */
+    width: calc(100% - var(--sidebar-width));
+    /* กว้างเท่ากับ content area */
+    padding: 10px 0;
+    /* ลด padding ลงเล็กน้อย */
     text-align: center;
     background-color: var(--primary-color);
     color: var(--text-color);
     font-size: 0.9em;
-    z-index: 998; /* ให้อยู่เหนือ content แต่ต่ำกว่า sidebar */
-    transition: left 0.3s ease-in-out, width 0.3s ease-in-out; /* เพิ่ม transition */
+    z-index: 998;
+    /* ให้อยู่เหนือ content แต่ต่ำกว่า sidebar */
+    transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+    /* เพิ่ม transition */
 }
 
 /* --- ปรับ Footer เมื่อ Sidebar ย่อ (จอใหญ่) --- */
 body.sidebar-collapsed .main-footer {
-    left: 60px; /* ชิดขอบ Sidebar ที่ย่อแล้ว */
-    width: calc(100% - 60px); /* ปรับความกว้างตาม */
+    left: 60px;
+    /* ชิดขอบ Sidebar ที่ย่อแล้ว */
+    width: calc(100% - 60px);
+    /* ปรับความกว้างตาม */
 }
 
 
@@ -436,14 +500,52 @@ body.sidebar-collapsed .main-footer {
     .content {
         margin-left: 0;
         width: 100%;
-        padding: 20px 20px 80px 20px; /* ปรับ padding บนจอเล็ก */
+        padding: 20px 20px 80px 20px;
+        /* ปรับ padding บนจอเล็ก */
     }
 
     .main-footer {
-        left: 0;      /* Footer เต็มความกว้างบนจอเล็ก */
+        left: 0;
+        /* Footer เต็มความกว้างบนจอเล็ก */
         width: 100%;
         font-size: 0.8em;
     }
 
     /* ไม่จำเป็นต้องมี rule สำหรับ body.sidebar-collapsed .main-footer บนจอเล็ก */
+}
+
+/* --- DataTables Custom Styling --- */
+
+/* ปรับฟอนต์ให้เข้ากับเว็บ */
+.dataTables_wrapper {
+    font-family: 'Sarabun', sans-serif;
+}
+
+/* ปรับสีช่องค้นหาและตัวแบ่งหน้า */
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+/* ปรับสไตล์ปุ่มแบ่งหน้า */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.3em 0.8em;
+    border-radius: 4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* ลบ CSS ที่เราเคยใช้กับตารางสถิติเก่า (ถ้ามี) */
+#stats-placeholder .spec-table td:first-child,
+#stats-placeholder .spec-table td:last-child {
+    text-align: left;
+    /* คืนค่าเริ่มต้น */
+    width: auto;
+    /* คืนค่าเริ่มต้น */
 }
