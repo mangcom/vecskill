@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // 1. ยิง API ไปยัง Backend (vecskill-stat.bncc.ac.th)
-            const response = await fetch('https://vecskill-stat.bncc.ac.th/api/stats'); 
+            const response = await fetch('/api/stats.php'); 
             
             if (!response.ok) {
                 throw new Error(`Server error: ${response.statusText}`);
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- View Counting Logic (Server-side) ---
         // ยิง API ไปยัง Backend เพื่อบันทึก Log
-        fetch('https://vecskill-stat.bncc.ac.th/api/track', {
+        fetch('/api/track.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
