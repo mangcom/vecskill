@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
         statsPlaceholder.innerHTML = '<p>กำลังโหลดสถิติจาก Server...</p>';
 
         try {
-            // 1. ยิง API ไปยัง Backend (vecskill-stat.bncc.ac.th)
+            // 1. ยิง API ไปยัง Backend (vecskill.bncc.ac.th/api/stats.php)
             const response = await fetch('/api/stats.php'); 
             
             if (!response.ok) {
@@ -62,13 +62,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const allCounts = await response.json();
 
-            // --- (เพิ่มใหม่) --- กรองหน้า 'project-overview' ออก ---
-            const filteredCounts = allCounts.filter(item => item.page_name !== 'project-overview');
+            // --- (อัปเดต) --- กรองทั้ง 'project-overview' และ 'statistics' ออก ---
+            const filteredCounts = allCounts.filter(item => 
+                item.page_name !== 'project-overview' && 
+                item.page_name !== 'statistics'
+            );
             // ---------------------------------------------------
 
             // 3. สร้าง HTML ตาราง (ใช้ filteredCounts)
             if (!filteredCounts || filteredCounts.length === 0) {
-                statsPlaceholder.innerHTML = '<p>ยังไม่มีสถิติการเข้าชม (ยกเว้นหน้าภาพรวม)</p>';
+                statsPlaceholder.innerHTML = '<p>ยังไม่มีสถิติการเข้าชม (ยกเว้นหน้าภาพรวมและสถิติ)</p>';
                 return;
             }
 
@@ -96,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Failed to fetch stats:', error);
-            statsPlaceholder.innerHTML = '<p style="color: red;">ไม่สามารถโหลดสถิติได้</p>';
+            statsPlaceholder.innerHTML = '<p style="color: red;">ไม่สามารถโหลดสถิติได้</Vp>';
         }
     }
 
@@ -105,16 +108,18 @@ document.addEventListener('DOMContentLoaded', function() {
         contentDisplay.innerHTML = '<h1><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</h1>';
 
         // --- View Counting Logic (Server-side) ---
-        // ยิง API ไปยัง Backend เพื่อบันทึก Log
-        fetch('/api/track.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ page: page })
-        }).catch(err => {
-            console.warn('Failed to track page view:', err.message);
-        });
+        // !!! เพิ่มเงื่อนไข: ตรวจสอบว่าหน้าไม่ใช่ 'statistics' ถึงจะนับ !!!
+        if (page !== 'statistics') {
+            fetch('/api/track.php', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ page: page })
+            }).catch(err => {
+                console.warn('Failed to track page view:', err.message);
+            });
+        }
         // --- End View Counting Logic ---
 
         fetch(`pages/${page}.html`)
@@ -125,11 +130,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 contentDisplay.innerHTML = data;
                 
-                // (เราลบตัวนับยอดวิวท้ายหน้าออกแล้ว)
-
                 addCopyButtons(); // เรียกใช้ฟังก์ชันปุ่ม Copy
 
                 // ตรวจสอบถ้าเป็นหน้าสถิติ ให้เรียกฟังก์ชันสร้างตาราง
+                // (ส่วนนี้ยังทำงานปกติ)
                 if (page === 'statistics') {
                     populateStatistics();
                 }
