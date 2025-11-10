@@ -13,12 +13,12 @@
     <li> ไฟล์ image นี้ เป็นการทำ Server ตัวอย่างให้คณะกรรมการ นำไปใช้เป็น Server กลางในการจัดการแข่งขัน ในกรณีที่จะให้เครื่องของผู้เข้าแข่งขันไม่สามารถใช้งาน Internet ได้แต่ใช้ Intranet ได้ โดยเครื่องผู้แข่งขันจะต้องอยู่ใน Network Intranet  </li>
     <li>ใช้เป็น GitLab ในการให้เครื่องผู้เข้าแข่งขัน สามารถใช้งาน Git ได้ โดยต้องเข้าไปสร้าง Group,Project,Account ให้ผู้เข้าแข่งขันแต่ละทีมใช้งาน</li>
     <li>ใช้เป็น Registry เพื่อให้ผู้เข้าแข่งขันสามารถทำการใช้คำสั่ง Docker ในการ pull images ไปใช้งานได้ โดยคณะกรรมการจะต้องทำการ pull/tag/push ไปยัง Registry ทุก image ที่จะใช้งนการแข่งขัน และตั้งค่า insecure-registries ให้เรียบร้อย </li>
-    <li>ใช้เป็น NPM Registry เพื่อให้เครื่องผู้เข้าแข่งขันสามารถติดตั้ง และใช้งานคำสั่งเกี่ยวกับ Node.js ในการ ใช้คำสั่ง npm install แต่ต้องกำหนดเครื่อง Client ให้ชี้ npm มายัง Server นี้โดยใช้คำสั่ง <code>npm set registry https://npm.vecskill.ovec</code> ตามคู่มือเรื่อง Verdaccio (NPM Registry)</li>
+    <li>ใช้เป็น NPM Registry เพื่อให้เครื่องผู้เข้าแข่งขันสามารถติดตั้ง และใช้งานคำสั่งเกี่ยวกับ Node.js ในการ ใช้คำสั่ง npm install แต่ต้องกำหนดเครื่อง Client ให้ชี้ npm มายัง Server นี้โดยใช้คำสั่ง <code>npm set registry https://npm.vecskill.ovec</code> ตามคู่มือหัวข้อ <a href="#" onclick="document.querySelector('a[data-page=\'verdaccio\']').click();">Verdaccio (NPM Registry)</a></li>
 </ol>
 <h2><i class="fas fa-info-circle"></i> การนำไปประยุกต์ใช้สำหรับการแข่งขันระดับ ปวส เพิ่มเติมจาก ระดับ ปวช. ได้แก่</h2>
 <ol>
-    <li>ใช้เป็น APT Server ในการให้เครื่องผู้เข้าแข่งขัน สามารถใช้งาน apt update/upgrade/install  ได้ โดยการตั้งค่าเครื่อง Client ให้ใช้งาน cache ได้ตามคู่มือหัวข้อ Apt-Cache-Ng</li>
-    <li>ใช้เป็น Python Package Index Server เพื่อให้ผู้เข้าแข่งขันสามารถทำการใช้คำสั่ง python ในการ pip install </li>
+    <li>ใช้เป็น APT Server ในการให้เครื่องผู้เข้าแข่งขัน สามารถใช้งาน apt update/upgrade/install  ได้ โดยการตั้งค่าเครื่อง Client ให้ใช้งาน cache ได้ตามคู่มือหัวข้อ <a href="#" onclick="document.querySelector('a[data-page=\'apt-cacher-ng\']').click();">Apt-Cache-Ng</a></li>
+    <li>ใช้เป็น Python Package Index Server เพื่อให้ผู้เข้าแข่งขันสามารถทำการใช้คำสั่ง python ในการ pip install ได้ตามคู่มือหัวข้อ <a href="#" onclick="document.querySelector('a[data-page=\'devpi-pypi\']').click();">Devpi (Private PyPI)</a></li>
     <li>การนำ Image นี้ให้ผู้เข้าแข่งขันใช้งานในการทำเครื่องแม่ข่าย อาจมีผลกระทบกับเรื่องของคะแนน เพราะมีส่วนของคะแนนในการติดตั้ง Server (2.4) ในการให้บริการ Gitlab Registry </li>
    
 </ol>
@@ -207,7 +207,7 @@
     <li>ในส่วนของ VM แก้ไข Network Adapter2 จาก Host-only ไปเป็น Custom แล้วเลือก VMnet2 (Bridged)</li>
     <li>เสียบสาย Patch Cord เข้ากับ Network Card ที่ต่อกับ VMnet2 เข้ากับ Network ของผู้เข้าแข่งขัน หรือ Switch ของผู้เข้าแข่งขัน โดย Server จะแจก IP ให้อัตโนมัติ</li>
     <li>เข้าถึง Server ผ่านเครือข่าย Intranet โดยเข้าไปบริหารจัดการผ่าน IP 10.20.30.101 แล้วเข้าไปเปลี่ยนค่า Network ของฝั่ง Internet</li>
-    <li>หากต้องการเข้าถึงผ่าน HTTPS ต้องติดตั้ง Root CA โดยทำตามคู่มือในหัวข้อ การทำ HTTPS ภายใน</li>
+    <li>หากต้องการเข้าถึงผ่าน HTTPS ต้องติดตั้ง Root CA โดยทำตามคู่มือในหัวข้อ <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a></li>
 </ol>
 </p>
 <div class="image-container">
