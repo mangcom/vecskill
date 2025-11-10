@@ -8,22 +8,6 @@
 </p>
 <hr style="margin: 40px 0;">
 
-<h2><i class="fas fa-info-circle"></i> ข้อแนะนำในการนำ Image ไปใช้งาน</h2>
-<p>
-    หากนำไปใช้งานจริงในการแข่งขัน ให้ทำตามขั้นตอนดังนี้
-    <ol>
-    <li>เครื่องคอมพิวเตอร์ที่ใช้ทำเป็น Server ต้องมีการ์ดเครือข่าย 2 การ์ด ติดตั้งระบบปฏิบัติการ Windows หรือ Ubuntu แบบ GUI และติดตั้้ง VMWare Workstation</li>
-    <li>แก้ไข Virtual Network Editor โดยแก้ไข VMnet1 ให้ Bridge กับอุปกรณ์ตัวอื่นที่ไม่ใช่ การ์ดที่จะใช้งาน เช่น Bluetooth Device เพื่อจะได้ Map การ์ดตัวอื่น ซึ่งเดิมเปป็น Automatic</li>
-    <li>แก้ไข Virtual Network Editor โดยเพิ่ม Network เช่น VMnet3 ให้ Bridged กับ การ์ดใบที่ใช้งาน Internet ได้</li>
-    <li>แก้ไข Virtual Network Editor โดยเพิ่ม Network เช่น VMnet4 ให้ Bridged กับ การ์ดใบที่ใช้งาน Intranet (ใช้งาน Internet ไม่ได้)</li>
-    <li>เปลี่ยน IP Network ของเการ์ด VMnet1 และ VMnet8 เพื่อไม่ให้ชนกันกับที่จะเพิ่ม</li>
-    <li>แก้ไข Network Adapter จาก NAT ไปเป็น Custom แล้วเลือก VMnet3</li>
-    <li>แก้ไข Network Adapter2 จาก Host-only ไปเป็น Custom แล้วเลือก VMnet4</li>
-    <li>เสียบสาย Network Card ที่ต่อกับ VMnet4 เข้ากับ Network ของผู้เข้าแข่งขัน Server จะแจก IP ให้อัตโนมัติ</li>
-    <li>เข้าถึง Server ผ่านเครือข่าย Intranet โดยเข้าไปบริหารจัดการผ่าน IP 10.20.30.101 แล้วเข้าไปเปลี่ยนค่า Network ของฝั่ง Internet</li>
-    <li>หากต้องการเข้าถึงผ่าน HTTPS ต้องติดตั้ง Root CA โดยทำตามคู่มือในหัวข้อ การทำ HTTPS ภายใน</li>
-</ol>
-</p>
 <h2><i class="fas fa-info-circle"></i> การนำไปประยุกต์ใช้สำหรับการแข่งขันระดับ ปวช </h2>
 <ol>
     <li> ไฟล์ image นี้ เป็นการทำ Server ตัวอย่างให้คณะกรรมการ นำไปใช้เป็น Server กลางในการจัดการแข่งขัน ในกรณีที่จะให้เครื่องของผู้เข้าแข่งขันไม่สามารถใช้งาน Internet ได้แต่ใช้ Intranet ได้ โดยเครื่องผู้แข่งขันจะต้องอยู่ใน Network Intranet  </li>
@@ -209,3 +193,40 @@
     <li>IP สำหรับเชื่อมต่อจากภายนอก (NAT): <code>172.16.3.101</code></li>
     <li>IP สำหรับเครือข่ายภายใน (Host-Only): <code>10.20.30.101</code></li>
 </ul>
+<hr style="margin: 40px 0;">
+
+<h2><i class="fas fa-info-circle"></i> ข้อแนะนำในการนำ Image ไปใช้งาน</h2>
+<p>
+    หากนำไปใช้งานจริงในการแข่งขัน ให้ทำตามขั้นตอนดังนี้
+    <ol>
+    <li>เครื่องคอมพิวเตอร์ที่ใช้ทำเป็น Server ต้องมีการ์ดเครือข่าย 2 การ์ด ติดตั้งระบบปฏิบัติการ Windows หรือ Ubuntu  และติดตั้ง VMWare Workstation</li>
+    <li>แก้ไข Virtual Network Editor โดยแก้ไข VMnet0 ให้ Bridge กับ การ์ดใบที่ใช้งาน Internet ได้ หากเป็นไปได้ เปลี่น IP/Subnet ของ Network Internet เป็น 172.16.3.0/24</li>
+    <li>แก้ไข Virtual Network Editor โดยเพิ่ม Network เช่น VMnet2 ให้ Bridged กับ การ์ดใบที่ใช้งาน Intranet (ใช้งาน Internet ไม่ได้)</li>
+    <li>เปลี่ยน IP Network ของเการ์ด VMnet8 เพื่อไม่ให้ชนกันกับ VMnet2 ที่เพิ่ม โดยห้ามเป็น 10.20.30.0/255.255.255.128</li>
+    <li>ในส่วนของ VM แก้ไข Network Adapter จาก NAT ไปเป็น Custom แล้วเลือก VMnet0 (Bridged) </li>
+    <li>ในส่วนของ VM แก้ไข Network Adapter2 จาก Host-only ไปเป็น Custom แล้วเลือก VMnet2 (Bridged)</li>
+    <li>เสียบสาย Patch Cord เข้ากับ Network Card ที่ต่อกับ VMnet2 เข้ากับ Network ของผู้เข้าแข่งขัน หรือ Switch ของผู้เข้าแข่งขัน โดย Server จะแจก IP ให้อัตโนมัติ</li>
+    <li>เข้าถึง Server ผ่านเครือข่าย Intranet โดยเข้าไปบริหารจัดการผ่าน IP 10.20.30.101 แล้วเข้าไปเปลี่ยนค่า Network ของฝั่ง Internet</li>
+    <li>หากต้องการเข้าถึงผ่าน HTTPS ต้องติดตั้ง Root CA โดยทำตามคู่มือในหัวข้อ การทำ HTTPS ภายใน</li>
+</ol>
+</p>
+<div class="image-container">
+    <img src="./images/01_vm_vmnet0.png" alt="VMnet0 Edit" class="content-image">
+    <p>แก้ไข Bridge ของ VMnet0</p>
+</div>
+<div class="image-container">
+    <img src="./images/01_vm_vmnet1.png" alt="VMnet1 Edit" class="content-image">
+    <p>แก้ไข IP Host-only ของ VMnet1</p>
+</div>
+<div class="image-container">
+    <img src="./images/01_vm_vmnet2.png" alt="VMnet2 Edit" class="content-image">
+    <p>เพิ่มและแก้ไข Bridge ของ VMnet2 กับ </p>
+</div>
+<div class="image-container">
+    <img src="./images/01_vm_eth0.png" alt="eth0 Edit" class="content-image">
+    <p>แก้ไข Network Adapter เดิมที่เป็น NAT</p>
+</div>
+<div class="image-container">
+    <img src="./images/01_vm_eth1.png" alt="eth1 Edit" class="content-image">
+    <p>แก้ไข Network Adapter2 เดิมที่เป็น Host-only</p>
+</div>
