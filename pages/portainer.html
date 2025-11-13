@@ -21,31 +21,28 @@
         <strong>รัน Container ของ Portainer:</strong><br>
         ใช้คำสั่ง `docker run` เพื่อดาวน์โหลด Image และเริ่มการทำงานของ Portainer
         <p>สำหรับ Linux</p>
-            <pre>
-                <code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
-    --restart=always \
+            <pre><code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
+--restart=always \
 -v /var/run/docker.sock:/var/run/docker.sock \
 -v portainer_data:/data \
 portainer/portainer-ce:latest</code>
             </pre>
         <p>
-            สำหรับระบบปฏิบัติการอื่นๆ ให้ปรับเปลี่ยน path ของ Docker socket ตามที่เหมาะสม และการใช้ \ ^ 
+            สำหรับระบบปฏิบัติการอื่นๆ ให้ปรับเปลี่ยน path ของ Docker socket ตามที่เหมาะสม และการใช้ \ ^ `
             <ul>
                 <li>ตรวจสอบให้แน่ใจว่าเครื่องหมาย ^ หรือ ` เป็นตัวอักษรตัวสุดท้ายของบรรทัดนั้นๆ ห้ามมีเว้นวรรค (space) ตามหลัง</li>
                 <li>คำสั่งนี้ใช้สำหรับ Docker Desktop บน Windows ถ้าคุณใช้ Docker บน WSL 2 โดยตรง (โดยไม่ผ่าน Docker Desktop) วิธีการ mount socket อาจจะกลับไปคล้ายกับของ Linux </li>
             </ul>
         </p>
         <p>สำหรับ Windows ผ่าน PowerShell</p>
-        <pre>
-            <code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer `
+        <pre><code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer `
 --restart=always `
 -v //./pipe/docker_engine:/var/run/docker.sock `
 -v portainer_data:/data `
 portainer/portainer-ce:latest</code>
         </pre>
         <p>สำหรับ Windows ผ่าน Command Prompt</p>
-        <pre>
-            <code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer ^
+        <pre><code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer ^
 --restart=always ^
 -v //./pipe/docker_engine:/var/run/docker.sock ^
 -v portainer_data:/data ^
@@ -53,9 +50,7 @@ portainer/portainer-ce:latest</code>
         </pre>
 
         <p># สำหรับ Windows / Linux แบบ Single Line </p>
-        <pre>
-                <code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest</code>
-        </pre>
+        <pre><code>docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest</code></pre>
         <strong>อธิบายคำสั่ง:</strong>
         <ul>
             <li><code>-d</code>: รัน Container ในโหมด Detached (ทำงานอยู่เบื้องหลัง)</li>
