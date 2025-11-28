@@ -1,38 +1,33 @@
 <h1>การติดตั้ง GitLab</h1>
 <p>
-    ในคู่มือนี้ เราจะติดตั้ง GitLab โดยใช้โดเมน <strong>gitlab.vecskill.ovec</strong> และจะให้ทำงานบน Network กลางชื่อ <code>app_net</code> เพื่อให้สามารถทำงานร่วมกับ Service อื่นๆ เช่น Docker Registry ได้อย่างสมบูรณ์
+  ในคู่มือนี้ เราจะติดตั้ง GitLab โดยใช้โดเมน <strong>gitlab.vecskill.ovec</strong> และจะให้ทำงานบน Network กลางชื่อ <code>app_net</code> เพื่อให้สามารถทำงานร่วมกับ Service อื่นๆ เช่น Docker Registry
+  ได้อย่างสมบูรณ์
 </p>
 
-<h2 style="color: #e74c3c;">สิ่งที่ต้องเตรียมก่อนติดตั้ง (สำคัญมาก)</h2>
+<h2 style="color: #e74c3c">สิ่งที่ต้องเตรียมก่อนติดตั้ง (สำคัญมาก)</h2>
 <ul>
-    <li>
-        <strong>ทรัพยากรเครื่อง:</strong> CPU 4 Cores, RAM 8 GB ขึ้นไป
-    </li>
-    <li>
-        <strong>การตั้งค่า DNS:</strong> ตรวจสอบว่า A Record ของ `gitlab.vecskill.ovec` ได้ชี้มายัง IP ของ Server แล้ว
-    </li>
-    <li>
-        <strong>สร้าง Network:</strong> (ทำครั้งเดียว) ตรวจสอบให้แน่ใจว่าคุณได้สร้าง Network กลางไว้แล้วด้วยคำสั่ง:
-        <pre><code>sudo docker network create app_net</code></pre>
-    </li>
+  <li><strong>ทรัพยากรเครื่อง:</strong> CPU 4 Cores, RAM 8 GB ขึ้นไป</li>
+  <li><strong>การตั้งค่า DNS:</strong> ตรวจสอบว่า A Record ของ `gitlab.vecskill.ovec` ได้ชี้มายัง IP ของ Server แล้ว</li>
+  <li>
+    <strong>สร้าง Network:</strong> (ทำครั้งเดียว) ตรวจสอบให้แน่ใจว่าคุณได้สร้าง Network กลางไว้แล้วด้วยคำสั่ง:
+    <pre><code>sudo docker network create app_net</code></pre>
+  </li>
 </ul>
 
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 
 <h2>วิธีที่ 1: ติดตั้งผ่าน Docker Command Line</h2>
-<p>
-    เราจะเพิ่ม flag <code>--network app_net</code> เข้าไปในคำสั่ง `docker run` เพื่อให้ GitLab Container เข้าร่วม Network กลางของเรา
-</p>
+<p>เราจะเพิ่ม flag <code>--network app_net</code> เข้าไปในคำสั่ง `docker run` เพื่อให้ GitLab Container เข้าร่วม Network กลางของเรา</p>
 <ol>
-    <li>
-        <strong>สร้างโฟลเดอร์สำหรับเก็บข้อมูล GitLab:</strong><br>
-        <pre><code>sudo mkdir -p /srv/gitlab/config
+  <li>
+    <strong>สร้างโฟลเดอร์สำหรับเก็บข้อมูล GitLab:</strong><br />
+    <pre><code>sudo mkdir -p /srv/gitlab/config
 sudo mkdir -p /srv/gitlab/logs
 sudo mkdir -p /srv/gitlab/data</code></pre>
-    </li>
-    <li>
-        <strong>รัน GitLab Container บน `app_net`:</strong><br>
-        <pre><code>sudo docker run --detach \
+  </li>
+  <li>
+    <strong>รัน GitLab Container บน `app_net`:</strong><br />
+    <pre><code>sudo docker run --detach \
   --hostname gitlab.vecskill.ovec \
   --publish 443:443 --publish 80:80 --publish 2222:22 \
   --name gitlab \
@@ -42,16 +37,13 @@ sudo mkdir -p /srv/gitlab/data</code></pre>
   --volume /srv/gitlab/logs:/var/log/gitlab \
   --volume /srv/gitlab/data:/var/opt/gitlab \
   gitlab/gitlab-ce:latest</code></pre>
-    </li>
+  </li>
 </ol>
 
-
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 
 <h2>วิธีที่ 2: ติดตั้งผ่าน Portainer Stack (วิธีแนะนำ)</h2>
-<p>
-    เราจะแก้ไขไฟล์ Docker Compose เพื่อระบุให้ Stack ของ GitLab เชื่อมต่อกับ Network ภายนอกที่ชื่อว่า <code>app_net</code> เช่นกัน
-</p>
+<p>เราจะแก้ไขไฟล์ Docker Compose เพื่อระบุให้ Stack ของ GitLab เชื่อมต่อกับ Network ภายนอกที่ชื่อว่า <code>app_net</code> เช่นกัน</p>
 <h3>ขั้นตอนที่ 2.1: สร้าง Docker volume</h3>
 <pre><code>sudo docker volume create gitlab_config
 sudo docker volume create gitlab_logs
@@ -99,76 +91,74 @@ volumes:
 
 <h3>ขั้นตอนที่ 2.2: การติดตั้งบน Portainer</h3>
 <ol>
-    <li>ไปที่เมนู <strong>Stacks</strong> > <strong>+ Add stack</strong> และตั้งชื่อ (เช่น `gitlab-stack`)</li>
-    <li>ในส่วน Build method เลือก <strong>Web editor</strong> และนำโค้ดด้านบนไปวาง</li>
-    <li>คลิก <strong>Deploy the stack</strong> และรอ... (ขั้นตอนนี้อาจใช้เวลานาน 5-15 นาที)</li>
+  <li>ไปที่เมนู <strong>Stacks</strong> > <strong>+ Add stack</strong> และตั้งชื่อ (เช่น `gitlab-stack`)</li>
+  <li>ในส่วน Build method เลือก <strong>Web editor</strong> และนำโค้ดด้านบนไปวาง</li>
+  <li>คลิก <strong>Deploy the stack</strong> และรอ... (ขั้นตอนนี้อาจใช้เวลานาน 5-15 นาที)</li>
 </ol>
 
-
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 <h2>ขั้นตอนสำคัญหลังการติดตั้ง (เพื่อให้ CI/CD พร้อมใช้งาน)</h2>
-<p>
-    ขั้นตอนนี้จะเหมือนเดิมทั้งหมด หลังจากรอ GitLab เริ่มต้นระบบ (5-15 นาที) ให้ทำตามนี้:
-</p>
+<p>ขั้นตอนนี้จะเหมือนเดิมทั้งหมด หลังจากรอ GitLab เริ่มต้นระบบ (5-15 นาที) ให้ทำตามนี้:</p>
 <ol>
-    <li>
-        <strong>ค้นหารหัสผ่านเริ่มต้นของ `root`:</strong><br>
-        <pre><code>sudo docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password</code></pre>
-    </li>
-    <li>
-        <strong>เข้าสู่ระบบและเปลี่ยนรหัสผ่าน:</strong><br>
-        เปิดเว็บเบราว์เซอร์ไปที่ <code>http://gitlab.vecskill.ovec</code> และล็อกอินด้วย Username: <code>root</code>
-    </li>
-    <li>
-        <strong>เตรียม GitLab ให้พร้อมสำหรับ Runner:</strong><br>
-        ไปที่ <strong>Admin Area</strong> (ไอคอนประแจ) > <strong>CI/CD</strong> > <strong>Runners</strong> เพื่อดู Registration Token
-    </li>
+  <li>
+    <strong>ค้นหารหัสผ่านเริ่มต้นของ `root`:</strong><br />
+    <pre><code>sudo docker exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password</code></pre>
+  </li>
+  <li>
+    <strong>เข้าสู่ระบบและเปลี่ยนรหัสผ่าน:</strong><br />
+    เปิดเว็บเบราว์เซอร์ไปที่ <code>http://gitlab.vecskill.ovec</code> และล็อกอินด้วย Username: <code>root</code>
+  </li>
+  <li>
+    <strong>เตรียม GitLab ให้พร้อมสำหรับ Runner:</strong><br />
+    ไปที่ <strong>Admin Area</strong> (ไอคอนประแจ) > <strong>CI/CD</strong> > <strong>Runners</strong> เพื่อดู Registration Token
+  </li>
 </ol>
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 <h2>ตัวอย่างการใช้งาน GitLab</h2>
 <div class="image-container">
-  <img src="images/04-gitlab-01.png" alt="stack-success" class="content-image">
+  <img src="images/04-gitlab-01.png" alt="stack-success" class="content-image" />
   <p><em>เมื่อสร้าง gitlab-stack เสร็จ</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-02.png" alt="gitlab-status-starting" class="content-image">
+  <img src="images/04-gitlab-02.png" alt="gitlab-status-starting" class="content-image" />
   <p><em>gitlab-status-starting</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-03.png" alt="gitlab-status-healthy" class="content-image">
+  <img src="images/04-gitlab-03.png" alt="gitlab-status-healthy" class="content-image" />
   <p><em>gitlab-status-healthy</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-04.png" alt="exec_console" class="content-image">
+  <img src="images/04-gitlab-04.png" alt="exec_console" class="content-image" />
   <p><em>คลิกที่ >_ เพื่อจะเข้าโหมด Console</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-05.png" alt="connect_console" class="content-image">
+  <img src="images/04-gitlab-05.png" alt="connect_console" class="content-image" />
   <p><em>คลิกที่ Connect เพื่อเข้าโหมด Console</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-06.png" alt="get_password" class="content-image">
-  <p><em>พิมพ์ <code>cat /etc/gitlab/initial_root_password</code></em></p>
+  <img src="images/04-gitlab-06.png" alt="get_password" class="content-image" />
+  <p>
+    <em>พิมพ์ <code>cat /etc/gitlab/initial_root_password</code></em>
+  </p>
 </div>
 <h4>เปิด Web Browser ด้วย http://gitlab.vecskill.ovec</h4>
 <div class="image-container">
-  <img src="images/04-gitlab-07.png" alt="web_login" class="content-image">
+  <img src="images/04-gitlab-07.png" alt="web_login" class="content-image" />
   <p><em>Login ด้วย username root และรหัสผ่าน ที่ได้มาจากกระบวนการก่อนหน้า</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-08.png" alt="web_success" class="content-image">
+  <img src="images/04-gitlab-08.png" alt="web_success" class="content-image" />
   <p><em>หน้าแรกที่พร้อมใช้งาน</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-09.png" alt="ปิดการเปิดรับการสมัครใช้งาน" class="content-image">
+  <img src="images/04-gitlab-09.png" alt="ปิดการเปิดรับการสมัครใช้งาน" class="content-image" />
   <p><em>ปิดการเปิดรับการสมัครใช้งาน</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-10.png" alt="เอาเครื่องหมาย Check ออกจาก Sign-up enabled" class="content-image">
+  <img src="images/04-gitlab-10.png" alt="เอาเครื่องหมาย Check ออกจาก Sign-up enabled" class="content-image" />
   <p><em>เอาเครื่องหมาย Check ออกจาก Sign-up enabled</em></p>
 </div>
 <div class="image-container">
-  <img src="images/04-gitlab-11.png" alt="บันทึก" class="content-image">
+  <img src="images/04-gitlab-11.png" alt="บันทึก" class="content-image" />
   <p><em>คลิกที่ Save changes เพื่อบันทึก</em></p>
 </div>
-

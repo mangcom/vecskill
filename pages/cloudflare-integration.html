@@ -1,112 +1,119 @@
 <h1>บทที่ 9: การใช้งานจริงร่วมกับ Cloudflare</h1>
 <p>
-    Cloudflare ไม่ได้เป็นแค่ผู้ให้บริการ DNS แต่เป็นเครือข่ายขนาดใหญ่ที่ทำหน้าที่เป็น "เกราะป้องกัน" และ "ตัวเร่งความเร็ว" ให้กับเว็บไซต์และแอปพลิเคชันของเรา การนำ Cloudflare มาใช้ครอบ Server ของเราจะมอบประโยชน์มหาศาลทันที
+  Cloudflare ไม่ได้เป็นแค่ผู้ให้บริการ DNS แต่เป็นเครือข่ายขนาดใหญ่ที่ทำหน้าที่เป็น "เกราะป้องกัน" และ "ตัวเร่งความเร็ว" ให้กับเว็บไซต์และแอปพลิเคชันของเรา การนำ Cloudflare มาใช้ครอบ Server
+  ของเราจะมอบประโยชน์มหาศาลทันที
 </p>
 <h3>ทำไมต้องใช้ Cloudflare?</h3>
 <ul>
-    <li>
-        <strong>ซ่อน IP Address จริงของ Server:</strong> นี่คือประโยชน์ด้านความปลอดภัยที่สำคัญที่สุด! โลกภายนอกจะเห็นแค่ IP ของ Cloudflare ทำให้แฮกเกอร์ไม่สามารถโจมตี Server ของเราได้โดยตรง
-    </li>
-    <li>
-        <strong>ป้องกันการโจมตี DDoS และ WAF:</strong> Cloudflare มีระบบป้องกันการยิงถล่มเว็บ (DDoS) และมี Web Application Firewall (WAF) ช่วยกรอง Traffic ที่ไม่ประสงค์ดีให้ในระดับหนึ่ง แม้จะเป็นแพลนฟรี
-    </li>
-    <li>
-        <strong>CDN (Content Delivery Network):</strong> Cloudflare จะทำการ Cache หรือเก็บสำเนาไฟล์ที่ไม่ค่อยเปลี่ยนแปลง (เช่น รูปภาพ, CSS, JS) ไว้บนเซิร์ฟเวอร์ที่กระจายอยู่ทั่วโลก ทำให้ผู้ใช้เข้าถึงเว็บเราได้เร็วขึ้นและลดภาระของ Server เรา
-    </li>
-    <li>
-        <strong>SSL Certificate ฟรี:</strong> Cloudflare มอบ SSL Certificate ให้ระหว่าง "ผู้ใช้งาน" กับ "Cloudflare" โดยอัตโนมัติ
-    </li>
+  <li><strong>ซ่อน IP Address จริงของ Server:</strong> นี่คือประโยชน์ด้านความปลอดภัยที่สำคัญที่สุด! โลกภายนอกจะเห็นแค่ IP ของ Cloudflare ทำให้แฮกเกอร์ไม่สามารถโจมตี Server ของเราได้โดยตรง</li>
+  <li>
+    <strong>ป้องกันการโจมตี DDoS และ WAF:</strong> Cloudflare มีระบบป้องกันการยิงถล่มเว็บ (DDoS) และมี Web Application Firewall (WAF) ช่วยกรอง Traffic ที่ไม่ประสงค์ดีให้ในระดับหนึ่ง แม้จะเป็นแพลนฟรี
+  </li>
+  <li>
+    <strong>CDN (Content Delivery Network):</strong> Cloudflare จะทำการ Cache หรือเก็บสำเนาไฟล์ที่ไม่ค่อยเปลี่ยนแปลง (เช่น รูปภาพ, CSS, JS) ไว้บนเซิร์ฟเวอร์ที่กระจายอยู่ทั่วโลก
+    ทำให้ผู้ใช้เข้าถึงเว็บเราได้เร็วขึ้นและลดภาระของ Server เรา
+  </li>
+  <li><strong>SSL Certificate ฟรี:</strong> Cloudflare มอบ SSL Certificate ให้ระหว่าง "ผู้ใช้งาน" กับ "Cloudflare" โดยอัตโนมัติ</li>
 </ul>
 
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 
 <h2>ส่วนที่ 1: แนวคิดหลักที่ต้องเข้าใจก่อนตั้งค่า</h2>
-<p>
-    เพื่อให้ทำงานได้อย่างถูกต้อง เราต้องเข้าใจ 2 แนวคิดหลักของ Cloudflare ก่อน
-</p>
+<p>เพื่อให้ทำงานได้อย่างถูกต้อง เราต้องเข้าใจ 2 แนวคิดหลักของ Cloudflare ก่อน</p>
 <h3>1. สถานะ Proxy (เมฆสีส้ม vs. เมฆสีเทา)</h3>
-<p>
-    ในหน้าจัดการ DNS ของ Cloudflare คุณจะเห็นไอคอนรูปก้อนเมฆข้างๆ DNS Record แต่ละรายการ
-</p>
+<p>ในหน้าจัดการ DNS ของ Cloudflare คุณจะเห็นไอคอนรูปก้อนเมฆข้างๆ DNS Record แต่ละรายการ</p>
 <ul>
-    <li>
-        <img src="https://i.imgur.com/KPa5eRr.png" alt="Orange Cloud" style="vertical-align: middle; height: 20px;"> <strong>เมฆสีส้ม (Proxied):</strong> หมายความว่า Traffic จะวิ่งผ่านเครือข่ายของ Cloudflare ก่อนที่จะมาถึง Server เรา <strong>ต้องเปิดใช้งานสถานะนี้</strong> สำหรับ Service ที่เป็นเว็บ (HTTP/HTTPS) เพื่อให้ได้ประโยชน์ทั้งหมดที่กล่าวมา
-    </li>
-    <li>
-        <img src="https://i.imgur.com/B7nFf9S.png" alt="Grey Cloud" style="vertical-align: middle; height: 20px;"> <strong>เมฆสีเทา (DNS Only):</strong> หมายความว่า Cloudflare จะทำหน้าที่เป็นแค่ DNS Server ธรรมดา คือบอก IP จริงของ Server เราให้ผู้ใช้งานทราบโดยตรง เราจะใช้สถานะนี้กับ Service ที่ไม่ใช่เว็บ เช่น SSH
-    </li>
+  <li>
+    <img src="https://i.imgur.com/KPa5eRr.png" alt="Orange Cloud" style="vertical-align: middle; height: 20px" /> <strong>เมฆสีส้ม (Proxied):</strong> หมายความว่า Traffic จะวิ่งผ่านเครือข่ายของ
+    Cloudflare ก่อนที่จะมาถึง Server เรา <strong>ต้องเปิดใช้งานสถานะนี้</strong> สำหรับ Service ที่เป็นเว็บ (HTTP/HTTPS) เพื่อให้ได้ประโยชน์ทั้งหมดที่กล่าวมา
+  </li>
+  <li>
+    <img src="https://i.imgur.com/B7nFf9S.png" alt="Grey Cloud" style="vertical-align: middle; height: 20px" /> <strong>เมฆสีเทา (DNS Only):</strong> หมายความว่า Cloudflare จะทำหน้าที่เป็นแค่ DNS
+    Server ธรรมดา คือบอก IP จริงของ Server เราให้ผู้ใช้งานทราบโดยตรง เราจะใช้สถานะนี้กับ Service ที่ไม่ใช่เว็บ เช่น SSH
+  </li>
 </ul>
 
 <h3>2. โหมด SSL/TLS Encryption (สำคัญที่สุด!)</h3>
-<p>
-    นี่คือส่วนที่คนมักจะตั้งค่าผิดและทำให้ระบบไม่ปลอดภัย ไปที่เมนู <strong>SSL/TLS > Overview</strong> คุณจะเห็นโหมดต่างๆ ให้เลือก
-</p>
+<p>นี่คือส่วนที่คนมักจะตั้งค่าผิดและทำให้ระบบไม่ปลอดภัย ไปที่เมนู <strong>SSL/TLS > Overview</strong> คุณจะเห็นโหมดต่างๆ ให้เลือก</p>
 <ul>
-    <li><strong>Flexible:</strong> Browser &lt;-HTTPS-&gt; Cloudflare &lt;-HTTP-&gt; Server ของคุณ (<strong>ไม่ปลอดภัย! ห้ามใช้เด็ดขาด</strong> เพราะข้อมูลระหว่าง Cloudflare กับ Server ไม่ได้เข้ารหัส)</li>
-    <li><strong>Full:</strong> Browser &lt;-HTTPS-&gt; Cloudflare &lt;-HTTPS-&gt; Server ของคุณ (Cloudflare ไม่ตรวจสอบ Certificate ของ Server)</li>
-    <li><strong>Full (Strict):</strong> Browser &lt;-HTTPS-&gt; Cloudflare &lt;-HTTPS-&gt; Server ของคุณ (Cloudflare <strong>จะตรวจสอบ</strong> ว่า Certificate บน Server ของเราถูกต้องและน่าเชื่อถือ)</li>
+  <li>
+    <strong>Flexible:</strong> Browser &lt;-HTTPS-&gt; Cloudflare &lt;-HTTP-&gt; Server ของคุณ (<strong>ไม่ปลอดภัย! ห้ามใช้เด็ดขาด</strong> เพราะข้อมูลระหว่าง Cloudflare กับ Server ไม่ได้เข้ารหัส)
+  </li>
+  <li><strong>Full:</strong> Browser &lt;-HTTPS-&gt; Cloudflare &lt;-HTTPS-&gt; Server ของคุณ (Cloudflare ไม่ตรวจสอบ Certificate ของ Server)</li>
+  <li>
+    <strong>Full (Strict):</strong> Browser &lt;-HTTPS-&gt; Cloudflare &lt;-HTTPS-&gt; Server ของคุณ (Cloudflare <strong>จะตรวจสอบ</strong> ว่า Certificate บน Server ของเราถูกต้องและน่าเชื่อถือ)
+  </li>
 </ul>
-<p style="background-color: #d4edda; border-left: 5px solid #28a745; padding: 15px;">
-    <strong>ข้อสรุป:</strong> เนื่องจากเราใช้ Caddy หรือ Nginx Proxy Manager ซึ่งสามารถสร้าง Certificate ที่น่าเชื่อถือ (จาก Let's Encrypt) บน Server ของเราได้เองอยู่แล้ว ดังนั้นโหมดที่เรา **ต้องเลือกคือ Full (Strict)** เพื่อความปลอดภัยสูงสุดตลอดเส้นทาง
+<p style="background-color: #d4edda; border-left: 5px solid #28a745; padding: 15px">
+  <strong>ข้อสรุป:</strong> เนื่องจากเราใช้ Caddy หรือ Nginx Proxy Manager ซึ่งสามารถสร้าง Certificate ที่น่าเชื่อถือ (จาก Let's Encrypt) บน Server ของเราได้เองอยู่แล้ว ดังนั้นโหมดที่เรา
+  **ต้องเลือกคือ Full (Strict)** เพื่อความปลอดภัยสูงสุดตลอดเส้นทาง
 </p>
 
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 
 <h2>ส่วนที่ 2: ขั้นตอนการตั้งค่า Cloudflare</h2>
 <p>เราจะใช้โดเมน <code>bncc.ac.th</code> เป็นตัวอย่าง</p>
 
 <h3>ขั้นตอนที่ 2.1: ตั้งค่า DNS Records</h3>
 <ol>
-    <li>ล็อกอินเข้า Cloudflare แล้วเลือกโดเมน <code>bncc.ac.th</code></li>
-    <li>ไปที่เมนู <strong>DNS > Records</strong></li>
-    <li>ทำการเพิ่มหรือแก้ไข A Record สำหรับแต่ละ Service โดยชี้ไปที่ Public IP ของ Server คุณ:
-        <ul>
-            <li><strong>GitLab:</strong> Type: <code>A</code>, Name: <code>gitlab</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: Proxied (สีส้ม)</strong></li>
-            <li><strong>Portainer:</strong> Type: <code>A</code>, Name: <code>portainer</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: Proxied (สีส้ม)</strong></li>
-            <li><strong>Registry UI:</strong> Type: <code>A</code>, Name: <code>registry-ui</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: Proxied (สีส้ม)</strong></li>
-        </ul>
-    </li>
-    <li>
-        <strong>(แนะนำ) ตั้งค่าโดเมนสำหรับ SSH โดยเฉพาะ:</strong> เพื่อความปลอดภัย ไม่ควรใช้โดเมนหลักหรือโดเมนย่อยที่เปิด Proxy สำหรับ SSH ให้สร้าง Record ใหม่สำหรับ SSH เท่านั้น
-        <ul>
-             <li><strong>SSH Access:</strong> Type: <code>A</code>, Name: <code>ssh</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: DNS Only (สีเทา)</strong></li>
-        </ul>
-        <p>หลังจากนี้ เวลาจะ SSH เข้า Server ให้ใช้คำสั่ง <code>ssh myuser@ssh.bncc.ac.th</code> แทนการใช้ IP ตรงๆ</p>
-    </li>
+  <li>ล็อกอินเข้า Cloudflare แล้วเลือกโดเมน <code>bncc.ac.th</code></li>
+  <li>ไปที่เมนู <strong>DNS > Records</strong></li>
+  <li>
+    ทำการเพิ่มหรือแก้ไข A Record สำหรับแต่ละ Service โดยชี้ไปที่ Public IP ของ Server คุณ:
+    <ul>
+      <li><strong>GitLab:</strong> Type: <code>A</code>, Name: <code>gitlab</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: Proxied (สีส้ม)</strong></li>
+      <li><strong>Portainer:</strong> Type: <code>A</code>, Name: <code>portainer</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: Proxied (สีส้ม)</strong></li>
+      <li><strong>Registry UI:</strong> Type: <code>A</code>, Name: <code>registry-ui</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: Proxied (สีส้ม)</strong></li>
+    </ul>
+  </li>
+  <li>
+    <strong>(แนะนำ) ตั้งค่าโดเมนสำหรับ SSH โดยเฉพาะ:</strong> เพื่อความปลอดภัย ไม่ควรใช้โดเมนหลักหรือโดเมนย่อยที่เปิด Proxy สำหรับ SSH ให้สร้าง Record ใหม่สำหรับ SSH เท่านั้น
+    <ul>
+      <li><strong>SSH Access:</strong> Type: <code>A</code>, Name: <code>ssh</code>, Content: <code>[YOUR_PUBLIC_IP]</code>, <strong>Proxy status: DNS Only (สีเทา)</strong></li>
+    </ul>
+    <p>หลังจากนี้ เวลาจะ SSH เข้า Server ให้ใช้คำสั่ง <code>ssh myuser@ssh.bncc.ac.th</code> แทนการใช้ IP ตรงๆ</p>
+  </li>
 </ol>
 
 <h3>ขั้นตอนที่ 2.2: ตั้งค่าโหมด SSL/TLS</h3>
 <ol>
-    <li>ไปที่เมนู <strong>SSL/TLS > Overview</strong></li>
-    <li>เลือกโหมดการเข้ารหัสเป็น <strong>Full (Strict)</strong></li>
-    <img src="https://i.imgur.com/x07Kj1s.png" alt="Cloudflare Full Strict Mode" class="content-image">
+  <li>ไปที่เมนู <strong>SSL/TLS > Overview</strong></li>
+  <li>เลือกโหมดการเข้ารหัสเป็น <strong>Full (Strict)</strong></li>
+  <img src="https://i.imgur.com/x07Kj1s.png" alt="Cloudflare Full Strict Mode" class="content-image" />
 </ol>
 <p>
-    เพียงเท่านี้! เว็บของคุณก็ทำงานอยู่ภายใต้การดูแลของ Cloudflare แล้ว เมื่อมีคนเข้า <code>https://gitlab.bncc.ac.th</code> การเชื่อมต่อจะถูกเข้ารหัสตั้งแต่เบราว์เซอร์ของผู้ใช้ไปจนถึง Server ของเราอย่างสมบูรณ์
+  เพียงเท่านี้! เว็บของคุณก็ทำงานอยู่ภายใต้การดูแลของ Cloudflare แล้ว เมื่อมีคนเข้า <code>https://gitlab.bncc.ac.th</code> การเชื่อมต่อจะถูกเข้ารหัสตั้งแต่เบราว์เซอร์ของผู้ใช้ไปจนถึง Server
+  ของเราอย่างสมบูรณ์
 </p>
 
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 
 <h2>ส่วนที่ 3: ข้อควรพิจารณาเพิ่มเติม (Advanced)</h2>
 
 <h3>การใช้งาน Docker Registry ร่วมกับ Cloudflare</h3>
 <p>
-    Client ของ Docker (คำสั่ง `docker login`, `push`, `pull`) ถูกออกแบบมาเพื่อคุยกับ Docker Registry โดยตรง บางครั้งการทำงานผ่าน Proxy ของ Cloudflare (เมฆสีส้ม) อาจทำให้เกิดปัญหาได้ โดยเฉพาะกับ Free Plan
+  Client ของ Docker (คำสั่ง `docker login`, `push`, `pull`) ถูกออกแบบมาเพื่อคุยกับ Docker Registry โดยตรง บางครั้งการทำงานผ่าน Proxy ของ Cloudflare (เมฆสีส้ม) อาจทำให้เกิดปัญหาได้ โดยเฉพาะกับ Free
+  Plan
 </p>
 <ul>
-    <li><strong>วิธีที่ง่ายและเสถียรที่สุด:</strong> สำหรับโดเมนของ Registry (เช่น <code>registry.bncc.ac.th</code>) ให้ตั้งค่า DNS Record เป็น <strong>DNS Only (เมฆสีเทา)</strong> วิธีนี้จะทำให้ Docker Client คุยกับ Server ของเราได้โดยตรงและไม่มีปัญหา แต่ข้อเสียคือ IP จริงของ Server จะถูกเปิดเผยผ่านโดเมนนี้</li>
-    <li><strong>วิธีซ่อน IP:</strong> หากคุณยังต้องการซ่อน IP ให้ตั้งเป็น Proxied (เมฆสีส้ม) แต่คุณอาจต้องไปที่เมนู <strong>Rules > Page Rules</strong> ใน Cloudflare เพื่อสร้าง Rule สำหรับ <code>registry.bncc.ac.th/*</code> และตั้งค่าให้ "Disable Security", "Cache Level: Bypass" เพื่อลดการแทรกแซงจาก Cloudflare</li>
+  <li>
+    <strong>วิธีที่ง่ายและเสถียรที่สุด:</strong> สำหรับโดเมนของ Registry (เช่น <code>registry.bncc.ac.th</code>) ให้ตั้งค่า DNS Record เป็น <strong>DNS Only (เมฆสีเทา)</strong> วิธีนี้จะทำให้ Docker
+    Client คุยกับ Server ของเราได้โดยตรงและไม่มีปัญหา แต่ข้อเสียคือ IP จริงของ Server จะถูกเปิดเผยผ่านโดเมนนี้
+  </li>
+  <li>
+    <strong>วิธีซ่อน IP:</strong> หากคุณยังต้องการซ่อน IP ให้ตั้งเป็น Proxied (เมฆสีส้ม) แต่คุณอาจต้องไปที่เมนู <strong>Rules > Page Rules</strong> ใน Cloudflare เพื่อสร้าง Rule สำหรับ
+    <code>registry.bncc.ac.th/*</code> และตั้งค่าให้ "Disable Security", "Cache Level: Bypass" เพื่อลดการแทรกแซงจาก Cloudflare
+  </li>
 </ul>
 
 <h3>การใช้ Cloudflare Origin Certificate</h3>
 <p>
-    เพื่อความปลอดภัยขั้นสูงสุดอีกระดับ แทนที่จะใช้ Let's Encrypt บน Server ของเรา เราสามารถใช้ Certificate ที่สร้างจาก Cloudflare เองได้ ซึ่ง Certificate นี้จะน่าเชื่อถือเฉพาะเมื่อเชื่อมต่อผ่าน Cloudflare เท่านั้น
+  เพื่อความปลอดภัยขั้นสูงสุดอีกระดับ แทนที่จะใช้ Let's Encrypt บน Server ของเรา เราสามารถใช้ Certificate ที่สร้างจาก Cloudflare เองได้ ซึ่ง Certificate นี้จะน่าเชื่อถือเฉพาะเมื่อเชื่อมต่อผ่าน
+  Cloudflare เท่านั้น
 </p>
 <ol>
-    <li>ไปที่ <strong>SSL/TLS > Origin Server</strong> แล้วคลิก <strong>Create Certificate</strong></li>
-    <li>Cloudflare จะสร้าง Certificate และ Private Key ให้ ให้คุณคัดลอกค่าทั้งสองมา</li>
-    <li>นำค่าที่ได้ไปเพิ่มเป็น "Custom Certificate" ใน Nginx Proxy Manager หรือ Caddy</li>
+  <li>ไปที่ <strong>SSL/TLS > Origin Server</strong> แล้วคลิก <strong>Create Certificate</strong></li>
+  <li>Cloudflare จะสร้าง Certificate และ Private Key ให้ ให้คุณคัดลอกค่าทั้งสองมา</li>
+  <li>นำค่าที่ได้ไปเพิ่มเป็น "Custom Certificate" ใน Nginx Proxy Manager หรือ Caddy</li>
 </ol>
-<p>
-    วิธีนี้จะช่วยป้องกันการโจมตีแบบ "Man-in-the-middle" หากมีคนรู้ IP จริงของ Server ของเราและพยายามเชื่อมต่อเข้ามาโดยตรงโดยไม่ผ่าน Cloudflare
-</p>
+<p>วิธีนี้จะช่วยป้องกันการโจมตีแบบ "Man-in-the-middle" หากมีคนรู้ IP จริงของ Server ของเราและพยายามเชื่อมต่อเข้ามาโดยตรงโดยไม่ผ่าน Cloudflare</p>

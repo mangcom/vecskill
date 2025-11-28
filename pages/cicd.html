@@ -1,56 +1,61 @@
 <h1>การใช้งาน GitLab CI/CD</h1>
 <p>
-    CI/CD คือกระบวนการอัตโนมัติที่ช่วยให้ทีมพัฒนาสามารถส่งมอบซอฟต์แวร์ได้อย่างรวดเร็วและมีคุณภาพสูงขึ้น GitLab CI/CD เป็นเครื่องมือที่มีประสิทธิภาพซึ่งถูกสร้างมาพร้อมกับ GitLab ทำให้เราสามารถตั้งค่าทุกอย่างได้จากที่เดียว
+  CI/CD คือกระบวนการอัตโนมัติที่ช่วยให้ทีมพัฒนาสามารถส่งมอบซอฟต์แวร์ได้อย่างรวดเร็วและมีคุณภาพสูงขึ้น GitLab CI/CD เป็นเครื่องมือที่มีประสิทธิภาพซึ่งถูกสร้างมาพร้อมกับ GitLab
+  ทำให้เราสามารถตั้งค่าทุกอย่างได้จากที่เดียว
 </p>
 
 <h3>ทำความเข้าใจแนวคิดหลัก (Core Concepts)</h3>
 <ul>
-    <li>
-        <strong>CI (Continuous Integration) - การรวมโค้ดอย่างต่อเนื่อง:</strong><br>
-        คือการที่นักพัฒนาทุกคนในทีมรวมโค้ดของตัวเองเข้ากับโค้ดส่วนกลาง (main branch) บ่อยๆ (อาจจะวันละหลายครั้ง) ทุกครั้งที่มีการรวมโค้ด จะมีกระบวนการ Build และ Test อัตโนมัติเกิดขึ้นทันที เพื่อตรวจสอบว่าโค้ดใหม่ที่เพิ่มเข้าไปไม่ทำให้ส่วนอื่นๆ ของโปรเจกต์พัง
-    </li>
-    <li>
-        <strong>CD (Continuous Delivery/Deployment) - การนำส่งซอฟต์แวร์อย่างต่อเนื่อง:</strong><br>
-        คือขั้นตอนต่อจาก CI หลังจากที่โค้ดผ่านการทดสอบอัตโนมัติแล้ว ระบบจะนำโค้ดนั้นไป Deploy หรือติดตั้งบน Server (เช่น Staging หรือ Production) ให้โดยอัตโนมัติ ทำให้เราสามารถปล่อยฟีเจอร์ใหม่ๆ ให้ผู้ใช้ได้เร็วขึ้นและลดความผิดพลาดที่เกิดจากคน
-    </li>
+  <li>
+    <strong>CI (Continuous Integration) - การรวมโค้ดอย่างต่อเนื่อง:</strong><br />
+    คือการที่นักพัฒนาทุกคนในทีมรวมโค้ดของตัวเองเข้ากับโค้ดส่วนกลาง (main branch) บ่อยๆ (อาจจะวันละหลายครั้ง) ทุกครั้งที่มีการรวมโค้ด จะมีกระบวนการ Build และ Test อัตโนมัติเกิดขึ้นทันที
+    เพื่อตรวจสอบว่าโค้ดใหม่ที่เพิ่มเข้าไปไม่ทำให้ส่วนอื่นๆ ของโปรเจกต์พัง
+  </li>
+  <li>
+    <strong>CD (Continuous Delivery/Deployment) - การนำส่งซอฟต์แวร์อย่างต่อเนื่อง:</strong><br />
+    คือขั้นตอนต่อจาก CI หลังจากที่โค้ดผ่านการทดสอบอัตโนมัติแล้ว ระบบจะนำโค้ดนั้นไป Deploy หรือติดตั้งบน Server (เช่น Staging หรือ Production) ให้โดยอัตโนมัติ ทำให้เราสามารถปล่อยฟีเจอร์ใหม่ๆ
+    ให้ผู้ใช้ได้เร็วขึ้นและลดความผิดพลาดที่เกิดจากคน
+  </li>
 </ul>
 
 <h3>ส่วนประกอบสำคัญของ GitLab CI/CD</h3>
 <dl>
-    <dt><strong>1. ไฟล์ <code>.gitlab-ci.yml</code></strong></dt>
-    <dd>
-        นี่คือ "หัวใจ" และ "พิมพ์เขียว" ของกระบวนการ CI/CD ทั้งหมด มันคือไฟล์ที่คุณจะสร้างเก็บไว้ในโปรเจกต์ของคุณเพื่อบอก GitLab ว่าจะต้องทำอะไรบ้าง, ทำเมื่อไหร่, และทำอย่างไร เช่น สั่งให้ build, test, หรือ deploy โค้ดของคุณ
-    </dd>
-    <dt><strong>2. GitLab Runner</strong></dt>
-    <dd>
-        นี่คือ "ผู้ปฏิบัติงาน" หรือ "Worker" ที่จะทำตามคำสั่งในไฟล์ <code>.gitlab-ci.yml</code> จริงๆ มันเป็นโปรแกรมที่เราจะติดตั้งแยกต่างหาก (ซึ่งจะทำในบทถัดไป) และเชื่อมต่อกับ GitLab ของเรา เมื่อมีการ push โค้ดใหม่ GitLab จะส่ง "งาน" ไปให้ Runner ที่ว่างอยู่เป็นผู้ทำ
-    </dd>
-    <dt><strong>3. Pipeline, Stages, และ Jobs</strong></dt>
-    <dd>
-        - <strong>Pipeline:</strong> คือกระบวนการทำงานทั้งหมดที่เกิดขึ้นเมื่อมีการเปลี่ยนแปลงโค้ด<br>
-        - <strong>Stages:</strong> คือขั้นตอนย่อยๆ ใน Pipeline ที่จะทำงานเรียงตามลำดับ เช่น ขั้นตอน `build` > `test` > `deploy`<br>
-        - <strong>Jobs:</strong> คือ "คำสั่ง" ที่ต้องทำจริงๆ ในแต่ละ Stage เช่น `build_docker_image` หรือ `run_unit_tests`
-    </dd>
+  <dt>
+    <strong>1. ไฟล์ <code>.gitlab-ci.yml</code></strong>
+  </dt>
+  <dd>
+    นี่คือ "หัวใจ" และ "พิมพ์เขียว" ของกระบวนการ CI/CD ทั้งหมด มันคือไฟล์ที่คุณจะสร้างเก็บไว้ในโปรเจกต์ของคุณเพื่อบอก GitLab ว่าจะต้องทำอะไรบ้าง, ทำเมื่อไหร่, และทำอย่างไร เช่น สั่งให้ build, test,
+    หรือ deploy โค้ดของคุณ
+  </dd>
+  <dt><strong>2. GitLab Runner</strong></dt>
+  <dd>
+    นี่คือ "ผู้ปฏิบัติงาน" หรือ "Worker" ที่จะทำตามคำสั่งในไฟล์ <code>.gitlab-ci.yml</code> จริงๆ มันเป็นโปรแกรมที่เราจะติดตั้งแยกต่างหาก (ซึ่งจะทำในบทถัดไป) และเชื่อมต่อกับ GitLab ของเรา เมื่อมีการ
+    push โค้ดใหม่ GitLab จะส่ง "งาน" ไปให้ Runner ที่ว่างอยู่เป็นผู้ทำ
+  </dd>
+  <dt><strong>3. Pipeline, Stages, และ Jobs</strong></dt>
+  <dd>
+    - <strong>Pipeline:</strong> คือกระบวนการทำงานทั้งหมดที่เกิดขึ้นเมื่อมีการเปลี่ยนแปลงโค้ด<br />
+    - <strong>Stages:</strong> คือขั้นตอนย่อยๆ ใน Pipeline ที่จะทำงานเรียงตามลำดับ เช่น ขั้นตอน `build` > `test` > `deploy`<br />
+    - <strong>Jobs:</strong> คือ "คำสั่ง" ที่ต้องทำจริงๆ ในแต่ละ Stage เช่น `build_docker_image` หรือ `run_unit_tests`
+  </dd>
 </dl>
 
-<hr style="margin: 40px 0;">
+<hr style="margin: 40px 0" />
 
 <h2>สร้าง Pipeline แรก: Build Docker Image และ Push ไปยัง Private Registry</h2>
-<p>
-    ในตัวอย่างนี้ เราจะสร้างโปรเจกต์ง่ายๆ ที่มีไฟล์ HTML หนึ่งไฟล์ จากนั้นเราจะเขียนไฟล์ <code>.gitlab-ci.yml</code> เพื่อสั่งให้ GitLab CI/CD ทำสิ่งต่อไปนี้โดยอัตโนมัติทุกครั้งที่เรา push โค้ด:
-</p>
+<p>ในตัวอย่างนี้ เราจะสร้างโปรเจกต์ง่ายๆ ที่มีไฟล์ HTML หนึ่งไฟล์ จากนั้นเราจะเขียนไฟล์ <code>.gitlab-ci.yml</code> เพื่อสั่งให้ GitLab CI/CD ทำสิ่งต่อไปนี้โดยอัตโนมัติทุกครั้งที่เรา push โค้ด:</p>
 <ol>
-    <li>สร้าง Docker Image จาก `Dockerfile`</li>
-    <li>ล็อกอินเข้า Private Registry ของเรา (`registry.vecskill.ovec:5000`)</li>
-    <li>Push Image ที่สร้างเสร็จแล้วไปเก็บไว้ที่ Registry</li>
+  <li>สร้าง Docker Image จาก `Dockerfile`</li>
+  <li>ล็อกอินเข้า Private Registry ของเรา (`registry.vecskill.ovec:5000`)</li>
+  <li>Push Image ที่สร้างเสร็จแล้วไปเก็บไว้ที่ Registry</li>
 </ol>
 
 <h3>ขั้นตอนที่ 1: สร้างโปรเจกต์ใหม่บน GitLab</h3>
 <ol>
-    <li>ล็อกอินเข้า GitLab ของคุณที่ <code>http://gitlab.vecskill.ovec</code></li>
-    <li>คลิกที่ <strong>New project</strong> > <strong>Create blank project</strong></li>
-    <li>ตั้งชื่อโปรเจกต์ เช่น `my-first-pipeline` และคลิก <strong>Create project</strong></li>
-    <li>เมื่อสร้างโปรเจกต์เสร็จแล้ว ให้ Clone โปรเจกต์ลงมาที่เครื่องคอมพิวเตอร์ของคุณ</li>
+  <li>ล็อกอินเข้า GitLab ของคุณที่ <code>http://gitlab.vecskill.ovec</code></li>
+  <li>คลิกที่ <strong>New project</strong> > <strong>Create blank project</strong></li>
+  <li>ตั้งชื่อโปรเจกต์ เช่น `my-first-pipeline` และคลิก <strong>Create project</strong></li>
+  <li>เมื่อสร้างโปรเจกต์เสร็จแล้ว ให้ Clone โปรเจกต์ลงมาที่เครื่องคอมพิวเตอร์ของคุณ</li>
 </ol>
 
 <h3>ขั้นตอนที่ 2: สร้างไฟล์สำหรับโปรเจกต์</h3>
@@ -112,48 +117,42 @@ build-image:
 </code></pre>
 
 <h3>ขั้นตอนที่ 3: ตั้งค่า CI/CD Variables ใน GitLab</h3>
-<p>
-    เพื่อความปลอดภัย เราจะไม่เก็บ Username และ Password ของ Registry ไว้ในไฟล์ <code>.gitlab-ci.yml</code> โดยตรง แต่จะเก็บเป็นตัวแปรใน GitLab UI แทน
-</p>
+<p>เพื่อความปลอดภัย เราจะไม่เก็บ Username และ Password ของ Registry ไว้ในไฟล์ <code>.gitlab-ci.yml</code> โดยตรง แต่จะเก็บเป็นตัวแปรใน GitLab UI แทน</p>
 <ol>
-    <li>ในโปรเจกต์ของคุณบน GitLab ไปที่ <strong>Settings</strong> > <strong>CI/CD</strong></li>
-    <li>หาหัวข้อ <strong>Variables</strong> แล้วคลิก <strong>Expand</strong></li>
-    <li>คลิก <strong>Add variable</strong> แล้วสร้าง 2 ตัวแปร:
-        <ul>
-            <li>
-                <strong>Key:</strong> <code>CI_REGISTRY_USER</code><br>
-                <strong>Value:</strong> <code>[Username สำหรับเข้า Registry ของคุณ]</code> (ถ้าไม่ได้ตั้งค่าอะไร ก็ใส่ค่าอะไรไปก่อนก็ได้ เช่น `testuser`)
-            </li>
-            <li>
-                <strong>Key:</strong> <code>CI_REGISTRY_PASSWORD</code><br>
-                <strong>Value:</strong> <code>[Password สำหรับเข้า Registry ของคุณ]</code> (เช่น `testpass`)<br>
-                <em>(แนะนำให้ติ๊ก "Mask variable" เพื่อซ่อนค่า Password ใน Log)</em>
-            </li>
-        </ul>
-        <img src="https://i.imgur.com/G5iE1d4.png" alt="การตั้งค่า CI/CD Variables ใน GitLab" class="content-image">
-    </li>
+  <li>ในโปรเจกต์ของคุณบน GitLab ไปที่ <strong>Settings</strong> > <strong>CI/CD</strong></li>
+  <li>หาหัวข้อ <strong>Variables</strong> แล้วคลิก <strong>Expand</strong></li>
+  <li>
+    คลิก <strong>Add variable</strong> แล้วสร้าง 2 ตัวแปร:
+    <ul>
+      <li>
+        <strong>Key:</strong> <code>CI_REGISTRY_USER</code><br />
+        <strong>Value:</strong> <code>[Username สำหรับเข้า Registry ของคุณ]</code> (ถ้าไม่ได้ตั้งค่าอะไร ก็ใส่ค่าอะไรไปก่อนก็ได้ เช่น `testuser`)
+      </li>
+      <li>
+        <strong>Key:</strong> <code>CI_REGISTRY_PASSWORD</code><br />
+        <strong>Value:</strong> <code>[Password สำหรับเข้า Registry ของคุณ]</code> (เช่น `testpass`)<br />
+        <em>(แนะนำให้ติ๊ก "Mask variable" เพื่อซ่อนค่า Password ใน Log)</em>
+      </li>
+    </ul>
+    <img src="https://i.imgur.com/G5iE1d4.png" alt="การตั้งค่า CI/CD Variables ใน GitLab" class="content-image" />
+  </li>
 </ol>
-
 
 <h3>ขั้นตอนที่ 4: Push โค้ดและดูผลลัพธ์</h3>
 <ol>
-    <li>ทำการ Commit และ Push ไฟล์ทั้ง 3 ไฟล์ขึ้นไปยัง GitLab repository ของคุณ:
-        <pre><code>git add .
+  <li>
+    ทำการ Commit และ Push ไฟล์ทั้ง 3 ไฟล์ขึ้นไปยัง GitLab repository ของคุณ:
+    <pre><code>git add .
 git commit -m "feat: Add initial files and CI/CD pipeline"
 git push origin main</code></pre>
-    </li>
-    <li>
-        ทันทีที่คุณ Push โค้ด GitLab จะตรวจพบไฟล์ <code>.gitlab-ci.yml</code> และเริ่ม Pipeline ใหม่โดยอัตโนมัติ
-    </li>
-    <li>
-        ในโปรเจกต์ GitLab ของคุณ ไปที่เมนู <strong>CI/CD</strong> > <strong>Pipelines</strong> คุณจะเห็น Pipeline ใหม่ล่าสุดกำลังทำงาน
-    </li>
+  </li>
+  <li>ทันทีที่คุณ Push โค้ด GitLab จะตรวจพบไฟล์ <code>.gitlab-ci.yml</code> และเริ่ม Pipeline ใหม่โดยอัตโนมัติ</li>
+  <li>ในโปรเจกต์ GitLab ของคุณ ไปที่เมนู <strong>CI/CD</strong> > <strong>Pipelines</strong> คุณจะเห็น Pipeline ใหม่ล่าสุดกำลังทำงาน</li>
 </ol>
 
 <h3>แล้วยังไงต่อ?</h3>
 <p>
-    ณ จุดนี้ คุณจะเห็นว่า Pipeline ของคุณมีสถานะเป็น "pending" (รอดำเนินการ) นั่นเป็นเพราะว่า GitLab ได้รับ "พิมพ์เขียว" (<code>.gitlab-ci.yml</code>) แล้ว แต่ยังไม่มี "ผู้ปฏิบัติงาน" (GitLab Runner) มารับงานนี้ไปทำ
+  ณ จุดนี้ คุณจะเห็นว่า Pipeline ของคุณมีสถานะเป็น "pending" (รอดำเนินการ) นั่นเป็นเพราะว่า GitLab ได้รับ "พิมพ์เขียว" (<code>.gitlab-ci.yml</code>) แล้ว แต่ยังไม่มี "ผู้ปฏิบัติงาน" (GitLab Runner)
+  มารับงานนี้ไปทำ
 </p>
-<p>
-    ในบทต่อไป เราจะทำการติดตั้งและลงทะเบียน GitLab Runner เพื่อให้ Pipeline ของเราสามารถทำงานได้จริงจนจบกระบวนการครับ!
-</p>
+<p>ในบทต่อไป เราจะทำการติดตั้งและลงทะเบียน GitLab Runner เพื่อให้ Pipeline ของเราสามารถทำงานได้จริงจนจบกระบวนการครับ!</p>

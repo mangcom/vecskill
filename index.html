@@ -3,40 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      คู่มือการติดตั้งและฝึกซ้อมการแข่งขันทักษะ อาชีพนักพัฒนาระบบ
-      สาขาวิชาเทคโนโลยีสารสนเทศ
-    </title>
+    <title>คู่มือการติดตั้งและฝึกซ้อมการแข่งขันทักษะ อาชีพนักพัฒนาระบบ สาขาวิชาเทคโนโลยีสารสนเทศ</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
   </head>
   <body>
     <div id="container">
       <aside class="sidebar" id="sidebar">
         <header class="sidebar-header">
-          <button
-            class="collapse-btn"
-            id="collapse-sidebar-btn"
-            title="Toggle Sidebar"
-          >
+          <button class="collapse-btn" id="collapse-sidebar-btn" title="Toggle Sidebar">
             <i class="fas fa-angle-left"></i>
           </button>
           <h2>IT VECSkill Guide</h2>
@@ -45,122 +25,68 @@
         <nav class="menu" id="main-menu">
           <ul>
             <li class="active">
-              <a href="#" data-page="project-overview"
-                ><i class="fas fa-tachometer-alt fa-fw"></i
-                ><span> ภาพรวมการพัฒนา</span></a
-              >
+              <a href="#" data-page="project-overview"><i class="fas fa-tachometer-alt fa-fw"></i><span> ภาพรวมการพัฒนา</span></a>
             </li>
             <li>
-              <a href="#" data-page="vmware-quickstart"
-                ><i class="fas fa-compact-disc fa-fw"></i
-                ><span> Quick Start (VMWare)</span></a
-              >
+              <a href="#" data-page="vmware-quickstart"><i class="fas fa-compact-disc fa-fw"></i><span> Quick Start (VMWare)</span></a>
             </li>
             <li>
-              <a href="#" data-page="ubuntu-setup"
-                ><i class="fab fa-ubuntu fa-fw"></i
-                ><span> การเตรียม Ubuntu Server</span></a
-              >
+              <a href="#" data-page="ubuntu-setup"><i class="fab fa-ubuntu fa-fw"></i><span> การเตรียม Ubuntu Server</span></a>
             </li>
             <li>
-              <a href="#" data-page="docker"
-                ><i class="fab fa-docker fa-fw"></i
-                ><span> การติดตั้ง Docker</span></a
-              >
+              <a href="#" data-page="docker"><i class="fab fa-docker fa-fw"></i><span> การติดตั้ง Docker</span></a>
             </li>
             <li>
-              <a href="#" data-page="portainer"
-                ><i class="fas fa-cubes fa-fw"></i
-                ><span> การติดตั้ง Portainer</span></a
-              >
+              <a href="#" data-page="portainer"><i class="fas fa-cubes fa-fw"></i><span> การติดตั้ง Portainer</span></a>
             </li>
             <li>
-              <a href="#" data-page="registry"
-                ><i class="fas fa-database fa-fw"></i
-                ><span> การติดตั้ง Registry & UI</span></a
-              >
+              <a href="#" data-page="registry"><i class="fas fa-database fa-fw"></i><span> การติดตั้ง Registry & UI</span></a>
             </li>
             <li>
-              <a href="#" data-page="gitlab"
-                ><i class="fab fa-gitlab fa-fw"></i
-                ><span> การติดตั้ง GitLab</span></a
-              >
+              <a href="#" data-page="gitlab"><i class="fab fa-gitlab fa-fw"></i><span> การติดตั้ง GitLab</span></a>
             </li>
             <li>
-              <a href="#" data-page="basic-git-usage"
-                ><i class="fab fa-git-alt fa-fw"></i
-                ><span> การใช้งาน Git เบื้องต้น</span></a
-              >
+              <a href="#" data-page="basic-git-usage"><i class="fab fa-git-alt fa-fw"></i><span> การใช้งาน Git เบื้องต้น</span></a>
             </li>
             <li>
-              <a href="#" data-page="technitium-dns"
-                ><i class="fas fa-network-wired fa-fw"></i
-                ><span> การติดตั้ง DNS Server</span></a
-              >
+              <a href="#" data-page="runner"><i class="fas fa-running fa-fw"></i><span> 8.การใช้งาน Gitlab Runner</span></a>
             </li>
             <li>
-              <a href="#" data-page="caddy-internal-ca"
-                ><i class="fas fa-lock fa-fw"></i
-                ><span> การทำ HTTPS ภายใน</span></a
-              >
+              <a href="#" data-page="technitium-dns"><i class="fas fa-network-wired fa-fw"></i><span> การติดตั้ง DNS Server</span></a>
             </li>
             <li>
-              <a href="#" data-page="node-red"
-                ><i class="fa-brands fa-node-js fa-fw"></i
-                ><span> Node-Red</span></a
-              >
+              <a href="#" data-page="caddy-internal-ca"><i class="fas fa-lock fa-fw"></i><span> การทำ HTTPS ภายใน</span></a>
             </li>
             <li>
-              <a href="#" data-page="iot-esp32"
-                ><i class="fas fa-microchip fa-fw"></i
-                ><span> ตัวอย่าง IoT</span>
-              </a>
+              <a href="#" data-page="node-red"><i class="fa-brands fa-node-js fa-fw"></i><span> Node-Red</span></a>
             </li>
             <li>
-              <a href="#" data-page="apt-cacher-ng"
-                ><i class="fas fa-box-archive fa-fw"></i
-                ><span> Apt-Cacher-Ng</span></a
-              >
+              <a href="#" data-page="iot-esp32"><i class="fas fa-microchip fa-fw"></i><span> ตัวอย่าง IoT</span> </a>
             </li>
             <li>
-              <a href="#" data-page="devpi-pypi"
-                ><i class="fab fa-python fa-fw"></i
-                ><span> Devpi (Private PyPI)</span></a
-              >
+              <a href="#" data-page="apt-cacher-ng"><i class="fas fa-box-archive fa-fw"></i><span> Apt-Cacher-Ng</span></a>
             </li>
             <li>
-              <a href="#" data-page="verdaccio"
-                ><i class="fab fa-npm fa-fw"></i
-                ><span> Verdaccio (NPM Registry)</span></a
-              >
+              <a href="#" data-page="devpi-pypi"><i class="fab fa-python fa-fw"></i><span> Devpi (Private PyPI)</span></a>
             </li>
             <li>
-              <a href="#" data-page="skill-eval-pwa"
-                ><i class="fas fa-clipboard-list fa-fw"></i
-                ><span> Hardware/Software ปวช.</span></a
-              >
+              <a href="#" data-page="verdaccio"><i class="fab fa-npm fa-fw"></i><span> Verdaccio (NPM Registry)</span></a>
             </li>
             <li>
-              <a href="#" data-page="skill-eval-pws"
-                ><i class="fas fa-clipboard-list fa-fw"></i
-                ><span> Hardware/Software ปวส.</span></a
-              >
+              <a href="#" data-page="skill-eval-pwa"><i class="fas fa-clipboard-list fa-fw"></i><span> Hardware/Software ปวช.</span></a>
             </li>
             <li>
-              <a href="#" data-page="skill-pes"
-                ><i class="fas fa-file-alt fa-fw"></i
-                ><span> ตัวอย่าง ระบบประเมินครู</span></a
-              >
+              <a href="#" data-page="skill-eval-pws"><i class="fas fa-clipboard-list fa-fw"></i><span> Hardware/Software ปวส.</span></a>
+            </li>
+            <li>
+              <a href="#" data-page="skill-pes"><i class="fas fa-file-alt fa-fw"></i><span> ตัวอย่าง ระบบประเมินครู</span></a>
             </li>
             <!-- <li><a href="#" data-page="under-construction"><i class="fas fa-cogs fa-fw"></i><span> Gitlab CI/CD</span></a></li>
                     <li><a href="#" data-page="under-construction"><i class="fas fa-running fa-fw"></i><span> Gitlab Runner</span></a></li>
                     <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i><span> Nginx Proxy Manager</span></a></li>
                     <li><a href="#" data-page="under-construction"><i class="fas fa-hourglass-half fa-fw"></i><span> Cloudflare</span></a></li> -->
             <li>
-              <a href="#" data-page="statistics"
-                ><i class="fas fa-chart-bar fa-fw"></i
-                ><span> สถิติการเข้าชม</span></a
-              >
+              <a href="#" data-page="statistics"><i class="fas fa-chart-bar fa-fw"></i><span> สถิติการเข้าชม</span></a>
             </li>
           </ul>
         </nav>
@@ -173,10 +99,7 @@
       </main>
     </div>
     <footer class="main-footer">
-      <p>
-        จัดรวบรวมโดย นายพรชัย ตุ่นแก้ว | แผนกวิชาเทคโนโลยีสารสนเทศ |
-        วิทยาลัยพณิชยการบางนา
-      </p>
+      <p>จัดรวบรวมโดย นายพรชัย ตุ่นแก้ว | แผนกวิชาเทคโนโลยีสารสนเทศ | วิทยาลัยพณิชยการบางนา</p>
     </footer>
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
