@@ -89,6 +89,57 @@ volumes:
 </code></pre>
 <p><strong>คำอธิบายการเปลี่ยนแปลง:</strong> เช่นเดียวกับ Registry เราได้เพิ่ม <code>networks: - app_net</code> ใน Service และประกาศ <code>networks: app_net: external: true</code> ที่ท้ายไฟล์</p>
 
+<p><strong style="color: #e74c3c">กรณีที่ติดตั้ง Caddy Internal CA </strong> ไว้ก่อนหน้าแล้ว และต้องการให้ GitLab ใช้งาน HTTPS ภายในเครือข่ายได้ ให้ปรับแต่ง Stack ของ gitlab-stack เล็กน้อยดังนี้:
+    <pre><code>services:
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    container_name: gitlab
+    restart: always
+    hostname: 'gitlab.vecskill.ovec'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://gitlab.vecskill.ovec'
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        letsencrypt['enable'] = false
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        # ถ้าเปิดใช้งาน Prometheus ใน GitLab ให้ปิดไป และถ้าใช้ ควรกำหนด shm_size ประมาณ 512m - 2g
+        prometheus_monitoring['enable'] = false 
+        # เก็บ IP จริงเมื่อมี reverse proxy
+        nginx['real_ip_header'] = 'X-Forwarded-For'
+        nginx['real_ip_recursive'] = 'on'
+        nginx['real_ip_trusted_addresses'] = ['172.16.0.0/12','192.168.0.0/16','10.0.0.0/8']
+    ports:
+      - '2222:22'
+    shm_size: "1g"
+    volumes:
+      - 'gitlab_config:/etc/gitlab'
+      - 'gitlab_logs:/var/log/gitlab'
+      - 'gitlab_data:/var/opt/gitlab'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/-/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    external: true
+
+volumes:
+  gitlab_config:
+    external: true
+  gitlab_logs:
+    external: true
+  gitlab_data:
+    external: true</code></pre>
+</p>
+
+
+
+
 <h3>ขั้นตอนที่ 2.2: การติดตั้งบน Portainer</h3>
 <ol>
   <li>ไปที่เมนู <strong>Stacks</strong> > <strong>+ Add stack</strong> และตั้งชื่อ (เช่น `gitlab-stack`)</li>
