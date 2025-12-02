@@ -1,0 +1,185 @@
+<h1>การทำ Local Mirror (Offline Repository 100%)</h1>
+<p>
+  การทำ Local Mirror คือการดาวน์โหลดแพ็กเกจทั้งหมดจาก Repository หลักมาเก็บไว้ในเครื่อง Server ของเราเอง เพื่อให้เครื่องลูกข่าย (Client) สามารถติดตั้งและอัปเดตซอฟต์แวร์ได้โดย
+  <strong>ไม่ต้องเชื่อมต่ออินเทอร์เน็ตเลย (Offline 100%)</strong>
+</p>
+<p style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 15px">
+  <strong>⚠️ ข้อควรระวัง:</strong> การ Mirror Repositories เพิ่มเติม (Docker, GitLab, etc.) จะใช้พื้นที่ฮาร์ดดิสก์เพิ่มขึ้นอีกมาก ควรเตรียมพื้นที่ว่างให้เพียงพอ (แนะนำ 500GB+)
+</p>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 1: การติดตั้งและตั้งค่าฝั่ง Server</h2>
+<p>สมมติว่า Server นี้มี IP: <code>10.20.30.101</code></p>
+
+<h3>1.1 ติดตั้งเครื่องมือ</h3>
+<pre><code>sudo apt update
+sudo apt install -y apt-mirror apache2 curl gnupg</code></pre>
+
+<h3>1.2 ตั้งค่า Mirror List (`/etc/apt/mirror.list`)</h3>
+<p>แก้ไขไฟล์คอนฟิกเพื่อระบุแหล่งดาวน์โหลด ทั้ง Ubuntu Base และ 3rd Party Software (รวมถึง GitLab Runner)</p>
+<pre><code>sudo nano /etc/apt/mirror.list</code></pre>
+<p>ใช้คอนฟิกด้านล่างนี้:</p>
+<pre><code class="language-bash">############# config ##################
+set base_path    /var/spool/apt-mirror
+set nthreads     20
+set _tilde 0
+############# end config ##############
+
+# --- Ubuntu 24.04 (Noble) Base ---
+deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu noble-security main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
+# deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
+
+# --- External 3rd Party Repositories ---
+
+# 1. Docker CE
+deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable
+
+# 2. Jenkins (LTS Version)
+deb https://pkg.jenkins.io/debian-stable binary/
+
+# 3. Node.js (NodeSource - เลือกเวอร์ชัน 22 LTS)
+deb [arch=amd64] https://deb.nodesource.com/node_22.x noble main
+
+# 4. GitLab CE (Community Edition)
+deb [arch=amd64] https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/ noble main
+
+# 5. GitLab Runner (เพิ่มใหม่)
+deb [arch=amd64] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ noble main
+
+# --- Clean Section ---
+clean http://archive.ubuntu.com/ubuntu
+clean https://download.docker.com/linux/ubuntu
+clean https://pkg.jenkins.io/debian-stable
+clean https://deb.nodesource.com/node_22.x
+clean https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/
+clean https://packages.gitlab.com/runner/gitlab-runner/ubuntu/
+</code></pre>
+
+<h3>1.3 จัดการ GPG Keys (สำคัญมาก!)</h3>
+<p>ดาวน์โหลด Key ของแต่ละเจ้ามาเก็บไว้ที่ Web Server เพื่อให้เครื่องลูกข่ายมาดาวน์โหลดไปติดตั้งได้</p>
+<ol>
+  <li>
+    <strong>สร้างโฟลเดอร์เก็บ Key:</strong>
+    <pre><code>sudo mkdir -p /var/www/html/keys</code></pre>
+  </li>
+  <li>
+    <strong>ดาวน์โหลดและแปลง Key:</strong>
+    <pre><code># Docker Key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /var/www/html/keys/docker.gpg
+
+# Jenkins Key
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo gpg --dearmor -o /var/www/html/keys/jenkins.gpg
+
+# Node.js Key
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /var/www/html/keys/nodesource.gpg
+
+# GitLab Key (ใช้ร่วมกันได้ทั้ง CE และ Runner แต่โหลดแยกเพื่อความชัดเจน)
+curl -fsSL https://packages.gitlab.com/gitlab/gitlab-ce/gpgkey | sudo gpg --dearmor -o /var/www/html/keys/gitlab.gpg
+curl -fsSL https://packages.gitlab.com/runner/gitlab-runner/gpgkey | sudo gpg --dearmor -o /var/www/html/keys/gitlab-runner.gpg</code></pre>
+  </li>
+</ol>
+
+<h3>1.4 เริ่มกระบวนการ Mirror (ดาวน์โหลด)</h3>
+<pre><code>sudo apt-mirror</code></pre>
+
+<h3>1.5 ตั้งค่า Web Server (Symlinks)</h3>
+<p>สร้าง Link ให้ Apache มองเห็นโฟลเดอร์ที่ดาวน์โหลดมา</p>
+<pre><code># เข้าไปที่ Web Root
+cd /var/www/html
+
+# Ubuntu Base
+sudo ln -s /var/spool/apt-mirror/mirror/archive.ubuntu.com/ubuntu ubuntu
+
+# 3rd Party Repos
+sudo ln -s /var/spool/apt-mirror/mirror/download.docker.com download.docker.com
+sudo ln -s /var/spool/apt-mirror/mirror/pkg.jenkins.io pkg.jenkins.io
+sudo ln -s /var/spool/apt-mirror/mirror/deb.nodesource.com deb.nodesource.com
+sudo ln -s /var/spool/apt-mirror/mirror/packages.gitlab.com packages.gitlab.com
+# (หมายเหตุ: packages.gitlab.com จะรวมทั้ง gitlab-ce และ runner ไว้ข้างในแล้ว)</code></pre>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 2: การตั้งค่าฝั่ง Client (Offline Machine)</h2>
+<p>ที่เครื่องลูกข่าย ให้ทำดังนี้:</p>
+
+<h3>2.1 ติดตั้ง GPG Keys</h3>
+<pre><code># สร้างโฟลเดอร์ keyrings
+sudo mkdir -p /etc/apt/keyrings
+
+# ดาวน์โหลด Key จาก Server เรา
+wget -O- http://10.20.30.101/keys/docker.gpg | sudo tee /etc/apt/keyrings/docker.gpg
+wget -O- http://10.20.30.101/keys/jenkins.gpg | sudo tee /etc/apt/keyrings/jenkins.gpg
+wget -O- http://10.20.30.101/keys/nodesource.gpg | sudo tee /etc/apt/keyrings/nodesource.gpg
+wget -O- http://10.20.30.101/keys/gitlab.gpg | sudo tee /etc/apt/keyrings/gitlab.gpg
+wget -O- http://10.20.30.101/keys/gitlab-runner.gpg | sudo tee /etc/apt/keyrings/gitlab-runner.gpg</code></pre>
+
+<h3>2.2 ตั้งค่า Sources List</h3>
+<p>
+  <strong>สำหรับ Ubuntu Base (`/etc/apt/sources.list`):</strong>
+</p>
+<pre><code>deb http://10.20.30.101/ubuntu noble main restricted universe multiverse
+deb http://10.20.30.101/ubuntu noble-security main restricted universe multiverse
+deb http://10.20.30.101/ubuntu noble-updates main restricted universe multiverse</code></pre>
+
+<p>
+  <strong>สำหรับ 3rd Party Apps (`/etc/apt/sources.list.d/local-apps.list`):</strong>
+</p>
+<div class="code-container">
+  <pre><code># Docker
+deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] http://10.20.30.101/download.docker.com/linux/ubuntu noble stable
+
+# Jenkins
+deb [signed-by=/etc/apt/keyrings/jenkins.gpg] http://10.20.30.101/pkg.jenkins.io/debian-stable binary/
+
+# Node.js
+deb [arch=amd64 signed-by=/etc/apt/keyrings/nodesource.gpg] http://10.20.30.101/deb.nodesource.com/node_22.x noble main
+
+# GitLab CE
+deb [arch=amd64 signed-by=/etc/apt/keyrings/gitlab.gpg] http://10.20.30.101/packages.gitlab.com/gitlab/gitlab-ce/ubuntu/ noble main
+
+# GitLab Runner
+deb [arch=amd64 signed-by=/etc/apt/keyrings/gitlab-runner.gpg] http://10.20.30.101/packages.gitlab.com/runner/gitlab-runner/ubuntu/ noble main</code></pre>
+</div>
+
+<h3>2.3 ทดสอบใช้งาน</h3>
+<pre><code>sudo apt update
+# ติดตั้ง GitLab Runner แบบ Offline
+sudo apt install docker-ce jenkins nodejs gitlab-ce gitlab-runner</code></pre>
+
+<hr style="margin: 40px 0" />
+
+<h2>เปรียบเทียบ: Apt-Mirror vs Apt-Cacher-Ng</h2>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>หัวข้อ</th>
+      <th>Apt-Mirror (Local Mirror)</th>
+      <th>Apt-Cacher-Ng (Proxy Cache)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>การใช้อินเทอร์เน็ตของ Client</strong></td>
+      <td><strong>ไม่ต้องใช้เลย (Offline 100%)</strong></td>
+      <td>ไม่ต้องใช้ (แต่ Server ต้องออกเน็ตได้ตอน Client ขอไฟล์ใหม่)</td>
+    </tr>
+    <tr>
+      <td><strong>พื้นที่จัดเก็บ (Disk Space)</strong></td>
+      <td><strong>มหาศาล (300GB+)</strong> เพราะโหลดมา "ทุกอย่าง"</td>
+      <td><strong>น้อย</strong> (โหลดมาเก็บเฉพาะไฟล์ที่มีคนเคยขอใช้)</td>
+    </tr>
+    <tr>
+      <td><strong>ความพร้อมใช้งาน</strong></td>
+      <td>พร้อมใช้งานทันทีทุกแพ็กเกจ (ถ้า Sync เสร็จ)</td>
+      <td>ครั้งแรกจะช้า (ต้องโหลดจากเน็ต) ครั้งต่อไปเร็ว</td>
+    </tr>
+    <tr>
+      <td><strong>ความเหมาะสม</strong></td>
+      <td>การแข่งขันระบบปิด (Air-gapped)</td>
+      <td>สำนักงาน, ห้องเรียน, Homelab ทั่วไป</td>
+    </tr>
+  </tbody>
+</table>
