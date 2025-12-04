@@ -1,4 +1,4 @@
-<h1>การทำ Local Mirror (Offline Repository 100%)</h1>
+<h1>การทำ APT Mirror (Local Repository สำหรับ Ubuntu)</h1>
 <p>
   การทำ Local Mirror คือการดาวน์โหลดแพ็กเกจทั้งหมดจาก Repository หลักมาเก็บไว้ในเครื่อง Server ของเราเอง เพื่อให้เครื่องลูกข่าย (Client) สามารถติดตั้งและอัปเดตซอฟต์แวร์ได้โดย
   <strong>ไม่ต้องเชื่อมต่ออินเทอร์เน็ตเลย (Offline 100%)</strong>
@@ -41,7 +41,7 @@ deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable
 deb https://pkg.jenkins.io/debian-stable binary/
 
 # 3. Node.js (NodeSource - เลือกเวอร์ชัน 22 LTS)
-deb [arch=amd64] https://deb.nodesource.com/node_22.x noble main
+# deb [arch=amd64] https://deb.nodesource.com/node_22.x noble main
 
 # 4. GitLab CE (Community Edition)
 deb [arch=amd64] https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/ noble main
@@ -53,7 +53,7 @@ deb [arch=amd64] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ noble 
 clean http://archive.ubuntu.com/ubuntu
 clean https://download.docker.com/linux/ubuntu
 clean https://pkg.jenkins.io/debian-stable
-clean https://deb.nodesource.com/node_22.x
+#clean https://deb.nodesource.com/node_22.x
 clean https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/
 clean https://packages.gitlab.com/runner/gitlab-runner/ubuntu/
 </code></pre>
@@ -74,7 +74,7 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o 
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo gpg --dearmor -o /var/www/html/keys/jenkins.gpg
 
 # Node.js Key
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /var/www/html/keys/nodesource.gpg
+# curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /var/www/html/keys/nodesource.gpg
 
 # GitLab Key (ใช้ร่วมกันได้ทั้ง CE และ Runner แต่โหลดแยกเพื่อความชัดเจน)
 curl -fsSL https://packages.gitlab.com/gitlab/gitlab-ce/gpgkey | sudo gpg --dearmor -o /var/www/html/keys/gitlab.gpg
@@ -96,7 +96,7 @@ sudo ln -s /var/spool/apt-mirror/mirror/archive.ubuntu.com/ubuntu ubuntu
 # 3rd Party Repos
 sudo ln -s /var/spool/apt-mirror/mirror/download.docker.com download.docker.com
 sudo ln -s /var/spool/apt-mirror/mirror/pkg.jenkins.io pkg.jenkins.io
-sudo ln -s /var/spool/apt-mirror/mirror/deb.nodesource.com deb.nodesource.com
+# sudo ln -s /var/spool/apt-mirror/mirror/deb.nodesource.com deb.nodesource.com
 sudo ln -s /var/spool/apt-mirror/mirror/packages.gitlab.com packages.gitlab.com
 # (หมายเหตุ: packages.gitlab.com จะรวมทั้ง gitlab-ce และ runner ไว้ข้างในแล้ว)</code></pre>
 
@@ -112,7 +112,7 @@ sudo mkdir -p /etc/apt/keyrings
 # ดาวน์โหลด Key จาก Server เรา
 wget -O- http://10.20.30.101/keys/docker.gpg | sudo tee /etc/apt/keyrings/docker.gpg
 wget -O- http://10.20.30.101/keys/jenkins.gpg | sudo tee /etc/apt/keyrings/jenkins.gpg
-wget -O- http://10.20.30.101/keys/nodesource.gpg | sudo tee /etc/apt/keyrings/nodesource.gpg
+# wget -O- http://10.20.30.101/keys/nodesource.gpg | sudo tee /etc/apt/keyrings/nodesource.gpg
 wget -O- http://10.20.30.101/keys/gitlab.gpg | sudo tee /etc/apt/keyrings/gitlab.gpg
 wget -O- http://10.20.30.101/keys/gitlab-runner.gpg | sudo tee /etc/apt/keyrings/gitlab-runner.gpg</code></pre>
 
@@ -135,7 +135,7 @@ deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] http://10.20.30.101/down
 deb [signed-by=/etc/apt/keyrings/jenkins.gpg] http://10.20.30.101/pkg.jenkins.io/debian-stable binary/
 
 # Node.js
-deb [arch=amd64 signed-by=/etc/apt/keyrings/nodesource.gpg] http://10.20.30.101/deb.nodesource.com/node_22.x noble main
+# deb [arch=amd64 signed-by=/etc/apt/keyrings/nodesource.gpg] http://10.20.30.101/deb.nodesource.com/node_22.x noble main
 
 # GitLab CE
 deb [arch=amd64 signed-by=/etc/apt/keyrings/gitlab.gpg] http://10.20.30.101/packages.gitlab.com/gitlab/gitlab-ce/ubuntu/ noble main
@@ -147,7 +147,7 @@ deb [arch=amd64 signed-by=/etc/apt/keyrings/gitlab-runner.gpg] http://10.20.30.1
 <h3>2.3 ทดสอบใช้งาน</h3>
 <pre><code>sudo apt update
 # ติดตั้ง GitLab Runner แบบ Offline
-sudo apt install docker-ce jenkins nodejs gitlab-ce gitlab-runner</code></pre>
+sudo apt install docker-ce jenkins gitlab-ce gitlab-runner</code></pre>
 
 <hr style="margin: 40px 0" />
 
