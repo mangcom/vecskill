@@ -479,6 +479,271 @@ void loop() {
   delay(5);                                       // หน่วงสั้น ๆ เพื่อลดภาระ CPU และคงความ responsive ของลูป
 }
 </code></pre>
+<p>ตัวอย่างที่ 4 เพิ่มการต่อ LED ที่ขา 23 เพื่อทดสอบการใช้ MQTT Subscribe </p>
+<pre><code>// ====== ESP32 + BME280 + MQTT ======
+//  - Publish ข้อมูลเซนเซอร์ → กะพริบ LED บนบอร์ดสั้น ๆ
+//  - Subscribe หัวข้อ led_status → ควบคุม LED ภายนอก (ขาแยกต่างหาก)
+#define MQTT_VERSION MQTT_VERSION_3_1_1           // โปรโตคอล MQTT 3.1.1
+
+// ---------------------- รวมไลบรารีที่ใช้ ----------------------
+#include &lt;WiFi.h&gt;                                 // Wi-Fi ของ ESP32
+#include &lt;PubSubClient.h&gt;                         // MQTT client
+#include &lt;Wire.h&gt;                                 // I2C
+#include &lt;Adafruit_Sensor.h&gt;                      // Unified sensor
+#include &lt;Adafruit_BME280.h&gt;                      // ไดรเวอร์ BME280
+
+// ---------------------- การตั้งค่า Wi-Fi / MQTT ----------------------
+const char* WIFI_SSID     = "YOUR_WIFI_SSID";     // <<== แก้เป็น Wi-Fi จริง
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+
+const char* MQTT_HOST     = "192.168.1.10";       // <<== IP broker (เช่น Node-RED)
+const uint16_t MQTT_PORT  = 1883;                 // พอร์ต MQTT ไม่เข้ารหัส
+
+// หัวข้อที่ใช้สื่อสาร
+const char* TELE_TOPIC   = "vecskill/telemetry";  // ส่งค่าจากเซนเซอร์
+const char* STATUS_TOPIC = "vecskill/status";     // สถานะ online/offline
+const char* LED_TOPIC    = "led_status";          // หัวข้อที่ใช้สั่ง LED ภายนอก
+
+// กำหนดช่วงเวลา (มิลลิวินาที)
+const uint32_t WIFI_RETRY_MS = 10'000;            // พยายามต่อ Wi-Fi ใหม่ทุก 10 วิ
+const uint32_t MQTT_RETRY_MS = 5'000;             // พยายามต่อ MQTT ใหม่ทุก 5 วิ
+const uint32_t PUBLISH_EVERY = 2'000;             // ส่ง telemetry ทุก 2 วิ
+
+// ที่อยู่ I2C ของ BME280
+#define BME280_I2C_ADDR 0x76                      // ส่วนมากใช้ 0x76 (ถ้าไม่ใช่ลอง 0x77)
+
+// ---------------------- สร้างออบเจ็กต์หลัก ----------------------
+WiFiClient      espClient;                        // TCP client
+PubSubClient    mqtt(espClient);                  // MQTT client
+Adafruit_BME280 bme;                              // เซนเซอร์ BME280
+
+// ประกาศ prototype callback MQTT
+void mqttCallback(char* topic, byte* payload, unsigned int length);
+
+// ---------------------- ตัวแปรสถานะเวลา ----------------------
+unsigned long lastWifiAttempt = 0;
+unsigned long lastMqttAttempt = 0;
+unsigned long lastPublish     = 0;
+bool          bmeReady        = false;
+
+// ---------------------- ขา LED สำหรับงานต่าง ๆ ----------------------
+// 1) LED บนบอร์ด: ใช้ยืนยันตอน publish
+#if defined(LED_BUILTIN)
+const int LED_PUB_PIN = LED_BUILTIN;              // ถ้าบอร์ดประกาศ LED_BUILTIN ไว้
+#else
+const int LED_PUB_PIN = 2;                        // ถ้าไม่มีก็ใช้ GPIO2 ซึ่งมักมี LED ออนบอร์ด
+#endif
+
+// 2) LED ภายนอก: ใช้รับคำสั่งจาก MQTT (led_status)
+const int LED_SUB_PIN = 23;                       // ต่อ LED + R จากขานี้ → GND
+
+// ---------------------- ตัวจัดการเหตุการณ์ Wi-Fi ----------------------
+void onWiFiEvent(WiFiEvent_t event) {
+  switch (event) {
+    case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+      Serial.println(F("[WiFi] Connected to AP"));
+      break;
+
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+      Serial.print(F("[WiFi] Got IP: "));
+      Serial.println(WiFi.localIP());
+      break;
+
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+      Serial.print(F("[WiFi] Disconnected, reason="));
+      Serial.println(WiFi.reasonCode());
+      if (mqtt.connected()) mqtt.disconnect();    // หลุด Wi-Fi ให้ตัด MQTT ด้วย
+      break;
+
+    default:
+      break;
+  }
+}
+
+// ---------------------- ดูแลการเชื่อม Wi-Fi (ไม่บล็อก loop) ----------------------
+bool ensureWiFi() {
+  if (WiFi.status() == WL_CONNECTED) return true; // ถ้าเชื่อมอยู่แล้วก็จบ
+
+  unsigned long now = millis();
+  if (now - lastWifiAttempt < WIFI_RETRY_MS)
+    return false;                                 // ยังไม่ถึงเวลาลองใหม่
+
+  lastWifiAttempt = now;
+  Serial.print(F("[WiFi] Connecting to "));
+  Serial.print(WIFI_SSID);
+  Serial.println(F(" ..."));
+
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(false);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  return false;
+}
+
+// ---------------------- ดูแลการเชื่อม MQTT (ไม่บล็อก loop) ----------------------
+bool ensureMQTT() {
+  if (WiFi.status() != WL_CONNECTED) return false;  // ยังไม่มี Wi-Fi
+  if (mqtt.connected()) return true;                // ต่อ MQTT อยู่แล้ว
+
+  unsigned long now = millis();
+  if (now - lastMqttAttempt < MQTT_RETRY_MS)
+    return false;                                   // ยังไม่ถึงรอบลองใหม่
+
+  lastMqttAttempt = now;
+
+  mqtt.setServer(MQTT_HOST, MQTT_PORT);
+  mqtt.setKeepAlive(30);
+  mqtt.setSocketTimeout(30);
+
+  char     clientId[40];
+  uint64_t mac = ESP.getEfuseMac();                 // ใช้ MAC ให้ clientId ไม่ซ้ำ
+  snprintf(clientId, sizeof(clientId), "ESP32_%llX", mac);
+
+  Serial.print(F("[MQTT] Connecting as "));
+  Serial.print(clientId);
+  Serial.print(F(" to "));
+  Serial.print(MQTT_HOST);
+  Serial.print(F(":"));
+  Serial.println(MQTT_PORT);
+
+  bool ok = mqtt.connect(
+    clientId,
+    STATUS_TOPIC,                                   // willTopic
+    1,                                              // willQoS
+    true,                                           // willRetain
+    "offline"                                       // willMessage
+  );
+
+  if (ok) {
+    Serial.println(F("[MQTT] Connected"));
+    mqtt.publish(STATUS_TOPIC, "online", true);     // แจ้งว่า online
+
+    // สมัครรับ topic สำหรับควบคุม LED ภายนอก
+    if (mqtt.subscribe(LED_TOPIC, 1)) {
+      Serial.println(F("[MQTT] Subscribed to 'led_status'"));
+    } else {
+      Serial.println(F("[MQTT] Failed to subscribe 'led_status'"));
+    }
+  } else {
+    Serial.print(F("[MQTT] Failed, rc="));
+    Serial.println(mqtt.state());
+  }
+  return ok;
+}
+
+// ---------------------- callback เมื่อมีข้อความ MQTT เข้ามา ----------------------
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  Serial.print(F("[MQTT] Message arrived ["));
+  Serial.print(topic);
+  Serial.print(F("] "));
+
+  for (unsigned int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+
+  // ถ้าเป็นหัวข้อ led_status → ควบคุม LED ภายนอก
+  if (strcmp(topic, LED_TOPIC) == 0) {
+    char msg[10];
+    if (length >= sizeof(msg)) length = sizeof(msg) - 1;  // กัน overflow
+    memcpy(msg, payload, length);
+    msg[length] = '\0';
+
+    int value = atoi(msg);                                // "0"/"1" → int
+
+    if (value == 0) {
+      digitalWrite(LED_SUB_PIN, LOW);                     // ดับ LED ภายนอก
+      Serial.println(F("[LED_SUB] OFF (from MQTT)"));
+    } else if (value == 1) {
+      digitalWrite(LED_SUB_PIN, HIGH);                    // ติด LED ภายนอก
+      Serial.println(F("[LED_SUB] ON (from MQTT)"));
+    } else {
+      Serial.println(F("[LED_SUB] Unknown value (use 0 or 1)"));
+    }
+  }
+}
+
+// ---------------------- อ่าน BME280 แล้ว publish ขึ้น MQTT ----------------------
+void publishTelemetry() {
+  if (!bmeReady || !mqtt.connected()) return;     // ถ้าเซนเซอร์ไม่พร้อม หรือยังไม่มี MQTT
+
+  float t = bme.readTemperature();                // °C
+  float h = bme.readHumidity();                   // %RH
+  float p = bme.readPressure() / 100.0F;          // hPa
+
+  if (isnan(t) || isnan(h) || isnan(p)) {
+    Serial.println(F("[BME280] NAN reading, skip"));
+    return;
+  }
+
+  char payload[160];
+  snprintf(payload, sizeof(payload),
+           "{\"temperature\":%.2f,\"humidity\":%.2f,\"pressure\":%.2f,\"rssi\":%d}",
+           t, h, p, WiFi.RSSI());
+
+  Serial.print(F("[PUB] "));
+  Serial.println(payload);
+
+  mqtt.publish(TELE_TOPIC, payload, false);       // ส่ง telemetry
+
+  // --- กะพริบ LED บนบอร์ดสั้น ๆ เพื่อยืนยันการ publish ---
+  digitalWrite(LED_PUB_PIN, HIGH);
+  delay(20);                                      // กระพริบ 20 ms
+  digitalWrite(LED_PUB_PIN, LOW);
+  // ----------------------------------------------------------
+}
+
+// ---------------------- setup() : รันครั้งเดียวตอนบูต ----------------------
+void setup() {
+  // ตั้งค่า LED ทั้งสองดวง
+  pinMode(LED_PUB_PIN, OUTPUT);                   // LED บนบอร์ดสำหรับ publish
+  digitalWrite(LED_PUB_PIN, LOW);
+
+  pinMode(LED_SUB_PIN, OUTPUT);                   // LED ภายนอกสำหรับ subscribe
+  digitalWrite(LED_SUB_PIN, LOW);
+
+  Serial.begin(115200);
+  delay(300);
+  Serial.println();
+  Serial.println(F("=== ESP32 + BME280 + MQTT + 2 LEDs ==="));
+
+  WiFi.onEvent(onWiFiEvent);                      // จับเหตุการณ์ Wi-Fi
+  mqtt.setCallback(mqttCallback);                 // ให้ MQTT เรียก mqttCallback เมื่อมีข้อความเข้า
+
+  // เริ่มต้น BME280 (ลอง 0x76 ถ้าไม่เจอค่อยลอง 0x77)
+  if (bme.begin(BME280_I2C_ADDR)) {
+    bmeReady = true;
+    Serial.println(F("[BME280] initialized (0x76)"));
+  } else {
+    Serial.println(F("[BME280] NOT found at 0x76, try 0x77..."));
+    if (bme.begin(0x77)) {
+      bmeReady = true;
+      Serial.println(F("[BME280] initialized (0x77)"));
+    } else {
+      Serial.println(F("[BME280] sensor not found, continue without sensor"));
+      bmeReady = false;
+    }
+  }
+
+  ensureWiFi();                                   // เริ่มกระบวนการต่อ Wi-Fi
+}
+
+// ---------------------- loop() : รันวนตลอดเวลา ----------------------
+void loop() {
+  ensureWiFi();                                   // 1) ดูแล Wi-Fi
+  ensureMQTT();                                   // 2) ดูแล MQTT
+
+  if (mqtt.connected()) mqtt.loop();              // 3) ให้ MQTT จัดการ keep-alive / callback
+
+  unsigned long now = millis();
+  if (now - lastPublish >= PUBLISH_EVERY) {       // 4) ถึงเวลาส่ง telemetry หรือยัง
+    lastPublish = now;
+    publishTelemetry();
+  }
+
+  delay(5);                                       // พัก CPU นิดหน่อย
+}</code></pre>
+
 <p>หลังจากอัปโหลดโค้ดนี้ไปยัง ESP32 ของคุณแล้ว ให้เปิด Serial Monitor (ตั้งค่า Baud Rate เป็น 115200) เพื่อดู Log การเชื่อมต่อและการส่งข้อมูล</p>
 
 <hr style="margin: 40px 0" />
