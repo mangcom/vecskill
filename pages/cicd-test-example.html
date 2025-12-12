@@ -46,7 +46,7 @@ services:
     ports:
       - "1801:1880"
     volumes:
-      - ./node_red_data:/data
+      - nodered_data:/data
     networks:
       - fsnet
 
@@ -58,7 +58,7 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      DB_NAME: skills_docdb ##
+      DB_NAME: skills_docdb
       DB_USER: user1
       DB_PASSWORD: user1_1234
       NODE_ENV: production
@@ -72,13 +72,13 @@ services:
       - fsnet
 
   frontend:
-    image: 192.168.20.106:5000/frontend_tag:latest ##
+    image: 192.168.20.106:5000/frontend_tag:latest
     container_name: frontend
     ports:
       - "3000:3000"
     environment:
       NITRO_PORT: 3000
-      NUXT_PUBLIC_API_BASE: "http://192.168.20.109:7000" ##
+      NUXT_PUBLIC_API_BASE: "http://192.168.20.109:7000"
     depends_on:
       - api
     networks:
@@ -86,12 +86,16 @@ services:
 
 volumes:
   db_data:
-  node_red_data:
+    external: true
+    name: skills_db_data
+
+  nodered_data:
+    external: true
+    name: skills_nodered_data
 
 networks:
   fsnet:
-    driver: bridge
-</code></pre>
+    driver: bridge</code></pre>
 
 <hr style="margin: 40px 0" />
 
