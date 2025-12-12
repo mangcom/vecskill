@@ -1,158 +1,239 @@
-<h1>การใช้งาน GitLab CI/CD</h1>
-<p>
-  CI/CD คือกระบวนการอัตโนมัติที่ช่วยให้ทีมพัฒนาสามารถส่งมอบซอฟต์แวร์ได้อย่างรวดเร็วและมีคุณภาพสูงขึ้น GitLab CI/CD เป็นเครื่องมือที่มีประสิทธิภาพซึ่งถูกสร้างมาพร้อมกับ GitLab
-  ทำให้เราสามารถตั้งค่าทุกอย่างได้จากที่เดียว
-</p>
-
-<h3>ทำความเข้าใจแนวคิดหลัก (Core Concepts)</h3>
-<ul>
-  <li>
-    <strong>CI (Continuous Integration) - การรวมโค้ดอย่างต่อเนื่อง:</strong><br />
-    คือการที่นักพัฒนาทุกคนในทีมรวมโค้ดของตัวเองเข้ากับโค้ดส่วนกลาง (main branch) บ่อยๆ (อาจจะวันละหลายครั้ง) ทุกครั้งที่มีการรวมโค้ด จะมีกระบวนการ Build และ Test อัตโนมัติเกิดขึ้นทันที
-    เพื่อตรวจสอบว่าโค้ดใหม่ที่เพิ่มเข้าไปไม่ทำให้ส่วนอื่นๆ ของโปรเจกต์พัง
-  </li>
-  <li>
-    <strong>CD (Continuous Delivery/Deployment) - การนำส่งซอฟต์แวร์อย่างต่อเนื่อง:</strong><br />
-    คือขั้นตอนต่อจาก CI หลังจากที่โค้ดผ่านการทดสอบอัตโนมัติแล้ว ระบบจะนำโค้ดนั้นไป Deploy หรือติดตั้งบน Server (เช่น Staging หรือ Production) ให้โดยอัตโนมัติ ทำให้เราสามารถปล่อยฟีเจอร์ใหม่ๆ
-    ให้ผู้ใช้ได้เร็วขึ้นและลดความผิดพลาดที่เกิดจากคน
-  </li>
-</ul>
-
-<h3>ส่วนประกอบสำคัญของ GitLab CI/CD</h3>
-<dl>
-  <dt>
-    <strong>1. ไฟล์ <code>.gitlab-ci.yml</code></strong>
-  </dt>
-  <dd>
-    นี่คือ "หัวใจ" และ "พิมพ์เขียว" ของกระบวนการ CI/CD ทั้งหมด มันคือไฟล์ที่คุณจะสร้างเก็บไว้ในโปรเจกต์ของคุณเพื่อบอก GitLab ว่าจะต้องทำอะไรบ้าง, ทำเมื่อไหร่, และทำอย่างไร เช่น สั่งให้ build, test,
-    หรือ deploy โค้ดของคุณ
-  </dd>
-  <dt><strong>2. GitLab Runner</strong></dt>
-  <dd>
-    นี่คือ "ผู้ปฏิบัติงาน" หรือ "Worker" ที่จะทำตามคำสั่งในไฟล์ <code>.gitlab-ci.yml</code> จริงๆ มันเป็นโปรแกรมที่เราจะติดตั้งแยกต่างหาก (ซึ่งจะทำในบทถัดไป) และเชื่อมต่อกับ GitLab ของเรา เมื่อมีการ
-    push โค้ดใหม่ GitLab จะส่ง "งาน" ไปให้ Runner ที่ว่างอยู่เป็นผู้ทำ
-  </dd>
-  <dt><strong>3. Pipeline, Stages, และ Jobs</strong></dt>
-  <dd>
-    - <strong>Pipeline:</strong> คือกระบวนการทำงานทั้งหมดที่เกิดขึ้นเมื่อมีการเปลี่ยนแปลงโค้ด<br />
-    - <strong>Stages:</strong> คือขั้นตอนย่อยๆ ใน Pipeline ที่จะทำงานเรียงตามลำดับ เช่น ขั้นตอน `build` > `test` > `deploy`<br />
-    - <strong>Jobs:</strong> คือ "คำสั่ง" ที่ต้องทำจริงๆ ในแต่ละ Stage เช่น `build_docker_image` หรือ `run_unit_tests`
-  </dd>
-</dl>
+<h1>การทำระบบ CI/CD ด้วย GitLab (Node.js + Docker + SSH Deploy)</h1>
+<p>คู่มือนี้จะพาคุณสร้าง Pipeline เพื่อ Automate กระบวนการพัฒนาซอฟต์แวร์ ตั้งแต่การทดสอบ (Test), การสร้าง Docker Image (Build), และการนำขึ้น Server จริง (Deploy) โดยอัตโนมัติเมื่อมีการ Push โค้ด</p>
+<div class="image-container">
+  <p>ภาพรวมการทำงาน: GitLab Runner Build Image -> Push to Registry -> SSH to Production -> Pull & Run</p>
+</div>
 
 <hr style="margin: 40px 0" />
 
-<h2>สร้าง Pipeline แรก: Build Docker Image และ Push ไปยัง Private Registry</h2>
-<p>ในตัวอย่างนี้ เราจะสร้างโปรเจกต์ง่ายๆ ที่มีไฟล์ HTML หนึ่งไฟล์ จากนั้นเราจะเขียนไฟล์ <code>.gitlab-ci.yml</code> เพื่อสั่งให้ GitLab CI/CD ทำสิ่งต่อไปนี้โดยอัตโนมัติทุกครั้งที่เรา push โค้ด:</p>
-<ol>
-  <li>สร้าง Docker Image จาก `Dockerfile`</li>
-  <li>ล็อกอินเข้า Private Registry ของเรา (`registry.vecskill.ovec:5000`)</li>
-  <li>Push Image ที่สร้างเสร็จแล้วไปเก็บไว้ที่ Registry</li>
-</ol>
+<h2>ส่วนที่ 1: เตรียมความพร้อม (Infrastructure)</h2>
 
-<h3>ขั้นตอนที่ 1: สร้างโปรเจกต์ใหม่บน GitLab</h3>
-<ol>
-  <li>ล็อกอินเข้า GitLab ของคุณที่ <code>http://gitlab.vecskill.ovec</code></li>
-  <li>คลิกที่ <strong>New project</strong> > <strong>Create blank project</strong></li>
-  <li>ตั้งชื่อโปรเจกต์ เช่น `my-first-pipeline` และคลิก <strong>Create project</strong></li>
-  <li>เมื่อสร้างโปรเจกต์เสร็จแล้ว ให้ Clone โปรเจกต์ลงมาที่เครื่องคอมพิวเตอร์ของคุณ</li>
-</ol>
-
-<h3>ขั้นตอนที่ 2: สร้างไฟล์สำหรับโปรเจกต์</h3>
-<p>ในโฟลเดอร์โปรเจกต์ที่คุณเพิ่ง Clone ลงมา ให้สร้างไฟล์ 3 ไฟล์ต่อไปนี้:</p>
-
-<p><strong>1. `index.html`</strong> (ไฟล์เว็บเพจง่ายๆ ของเรา)</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;title&gt;GitLab CI/CD Test&lt;/title&gt;
-    &lt;style&gt;
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #2c3e50; color: white; }
-        h1 { font-size: 3em; }
-    &lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h1&gt;Pipeline Works! 🚀&lt;/h1&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre>
-
-<p><strong>2. `Dockerfile`</strong> (คำสั่งสำหรับสร้าง Docker Image)</p>
-<pre><code># ใช้ NGINX เป็น Web Server ขนาดเล็ก
-FROM nginx:alpine
-
-# คัดลอกไฟล์ index.html ของเราเข้าไปในโฟลเดอร์ของเว็บเซิร์ฟเวอร์
-COPY index.html /usr/share/nginx/html
-</code></pre>
-
-<p><strong>3. `.gitlab-ci.yml`</strong> (หัวใจของ CI/CD)</p>
-<pre><code># --- ตัวแปรที่ใช้ใน Pipeline ---
-variables:
-  # กำหนด URL ของ Registry และชื่อ Image ที่จะสร้าง
-  # CI_COMMIT_REF_SLUG คือชื่อ branch ที่ปลอดภัยสำหรับใช้ใน URL (เช่น main, feature-new)
-  IMAGE_TAG: "registry.vecskill.ovec:5000/my-first-pipeline:${CI_COMMIT_REF_SLUG}"
-
-# --- กำหนดขั้นตอนการทำงาน ---
-stages:
-  - build
-
-# --- Job ที่ 1: สร้างและ Push Image ---
-build-image:
-  # เลือก Docker Image ที่จะใช้รัน Job นี้ (ต้องมีคำสั่ง docker ติดตั้งอยู่)
-  image: docker:20.10.16
-  # กำหนด Stage ของ Job นี้
-  stage: build
-  # เปิดใช้งานบริการ Docker-in-Docker (dind) เพื่อให้เราสามารถรันคำสั่ง docker build ได้
-  services:
-    - docker:20.10.16-dind
-  # คำสั่งที่ต้องรันก่อน script หลัก (ใช้สำหรับล็อกอิน)
-  before_script:
-    # $CI_REGISTRY_USER และ $CI_REGISTRY_PASSWORD คือตัวแปรที่เราจะไปตั้งค่าใน GitLab UI
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin registry.vecskill.ovec:5000
-  # คำสั่งหลักของ Job นี้
-  script:
-    - docker build -t "$IMAGE_TAG" .
-    - docker push "$IMAGE_TAG"
-</code></pre>
-
-<h3>ขั้นตอนที่ 3: ตั้งค่า CI/CD Variables ใน GitLab</h3>
-<p>เพื่อความปลอดภัย เราจะไม่เก็บ Username และ Password ของ Registry ไว้ในไฟล์ <code>.gitlab-ci.yml</code> โดยตรง แต่จะเก็บเป็นตัวแปรใน GitLab UI แทน</p>
-<ol>
-  <li>ในโปรเจกต์ของคุณบน GitLab ไปที่ <strong>Settings</strong> > <strong>CI/CD</strong></li>
-  <li>หาหัวข้อ <strong>Variables</strong> แล้วคลิก <strong>Expand</strong></li>
-  <li>
-    คลิก <strong>Add variable</strong> แล้วสร้าง 2 ตัวแปร:
-    <ul>
-      <li>
-        <strong>Key:</strong> <code>CI_REGISTRY_USER</code><br />
-        <strong>Value:</strong> <code>[Username สำหรับเข้า Registry ของคุณ]</code> (ถ้าไม่ได้ตั้งค่าอะไร ก็ใส่ค่าอะไรไปก่อนก็ได้ เช่น `testuser`)
-      </li>
-      <li>
-        <strong>Key:</strong> <code>CI_REGISTRY_PASSWORD</code><br />
-        <strong>Value:</strong> <code>[Password สำหรับเข้า Registry ของคุณ]</code> (เช่น `testpass`)<br />
-        <em>(แนะนำให้ติ๊ก "Mask variable" เพื่อซ่อนค่า Password ใน Log)</em>
-      </li>
-    </ul>
-    <img src="https://i.imgur.com/G5iE1d4.png" alt="การตั้งค่า CI/CD Variables ใน GitLab" class="content-image" />
-  </li>
-</ol>
-
-<h3>ขั้นตอนที่ 4: Push โค้ดและดูผลลัพธ์</h3>
-<ol>
-  <li>
-    ทำการ Commit และ Push ไฟล์ทั้ง 3 ไฟล์ขึ้นไปยัง GitLab repository ของคุณ:
-    <pre><code>git add .
-git commit -m "feat: Add initial files and CI/CD pipeline"
-git push origin main</code></pre>
-  </li>
-  <li>ทันทีที่คุณ Push โค้ด GitLab จะตรวจพบไฟล์ <code>.gitlab-ci.yml</code> และเริ่ม Pipeline ใหม่โดยอัตโนมัติ</li>
-  <li>ในโปรเจกต์ GitLab ของคุณ ไปที่เมนู <strong>CI/CD</strong> > <strong>Pipelines</strong> คุณจะเห็น Pipeline ใหม่ล่าสุดกำลังทำงาน</li>
-</ol>
-
-<h3>แล้วยังไงต่อ?</h3>
+<h3>1.1 ตั้งค่า Insecure Registry (สำคัญมาก)</h3>
 <p>
-  ณ จุดนี้ คุณจะเห็นว่า Pipeline ของคุณมีสถานะเป็น "pending" (รอดำเนินการ) นั่นเป็นเพราะว่า GitLab ได้รับ "พิมพ์เขียว" (<code>.gitlab-ci.yml</code>) แล้ว แต่ยังไม่มี "ผู้ปฏิบัติงาน" (GitLab Runner)
-  มารับงานนี้ไปทำ
+  เนื่องจากเราใช้ Registry ภายใน (<code>registry.vecskill.ovec</code>) แบบไม่มี SSL Certificate ที่ถูกต้อง เราต้องบอกให้ Docker ทั้งฝั่ง <strong>Runner</strong> และฝั่ง
+  <strong>Production</strong> ยอมรับมัน
 </p>
-<p>ในบทต่อไป เราจะทำการติดตั้งและลงทะเบียน GitLab Runner เพื่อให้ Pipeline ของเราสามารถทำงานได้จริงจนจบกระบวนการครับ!</p>
+<p>แก้ไขไฟล์ <code>/etc/docker/daemon.json</code> (ถ้าไม่มีให้สร้างใหม่):</p>
+<pre><code class="language-json">{
+  "insecure-registries" : ["registry.vecskill.ovec", "registry-ui.vecskill.ovec"]
+}</code></pre>
+<p>จากนั้นรีสตาร์ท Docker:</p>
+<pre><code>sudo systemctl restart docker</code></pre>
+
+<h3>1.2 สร้าง SSH Key สำหรับ Deploy</h3>
+<p>เราต้องสร้างกุญแจเพื่อให้ GitLab Runner สามารถ SSH เข้าไปวางไฟล์และรันคำสั่งที่เครื่อง Production ได้โดยไม่ต้องใช้รหัสผ่าน</p>
+<ol>
+  <li>
+    <strong>ที่เครื่อง DevOps (หรือเครื่องของคุณ):</strong> สร้าง Key
+    <pre><code>ssh-keygen -t ed25519</code></pre>
+    (กด Enter ไปเรื่อยๆ ไม่ต้องใส่ Passphrase)
+  </li>
+  <li>
+    <strong>ดู Public Key (ตัวแม่กุญแจ):</strong>
+    <pre><code>cat ~/.ssh/id_ed25519.pub</code></pre>
+    <em>ผลลัพธ์: <code>ssh-ed25519 AAAAC3NzaC... root@devops</code></em>
+  </li>
+  <li>
+    <strong>นำ Public Key ไปใส่ที่เครื่อง Production:</strong>
+    <ul>
+      <li>SSH เข้าไปที่เครื่อง Production</li>
+      <li>แก้ไขไฟล์ <code>~/.ssh/authorized_keys</code></li>
+      <li>วาง Public Key ที่ได้ต่อท้ายบรรทัดเดิม</li>
+    </ul>
+  </li>
+  <li>
+    <strong>ดู Private Key (ตัวลูกกุญแจ - เก็บเป็นความลับ):</strong>
+    <pre><code>cat ~/.ssh/id_ed25519</code></pre>
+    <em>ผลลัพธ์: <code>-----BEGIN OPENSSH PRIVATE KEY----- ตัวคีย์-----END OPENSSH PRIVATE KEY-----</code> (คัดลอกเก็บไว้ทั้งหมดเพื่อใช้ในขั้นตอนต่อไป)</em>
+  </li>
+</ol>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 2: ตั้งค่า GitLab Project</h2>
+
+<h3>2.1 สร้าง Project และตั้งค่า Variable</h3>
+<ol>
+  <li>สร้าง Blank Project ชื่อ <code>vecskill</code></li>
+  <li>ไปที่ <strong>Settings -> CI/CD -> Variables</strong></li>
+  <li>
+    กด <strong>Add variable</strong>
+    <ul>
+      <li><strong>Type:</strong> Variable</li>
+      <li><strong>Visibility:</strong> Variable</li>
+      <li><strong>Key:</strong> <code>SSH_PRIVATE_KEY</code></li>
+      <li><strong>Value:</strong> (วาง Private Key -----BEGIN OPENSSH PRIVATE KEY----- ... ที่คัดลอกมาทั้งหมด)</li>
+      <li><strong>Flags:</strong> เลือก Protect variable</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>2.2 สร้าง Runner</h3>
+<ol>
+  <li>ไปที่ <strong>Settings -> CI/CD -> Runners -> New project runner</strong></li>
+  <li><strong>Tags:</strong> ใส่คำว่า <code>docker</code> (ต้องตรงกับในไฟล์ .gitlab-ci.yml)</li>
+  <li>นำ Token ไป Register ที่เครื่อง Runner (ดูวิธีในการติดตั้ง Gitlab Runner)</li>
+</ol>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 3: เตรียมไฟล์โปรเจกต์ (Coding)</h2>
+
+<h3>3.1 Dockerfile</h3>
+<p>สร้างไฟล์ <code>Dockerfile</code> สำหรับ Node.js App:</p>
+<pre><code class="language-dockerfile">FROM node:22
+WORKDIR /app
+# Copy package.json ก่อนเพื่อใช้ Cache
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+EXPOSE 80 
+CMD ["node", "index.js"]
+</code></pre>
+
+<h3>3.2 docker-compose.yaml (สำหรับ Production)</h3>
+<p>ไฟล์นี้จะถูกส่งไปรันที่เครื่อง Production</p>
+<pre><code class="language-yaml">services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql2
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234        # รหัสผ่าน root
+      MYSQL_DATABASE: yourdatabase     # ชื่อ database เริ่มต้น
+      MYSQL_USER: devops               # ผู้ใช้ใหม่
+      MYSQL_PASSWORD: 1234             # รหัสผ่านของผู้ใช้ใหม่
+    ports:
+      - "3306:3306"                           # พอร์ต MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql             # เก็บข้อมูลไว้ถาวรในโฟลเดอร์ host
+      # - ./init_db:/docker-entrypoint-initdb.d   # auto run SQL ที่นี่
+    command: []   # ไม่ต้องใส่อะไร ปล่อย default
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin2
+    ports:
+      - "8080:80"                      # เปิดหน้าเว็บ phpMyAdmin ผ่าน http://localhost:8080
+    environment:
+      PMA_HOST: mysql                  # ชื่อ service ของ MySQL (ต้องตรงกับด้านบน)
+      PMA_USER: root
+      PMA_PASSWORD: 1234
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      - mysql  
+
+  myservice:
+    image: registry.vecskill.ovec/my-image:latest
+    ports:
+      - "81:80"
+    environment:
+      #PORT: 80
+      JWT_SECRET: jwtsecretekey
+      JWT_REFRESH_SECRET: jwtsecreatekeyrefresh
+      ROOT_USERNAME: admin
+      ROOT_PASSWORD: 1234
+      MYSQL_HOST: localhost
+      MYSQL_PORT: 3306
+      MYSQL_DB: yourdatabase
+      MYSQL_USERNAME: devops
+      MYSQL_PASSWORD: 1234
+    profiles:
+      - production
+      - backend
+
+volumes:
+  mysql_data:
+</code></pre>
+
+<h3>3.3 .gitlab-ci.yml (Pipeline Config)</h3>
+<p>ไฟล์กำหนดขั้นตอนการทำงานของ CI/CD</p>
+<pre><code class="language-yaml">stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  # แก้ไข IP เครื่อง Production ให้ถูกต้อง
+  PRODUCTION_IP: "192.168.100.102"
+  PRODUCTION_USER: "root"
+  IMAGE_NAME: "registry.vecskill.ovec/my-image:latest"
+
+# --- TEST STAGE ---
+test_job:
+  stage: test
+  image: node:22
+  tags:
+    - docker
+  script:
+    - npm install
+    # - npm test (ถ้ามี)
+
+# --- BUILD STAGE ---
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  tags:
+    - docker
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - docker info
+    - docker build -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
+  only:
+    - main
+
+# --- DEPLOY STAGE ---
+deploy_to_production:
+  stage: deploy
+  image: alpine:latest
+  tags:
+    - docker
+  before_script:
+    # ติดตั้ง SSH Client และเตรียม Key
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H $PRODUCTION_IP >> ~/.ssh/known_hosts
+  script:
+    # 1. ส่งไฟล์ docker-compose ไปที่ Server
+    - scp -i ~/.ssh/id_ed25519 -r ./docker-compose.yaml $PRODUCTION_USER@$PRODUCTION_IP:/opt/docker-compose.yaml
+    
+    # 2. Remote SSH ไปสั่ง Pull และ Up
+    - |
+      ssh -i ~/.ssh/id_ed25519 $PRODUCTION_USER@$PRODUCTION_IP "
+        cd /opt &&
+        docker compose pull &&
+        docker compose --profile production up -d --remove-orphans
+      "
+  only:
+    - main
+</code></pre>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 4: เริ่มต้นใช้งาน (Execution)</h2>
+
+<h3>4.1 Push Code ขึ้น GitLab</h3>
+<pre><code># ในโฟลเดอร์โปรเจกต์
+git init
+git remote add origin https://gitlab.vecskill.ovec/root/vecskill.git
+git add .
+git commit -m "Setup CI/CD"
+git branch -M main
+git push -uf origin main</code></pre>
+
+<h3>4.2 ตรวจสอบผลลัพธ์</h3>
+<ol>
+  <li>ไปที่ GitLab Project -> <strong>Build</strong> -> <strong>Pipelines</strong></li>
+  <li>คุณควรจะเห็นสถานะเป็น <span style="color: green; font-weight: bold">Passed</span> ทั้ง 3 ขั้นตอน (Test, Build, Deploy)</li>
+  <li>
+    ไปที่เครื่อง Production ลองตรวจสอบ Container:
+    <pre><code>docker ps</code></pre>
+    (ควรเห็น Container <code>myservice</code>, <code>mysql2</code>, <code>phpmyadmin2</code> ทำงานอยู่)
+  </li>
+</ol>

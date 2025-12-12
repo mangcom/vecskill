@@ -479,7 +479,7 @@ void loop() {
   delay(5);                                       // หน่วงสั้น ๆ เพื่อลดภาระ CPU และคงความ responsive ของลูป
 }
 </code></pre>
-<p>ตัวอย่างที่ 4 เพิ่มการต่อ LED ที่ขา 23 เพื่อทดสอบการใช้ MQTT Subscribe </p>
+<p>ตัวอย่างที่ 4 เพิ่มการต่อ LED ที่ขา 23 เพื่อทดสอบการใช้ MQTT Subscribe</p>
 <pre><code>// ====== ESP32 + BME280 + MQTT ======
 //  - Publish ข้อมูลเซนเซอร์ → กะพริบ LED บนบอร์ดสั้น ๆ
 //  - Subscribe หัวข้อ led_status → ควบคุม LED ภายนอก (ขาแยกต่างหาก)
@@ -493,11 +493,11 @@ void loop() {
 #include &lt;Adafruit_BME280.h&gt;                      // ไดรเวอร์ BME280
 
 // ---------------------- การตั้งค่า Wi-Fi / MQTT ----------------------
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";     // <<== แก้เป็น Wi-Fi จริง
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID     = "YOUR_WIFI_SSID";     // ชื่อเครือข่าย Wi-Fi ที่จะเชื่อมต่อ
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"; // รหัสผ่านของ Wi-Fi
 
-const char* MQTT_HOST     = "192.168.1.10";       // <<== IP broker (เช่น Node-RED)
-const uint16_t MQTT_PORT  = 1883;                 // พอร์ต MQTT ไม่เข้ารหัส
+const char* MQTT_HOST     = "192.168.1.10";       // IP/โฮสต์ของ MQTT broker (เช่น เครื่อง Node-RED หรือ Mosquitto)
+const uint16_t MQTT_PORT  = 1883;                 // พอร์ต MQTT (ปกติ 1883 สำหรับแบบไม่เข้ารหัส)
 
 // หัวข้อที่ใช้สื่อสาร
 const char* TELE_TOPIC   = "vecskill/telemetry";  // ส่งค่าจากเซนเซอร์
@@ -551,7 +551,7 @@ void onWiFiEvent(WiFiEvent_t event) {
 
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
       Serial.print(F("[WiFi] Disconnected, reason="));
-      Serial.println(WiFi.reasonCode());
+      //Serial.println(WiFi.reasonCode());
       if (mqtt.connected()) mqtt.disconnect();    // หลุด Wi-Fi ให้ตัด MQTT ด้วย
       break;
 
@@ -650,7 +650,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     msg[length] = '\0';
 
     int value = atoi(msg);                                // "0"/"1" → int
-
     if (value == 0) {
       digitalWrite(LED_SUB_PIN, LOW);                     // ดับ LED ภายนอก
       Serial.println(F("[LED_SUB] OFF (from MQTT)"));
@@ -678,7 +677,7 @@ void publishTelemetry() {
 
   char payload[160];
   snprintf(payload, sizeof(payload),
-           "{\"temperature\":%.2f,\"humidity\":%.2f,\"pressure\":%.2f,\"rssi\":%d}",
+           "{\"t\":%.2f,\"h\":%.2f,\"p\":%.2f,\"rssi\":%d}",
            t, h, p, WiFi.RSSI());
 
   Serial.print(F("[PUB] "));
