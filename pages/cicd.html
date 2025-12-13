@@ -1,7 +1,10 @@
 <h1>การทำระบบ CI/CD ด้วย GitLab (Node.js + Docker + SSH Deploy)</h1>
 <p>คู่มือนี้จะพาคุณสร้าง Pipeline เพื่อ Automate กระบวนการพัฒนาซอฟต์แวร์ ตั้งแต่การทดสอบ (Test), การสร้าง Docker Image (Build), และการนำขึ้น Server จริง (Deploy) โดยอัตโนมัติเมื่อมีการ Push โค้ด</p>
 <div class="image-container">
-  <p>ภาพรวมการทำงาน: GitLab Runner Build Image -> Push to Registry -> SSH to Production -> Pull & Run</p>
+  <div class="image-container">
+    <img src="./images/CICD-01.jpg" alt="CI/CD" class="content-image" />
+    <p>ภาพรวมการทำงาน: GitLab Runner Build Image -> Push to Registry -> SSH to Production -> Pull & Run</p>
+  </div>
 </div>
 
 <hr style="margin: 40px 0" />
@@ -215,122 +218,390 @@ deploy_to_production:
 </code></pre>
 <hr style="margin: 40px 0" />
 
-<h2>คำอธิบายโครงสร้าง .gitlab-ci.yml อย่างละเอียด</h2>
-<p>ไฟล์นี้เปรียบเสมือน "ใบสั่งงาน" ที่บอก GitLab Runner ว่าต้องทำอะไรบ้าง ทีละขั้นตอน</p>
+<h2>เจาะลึกการทำงานของ .gitlab-ci.yml ทีละส่วน</h2>
+<p>ด้านล่างนี้คือคำอธิบายรายละเอียดของ Code ที่เราใช้ ว่าแต่ละบรรทัดมีหน้าที่อะไร และทำไมต้องเขียนแบบนี้</p>
 
-<h3>1. ส่วนหัว (Global Config)</h3>
+<h3>1. การประกาศตัวแปร (Variables)</h3>
+<p>เรากำหนดค่าคงที่ไว้ด้านบนสุด เพื่อให้แก้ไขได้ง่ายในจุดเดียว</p>
 <table class="spec-table">
   <thead>
     <tr>
-      <th>คีย์เวิร์ด (Keyword)</th>
+      <th>ตัวแปร</th>
+      <th>ค่าตัวอย่าง</th>
       <th>คำอธิบาย</th>
-      <th>ตัวเลือกที่น่าสนใจ</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><code>stages</code></td>
-      <td>กำหนด "ลำดับขั้นตอน" ของ Pipeline ทั้งหมด<br />GitLab จะทำตามลำดับบนลงล่าง ถ้า Stage ไหนพัง จะหยุดทันที ไม่ทำต่อ</td>
+      <td><code>PRODUCTION_IP</code></td>
+      <td>192.168.100.102</td>
+      <td>IP Address ของเครื่อง Server ปลายทางที่เราจะ Deploy งานไปหา</td>
+    </tr>
+    <tr>
+      <td><code>PRODUCTION_USER</code></td>
+      <td>root</td>
+      <td>User ที่จะใช้ SSH เข้าไป (แนะนำเป็น root หรือ user ที่มีสิทธิ์ docker)</td>
+    </tr>
+    <tr>
+      <td><code>IMAGE_NAME</code></td>
+      <td>registry.vecskill.ovec/my-image:latest</td>
       <td>
-        <ul>
-          <li><code>.pre</code>: ทำก่อนเสมอ</li>
-          <li><code>.post</code>: ทำทีหลังสุดเสมอ (แม้ Job อื่นพัง)</li>
-        </ul>
-      </td>
-    </tr>
-    <tr>
-      <td><code>variables</code></td>
-      <td>ประกาศตัวแปรเพื่อใช้ซ้ำใน Script ช่วยให้แก้ไขง่าย (เช่น เปลี่ยน IP Server ก็แก้ที่นี่จุดเดียว)</td>
-      <td>สามารถกำหนดระดับ Global (ใช้ทุก Job) หรือระดับ Job (ใช้เฉพาะ Job นั้น)</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3>2. องค์ประกอบภายใน Job (Test, Build, Deploy)</h3>
-<p>ในแต่ละ Job (เช่น <code>test_job</code>, <code>build</code>, <code>deploy</code>) จะมีคำสั่งย่อยดังนี้:</p>
-
-<table class="spec-table">
-  <thead>
-    <tr>
-      <th>คีย์เวิร์ด</th>
-      <th>ความหมายในบริบทนี้</th>
-      <th>เกร็ดความรู้</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>stage</code></td>
-      <td>ระบุว่า Job นี้อยู่ในขั้นตอนไหน (ต้องตรงกับชื่อใน <code>stages</code> ด้านบน)</td>
-      <td>หนึ่ง Stage มีได้หลาย Job (จะรันพร้อมกันแบบ Parallel)</td>
-    </tr>
-    <tr>
-      <td><code>image</code></td>
-      <td>
-        <strong>"สภาพแวดล้อม"</strong> ที่จะใช้รันคำสั่ง<br />
-        - <code>test</code> ใช้ <code>node:22</code> เพราะต้องรัน npm<br />
-        - <code>build</code> ใช้ <code>docker:24</code> เพราะต้องรันคำสั่ง docker<br />
-        - <code>deploy</code> ใช้ <code>alpine</code> เพราะต้องการ OS เล็กๆ แค่ไว้ SSH
-      </td>
-      <td>สามารถใช้ Image อะไรก็ได้ที่มีบน Docker Hub หรือ Registry ส่วนตัว</td>
-    </tr>
-    <tr>
-      <td><code>services</code></td>
-      <td>
-        <strong>"บริการเสริม"</strong> ที่ Job นั้นต้องการ<br />
-        ในที่นี้เราใช้ <code>docker:24-dind</code> (Docker-in-Docker) เพื่อให้ Container สามารถสั่งสร้าง Container ซ้อนข้างในได้อีกที
-      </td>
-      <td>จำเป็นมากสำหรับขั้นตอน Build Image</td>
-    </tr>
-    <tr>
-      <td><code>tags</code></td>
-      <td>
-        <strong>"ระบุตัว Runner"</strong><br />
-        เราใส่ <code>docker</code> เพื่อบอกให้งานนี้วิ่งไปหา Runner ตัวที่เราติดตั้งและตั้ง Tag ไว้ว่า "docker"
-      </td>
-      <td>ถ้าใส่ Tag ผิด หรือไม่มี Runner ที่มี Tag นี้ งานจะค้าง (Pending) ตลอดไป</td>
-    </tr>
-    <tr>
-      <td><code>before_script</code></td>
-      <td>
-        คำสั่งที่จะรัน <strong>"ก่อน"</strong> เข้าสู่เนื้อหาหลัก<br />
-        มักใช้เตรียมความพร้อม เช่น ติดตั้ง SSH Client, เตรียม Key, หรือ Docker Login
-      </td>
-      <td>ถ้า before_script พัง script หลักจะไม่ทำงาน</td>
-    </tr>
-    <tr>
-      <td><code>script</code></td>
-      <td>
-        <strong>"เนื้อหาหลัก"</strong> ของงาน<br />
-        คือชุดคำสั่ง Linux Command Line ที่เราต้องการให้ทำ เช่น <code>npm install</code>, <code>docker build</code>, <code>ssh ...</code>
-      </td>
-      <td>เขียนเหมือนพิมพ์ Terminal ทุกประการ</td>
-    </tr>
-    <tr>
-      <td><code>only</code> / <code>rules</code></td>
-      <td>
-        <strong>"เงื่อนไขการทำงาน"</strong><br />
-        เราใส่ <code>- main</code> แปลว่า Job นี้จะทำงานก็ต่อเมื่อมีการแก้ไขโค้ดที่ Branch main เท่านั้น
-      </td>
-      <td>
-        สามารถตั้งเงื่อนไขได้ละเอียด เช่น:<br />
-        - <code>changes: ["Dockerfile"]</code> (ทำเฉพาะเมื่อแก้ไฟล์นี้)<br />
-        - <code>if: $CI_COMMIT_TAG</code> (ทำเมื่อมีการติด Tag เวอร์ชัน)
+        ชื่อเต็มของ Docker Image ที่ประกอบด้วย: <br />
+        <code>[Registry URL]</code> / <code>[Image Name]</code> : <code>[Tag]</code>
       </td>
     </tr>
   </tbody>
 </table>
 
-<h3>3. เจาะลึกตัวแปรพิเศษ</h3>
+<h3>2. Build Stage (สร้างและส่ง Docker Image)</h3>
+<p>หัวใจสำคัญคือการใช้เทคนิค <strong>Docker-in-Docker (dind)</strong></p>
 <ul>
   <li>
-    <strong><code>DOCKER_TLS_CERTDIR: ""</code></strong
-    >: ปกติ Docker-in-Docker จะพยายามสร้าง Certificate เพื่อความปลอดภัย แต่ในการใช้งานภายในที่เน้นความง่าย เราตั้งเป็นค่าว่างเพื่อปิด TLS (สื่อสารแบบ HTTP ธรรมดาภายใน Container)
+    <strong><code>image: docker:24</code></strong
+    >: ใช้ Docker Client เวอร์ชัน 24 เป็นตัวรันคำสั่ง
   </li>
   <li>
-    <strong><code>$SSH_PRIVATE_KEY</code></strong
-    >: นี่คือตัวแปรที่เราซ่อนไว้ในเมนู Settings ของ GitLab (Masked Variable) เพื่อความปลอดภัย ไม่ควรใส่ Private Key ลงในไฟล์ Code โดยตรง
+    <strong><code>services: docker:24-dind</code></strong
+    >: เป็น Service พิเศษที่เปิด Docker Daemon ซ้อนขึ้นมาภายใน Container เพื่อให้เราสั่ง <code>docker build</code> ได้
+  </li>
+  <li>
+    <strong><code>DOCKER_TLS_CERTDIR: ""</code></strong
+    >: <span style="color: red">(สำคัญ)</span> สั่งปิดการเข้ารหัส TLS ระหว่าง Client กับ Daemon ภายใน เพราะเราใช้ในเครือข่ายภายใน การเปิด TLS อาจทำให้เกิด Error ใบรับรองไม่ผ่าน
+  </li>
+  <li>
+    <strong><code>docker push $IMAGE_NAME</code></strong
+    >: ส่ง Image ที่สร้างเสร็จแล้วไปเก็บไว้ที่ Registry กลาง (registry.vecskill.ovec) เพื่อรอให้ Production ดึงไปใช้
   </li>
 </ul>
+
+<h3>3. Deploy Stage (นำขึ้น Server จริง)</h3>
+<p>ขั้นตอนนี้จะใช้ <strong>Alpine Linux</strong> ขนาดเล็ก เพื่อ SSH ไปสั่งงานเครื่องปลายทาง</p>
+
+<h4>3.1 ส่วนเตรียมความพร้อม (before_script)</h4>
+<table class="spec-table">
+  <tr>
+    <td style="width: 40%"><code>apk add openssh-client</code></td>
+    <td>ติดตั้งโปรแกรม SSH เพราะ Alpine ไม่มีมาให้ตั้งแต่ต้น</td>
+  </tr>
+  <tr>
+    <td><code>echo "$SSH_PRIVATE_KEY" | tr -d '\r' ...</code></td>
+    <td>
+      นำ Private Key ที่ซ่อนไว้ใน GitLab Variable มาสร้างไฟล์ <code>id_ed25519</code><br />
+      * คำสั่ง <code>tr -d '\r'</code> ช่วยลบตัวอักษรขึ้นบรรทัดใหม่แบบ Windows ที่อาจติดมา ซึ่งมักทำให้ Key ใช้ไม่ได้
+    </td>
+  </tr>
+  <tr>
+    <td><code>chmod 600 ...</code></td>
+    <td>กำหนดสิทธิ์ไฟล์ Key ให้ <strong>"อ่านได้เฉพาะเจ้าของ"</strong> (ถ้าไม่ทำ SSH จะปฏิเสธการใช้งานทันที)</td>
+  </tr>
+  <tr>
+    <td><code>ssh-keyscan ... >> known_hosts</code></td>
+    <td>
+      บันทึกลายนิ้วมือ (Fingerprint) ของ Server ปลายทางไว้ เพื่อป้องกันไม่ให้ SSH ถามว่า
+      <em>"Are you sure you want to connect?"</em> ซึ่งจะทำให้ Pipeline ค้าง
+    </td>
+  </tr>
+</table>
+
+<h4>3.2 ส่วนคำสั่งหลัก (script)</h4>
+<p>เราแบ่งการทำงานเป็น 2 ขยัก:</p>
+<ol>
+  <li>
+    <strong>ส่งไฟล์ Config (SCP):</strong><br />
+    <code>scp ... docker-compose.yaml ...</code><br />
+    เราส่งไฟล์ <code>docker-compose.yaml</code> ล่าสุดไปที่ Server เพื่อให้มั่นใจว่า Config ตรงกับใน Code ของเรา
+  </li>
+  <li>
+    <strong>สั่งรันคำสั่ง (SSH):</strong><br />
+    <code>docker compose --profile production up -d --remove-orphans</code><br />
+    <ul>
+      <li><code>pull</code>: ดึง Image ล่าสุดมาจาก Registry</li>
+      <li><code>--profile production</code>: (จุดที่แก้ไขเพิ่ม) สั่งรันเฉพาะ Service ที่ระบุ profile: production ไว้ในไฟล์ yaml</li>
+      <li><code>up -d</code>: เริ่มต้น Container ในโหมด Background</li>
+      <li><code>--remove-orphans</code>: ลบ Container เก่าที่ไม่ได้ระบุในไฟล์ docker-compose แล้วทิ้งไป (เคลียร์ขยะ)</li>
+    </ul>
+  </li>
+</ol>
+
+<h1>คำอธิบาย .gitlab-ci.yml แบบบรรทัดต่อบรรทัด (Full Detail)</h1>
+<p>ตารางด้านล่างนี้จะอธิบาย Code ทุกบรรทัดโดยละเอียด ไม่มีการตัดทอน เพื่อให้เข้าใจหน้าที่ของแต่ละบรรทัดอย่างแท้จริง</p>
+
+<hr style="margin: 40px 0" />
+
+<h3>ส่วนที่ 1: การกำหนดลำดับและตัวแปร (Stages & Variables)</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th style="width: 40%">Code (คำสั่งเต็ม)</th>
+      <th>คำอธิบาย</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>stages:</code></td>
+      <td><strong>เริ่มการประกาศลำดับขั้นตอน (Stages):</strong> บอก GitLab ว่า Pipeline นี้จะมีขั้นตอนหลักอะไรบ้าง เรียงลำดับจากบนลงล่าง</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;- test</code></td>
+      <td><strong>ขั้นตอนที่ 1:</strong> ชื่อว่า "test" (จะทำเป็นอันดับแรกสุด)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;- build</code></td>
+      <td><strong>ขั้นตอนที่ 2:</strong> ชื่อว่า "build" (จะทำก็ต่อเมื่อขั้นตอน test ผ่านสำเร็จเท่านั้น)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;- deploy</code></td>
+      <td><strong>ขั้นตอนที่ 3:</strong> ชื่อว่า "deploy" (จะทำก็ต่อเมื่อขั้นตอน build ผ่านสำเร็จเท่านั้น)</td>
+    </tr>
+    <tr>
+      <td><code>variables:</code></td>
+      <td><strong>เริ่มการประกาศตัวแปร Global:</strong> ตัวแปรที่ประกาศตรงนี้ จะสามารถเรียกใช้ได้จากทุก Job ในทุก Stage</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;PRODUCTION_IP: "192.168.100.102"</code></td>
+      <td>สร้างตัวแปรชื่อ <strong>PRODUCTION_IP</strong> เก็บค่า IP Address ของเครื่อง Server ปลายทางไว้ เพื่อให้แก้ไขง่ายในที่เดียว</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;PRODUCTION_USER: "root"</code></td>
+      <td>สร้างตัวแปรชื่อ <strong>PRODUCTION_USER</strong> เก็บชื่อ User ที่จะใช้ SSH เข้าไป (ในที่นี้ใช้ root)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;IMAGE_NAME: "registry.vecskill.ovec/my-image:latest"</code></td>
+      <td>สร้างตัวแปรชื่อ <strong>IMAGE_NAME</strong> เก็บชื่อเต็มของ Docker Image รวมถึง Registry URL และ Tag เพื่อใช้ทั้งตอน Build และ Deploy ให้ตรงกัน</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr style="margin: 40px 0" />
+
+<h3>ส่วนที่ 2: Test Stage (Job: test_job)</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th style="width: 40%">Code (คำสั่งเต็ม)</th>
+      <th>คำอธิบาย</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>test_job:</code></td>
+      <td><strong>ประกาศชื่อ Job:</strong> ตั้งชื่อ Job นี้ว่า "test_job" (ชื่อนี้จะแสดงในหน้าเว็บ GitLab)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;stage: test</code></td>
+      <td><strong>ระบุ Stage:</strong> กำหนดให้ Job นี้อยู่ในขั้นตอน "test" (ตามที่ประกาศไว้บนสุด)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;image: node:22</code></td>
+      <td><strong>กำหนด Environment:</strong> สั่งให้ GitLab Runner ใช้ Docker Image ชื่อ <code>node:22</code> มาจำลองสภาพแวดล้อม เพราะเราต้องการใช้คำสั่ง <code>npm</code></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;tags:</code></td>
+      <td><strong>เริ่มการระบุ Runner:</strong> บอกว่าจะส่งงานนี้ไปให้ Runner ตัวไหนทำ</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker</code></td>
+      <td><strong>ระบุ Tag:</strong> เลือก Runner ที่มี Tag ชื่อ "docker" (ต้องตรงกับตอนที่เรา Register Runner)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;script:</code></td>
+      <td><strong>เริ่มชุดคำสั่ง:</strong> ส่วนนี้คือคำสั่ง Linux จริงๆ ที่จะให้รัน</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- npm install</code></td>
+      <td><strong>คำสั่งที่ 1:</strong> สั่งติดตั้ง Dependencies ตามไฟล์ package.json เพื่อตรวจสอบว่าไฟล์โปรเจกต์สมบูรณ์หรือไม่</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;# - npm test</code></td>
+      <td>(บรรทัดนี้ถูก Comment ไว้) ถ้าเปิดใช้งาน จะเป็นการสั่งรัน Unit Test ของโปรเจกต์</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr style="margin: 40px 0" />
+
+<h3>ส่วนที่ 3: Build Stage (Job: build)</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th style="width: 40%">Code (คำสั่งเต็ม)</th>
+      <th>คำอธิบาย</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>build:</code></td>
+      <td><strong>ประกาศชื่อ Job:</strong> ตั้งชื่อ Job นี้ว่า "build"</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;stage: build</code></td>
+      <td><strong>ระบุ Stage:</strong> กำหนดให้ Job นี้อยู่ในขั้นตอน "build"</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;image: docker:24</code></td>
+      <td><strong>กำหนด Environment:</strong> ใช้ Docker Image ชื่อ <code>docker:24</code> (เวอร์ชันนี้มีแค่ Client Tools สำหรับสั่งงาน Docker)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;services:</code></td>
+      <td><strong>บริการเสริม (Services):</strong> เรียกใช้ Container พิเศษมาช่วยงาน</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker:24-dind</code></td>
+      <td><strong>Docker-in-Docker:</strong> รัน Docker Daemon ซ้อนขึ้นมา เพื่อให้เราสามารถสั่ง <code>docker build</code> ภายใน Job นี้ได้</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;tags:</code></td>
+      <td><strong>เริ่มการระบุ Runner:</strong> (ต้องประกาศซ้ำทุก Job)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker</code></td>
+      <td><strong>ระบุ Tag:</strong> ส่งงานไปหา Runner ที่มี Tag "docker"</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;variables:</code></td>
+      <td><strong>ตัวแปรเฉพาะ Job:</strong> ประกาศตัวแปรที่จะใช้แค่ใน Job นี้เท่านั้น</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;DOCKER_TLS_CERTDIR: ""</code></td>
+      <td><strong>ปิด TLS:</strong> สั่งให้ Docker Client คุยกับ Docker Daemon แบบไม่เข้ารหัส (HTTP) เพื่อแก้ปัญหา Certificate Error ในระบบภายใน</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;script:</code></td>
+      <td><strong>เริ่มชุดคำสั่ง:</strong></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker info</code></td>
+      <td><strong>คำสั่งที่ 1:</strong> แสดงข้อมูล Docker เพื่อเช็คว่าเชื่อมต่อกับ Service dind ได้สำเร็จหรือไม่ (ใช้ Debug)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker build -t $IMAGE_NAME .</code></td>
+      <td><strong>คำสั่งที่ 2:</strong> สั่งสร้าง (Build) Docker Image จากไฟล์ Dockerfile ในโฟลเดอร์ปัจจุบัน (.) และตั้งชื่อตามตัวแปร <code>$IMAGE_NAME</code></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker push $IMAGE_NAME</code></td>
+      <td><strong>คำสั่งที่ 3:</strong> อัปโหลด (Push) Image ที่สร้างเสร็จแล้ว ไปเก็บไว้ที่ Registry Server ตามชื่อในตัวแปร</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;only:</code></td>
+      <td><strong>เงื่อนไขการทำงาน:</strong></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- main</code></td>
+      <td><strong>ระบุ Branch:</strong> Job นี้จะทำงานก็ต่อเมื่อมีการ Push Code เข้ามาที่ Branch "main" เท่านั้น (Branch อื่นจะไม่ Build)</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr style="margin: 40px 0" />
+
+<h3>ส่วนที่ 4: Deploy Stage (Job: deploy_to_production)</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th style="width: 40%">Code (คำสั่งเต็ม)</th>
+      <th>คำอธิบาย</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>deploy_to_production:</code></td>
+      <td><strong>ประกาศชื่อ Job:</strong> ตั้งชื่อ Job นี้ว่า "deploy_to_production"</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;stage: deploy</code></td>
+      <td><strong>ระบุ Stage:</strong> กำหนดให้ Job นี้อยู่ในขั้นตอน "deploy"</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;image: alpine:latest</code></td>
+      <td><strong>กำหนด Environment:</strong> ใช้ <code>alpine</code> Linux เวอร์ชันล่าสุด เพราะมีขนาดเล็กมาก เหมาะสำหรับงานที่ใช้แค่ SSH/SCP ไม่กินทรัพยากร</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;tags:</code></td>
+      <td><strong>เริ่มการระบุ Runner:</strong> (ต้องประกาศซ้ำทุก Job)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- docker</code></td>
+      <td><strong>ระบุ Tag:</strong> ส่งงานไปหา Runner ที่มี Tag "docker"</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;before_script:</code></td>
+      <td><strong>คำสั่งเตรียมความพร้อม:</strong> ทำงานก่อน script หลัก (ถ้าส่วนนี้พัง script หลักจะไม่ทำ)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- apk add --no-cache openssh-client</code></td>
+      <td>ติดตั้งโปรแกรม <code>ssh</code> และ <code>scp</code> (เพราะ Alpine ตัวเปล่าๆ ไม่มีมาให้)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- mkdir -p ~/.ssh</code></td>
+      <td>สร้างโฟลเดอร์ <code>.ssh</code> ใน Home Directory ของ Container เพื่อเตรียมเก็บ Key</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519</code></td>
+      <td>
+        1. ดึงค่าจากตัวแปร <code>$SSH_PRIVATE_KEY</code> (ที่ซ่อนไว้ใน GitLab)<br />
+        2. <code>tr -d '\r'</code> ลบตัวอักษรขึ้นบรรทัดใหม่แบบ Windows ทิ้ง<br />
+        3. บันทึกลงไฟล์ชื่อ <code>id_ed25519</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- chmod 600 ~/.ssh/id_ed25519</code></td>
+      <td>กำหนดสิทธิ์ไฟล์ Key ให้ <strong>"อ่าน/เขียนได้เฉพาะเจ้าของ"</strong> (ถ้าไม่ทำบรรทัดนี้ SSH จะ Error ว่า Key ไม่ปลอดภัย)</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- ssh-keyscan -H $PRODUCTION_IP >> ~/.ssh/known_hosts</code></td>
+      <td>สแกนลายนิ้วมือ (Fingerprint) ของ Server ปลายทาง แล้วบันทึกไว้ เพื่อไม่ให้ SSH ถามยืนยัน (yes/no) ตอนเชื่อมต่อ</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;script:</code></td>
+      <td><strong>เริ่มชุดคำสั่งหลัก:</strong></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- scp -i ~/.ssh/id_ed25519 -r ./docker-compose.yaml $PRODUCTION_USER@$PRODUCTION_IP:/opt/docker-compose.yaml</code></td>
+      <td>
+        <strong>Secure Copy:</strong><br />
+        - <code>-i ...</code>: ใช้ Key ไฟล์นี้ในการยืนยันตัวตน<br />
+        - <code>-r</code>: (เผื่อไว้) Copy แบบ Recursive<br />
+        - ส่งไฟล์ <code>docker-compose.yaml</code> จากโปรเจกต์ ไปไว้ที่ <code>/opt/</code> ของเครื่อง Production
+      </td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- |</code></td>
+      <td><strong>เริ่ม Block คำสั่งหลายบรรทัด:</strong> บอก YAML ว่าบรรทัดต่อจากนี้คือคำสั่งเดียวกันที่ยาวต่อเนื่อง</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ssh -i ~/.ssh/id_ed25519 $PRODUCTION_USER@$PRODUCTION_IP "</code></td>
+      <td>เริ่มการเชื่อมต่อ SSH ไปยังเครื่อง Production และเปิดเครื่องหมายคำพูด <code>"</code> เพื่อเริ่มชุดคำสั่งที่จะรันบนเครื่องปลายทาง</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cd /opt &&</code></td>
+      <td>เข้าไปที่โฟลเดอร์ <code>/opt</code> (ที่วางไฟล์ไปเมื่อกี้) <strong>และ (&&)</strong></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docker compose pull &&</code></td>
+      <td>สั่ง Docker Compose ให้ดึง (Pull) Image เวอร์ชันล่าสุดมาจาก Registry <strong>และ (&&)</strong></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docker compose --profile production up -d --remove-orphans</code></td>
+      <td>
+        1. <code>--profile production</code>: รันเฉพาะ Service ที่ระบุ profile production<br />
+        2. <code>up -d</code>: เริ่มต้น Container ใหม่แบบ Background<br />
+        3. <code>--remove-orphans</code>: ลบ Container เก่าที่ไม่อยู่ใน Config แล้วทิ้งไป
+      </td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"</code></td>
+      <td>ปิดเครื่องหมายคำพูด จบชุดคำสั่ง SSH</td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;only:</code></td>
+      <td><strong>เงื่อนไขการทำงาน:</strong></td>
+    </tr>
+    <tr>
+      <td><code>&nbsp;&nbsp;&nbsp;&nbsp;- main</code></td>
+      <td><strong>ระบุ Branch:</strong> Job นี้จะทำงานก็ต่อเมื่อมีการ Push Code เข้ามาที่ Branch "main" เท่านั้น (เพื่อป้องกันการ Deploy โค้ดที่ยังไม่เสร็จ)</td>
+    </tr>
+  </tbody>
+</table>
 <hr style="margin: 40px 0" />
 
 <h2>ส่วนที่ 4: เริ่มต้นใช้งาน (Execution)</h2>
