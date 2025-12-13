@@ -213,7 +213,124 @@ deploy_to_production:
   only:
     - main
 </code></pre>
+<hr style="margin: 40px 0" />
 
+<h2>คำอธิบายโครงสร้าง .gitlab-ci.yml อย่างละเอียด</h2>
+<p>ไฟล์นี้เปรียบเสมือน "ใบสั่งงาน" ที่บอก GitLab Runner ว่าต้องทำอะไรบ้าง ทีละขั้นตอน</p>
+
+<h3>1. ส่วนหัว (Global Config)</h3>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>คีย์เวิร์ด (Keyword)</th>
+      <th>คำอธิบาย</th>
+      <th>ตัวเลือกที่น่าสนใจ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>stages</code></td>
+      <td>กำหนด "ลำดับขั้นตอน" ของ Pipeline ทั้งหมด<br />GitLab จะทำตามลำดับบนลงล่าง ถ้า Stage ไหนพัง จะหยุดทันที ไม่ทำต่อ</td>
+      <td>
+        <ul>
+          <li><code>.pre</code>: ทำก่อนเสมอ</li>
+          <li><code>.post</code>: ทำทีหลังสุดเสมอ (แม้ Job อื่นพัง)</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td><code>variables</code></td>
+      <td>ประกาศตัวแปรเพื่อใช้ซ้ำใน Script ช่วยให้แก้ไขง่าย (เช่น เปลี่ยน IP Server ก็แก้ที่นี่จุดเดียว)</td>
+      <td>สามารถกำหนดระดับ Global (ใช้ทุก Job) หรือระดับ Job (ใช้เฉพาะ Job นั้น)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2. องค์ประกอบภายใน Job (Test, Build, Deploy)</h3>
+<p>ในแต่ละ Job (เช่น <code>test_job</code>, <code>build</code>, <code>deploy</code>) จะมีคำสั่งย่อยดังนี้:</p>
+
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>คีย์เวิร์ด</th>
+      <th>ความหมายในบริบทนี้</th>
+      <th>เกร็ดความรู้</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>stage</code></td>
+      <td>ระบุว่า Job นี้อยู่ในขั้นตอนไหน (ต้องตรงกับชื่อใน <code>stages</code> ด้านบน)</td>
+      <td>หนึ่ง Stage มีได้หลาย Job (จะรันพร้อมกันแบบ Parallel)</td>
+    </tr>
+    <tr>
+      <td><code>image</code></td>
+      <td>
+        <strong>"สภาพแวดล้อม"</strong> ที่จะใช้รันคำสั่ง<br />
+        - <code>test</code> ใช้ <code>node:22</code> เพราะต้องรัน npm<br />
+        - <code>build</code> ใช้ <code>docker:24</code> เพราะต้องรันคำสั่ง docker<br />
+        - <code>deploy</code> ใช้ <code>alpine</code> เพราะต้องการ OS เล็กๆ แค่ไว้ SSH
+      </td>
+      <td>สามารถใช้ Image อะไรก็ได้ที่มีบน Docker Hub หรือ Registry ส่วนตัว</td>
+    </tr>
+    <tr>
+      <td><code>services</code></td>
+      <td>
+        <strong>"บริการเสริม"</strong> ที่ Job นั้นต้องการ<br />
+        ในที่นี้เราใช้ <code>docker:24-dind</code> (Docker-in-Docker) เพื่อให้ Container สามารถสั่งสร้าง Container ซ้อนข้างในได้อีกที
+      </td>
+      <td>จำเป็นมากสำหรับขั้นตอน Build Image</td>
+    </tr>
+    <tr>
+      <td><code>tags</code></td>
+      <td>
+        <strong>"ระบุตัว Runner"</strong><br />
+        เราใส่ <code>docker</code> เพื่อบอกให้งานนี้วิ่งไปหา Runner ตัวที่เราติดตั้งและตั้ง Tag ไว้ว่า "docker"
+      </td>
+      <td>ถ้าใส่ Tag ผิด หรือไม่มี Runner ที่มี Tag นี้ งานจะค้าง (Pending) ตลอดไป</td>
+    </tr>
+    <tr>
+      <td><code>before_script</code></td>
+      <td>
+        คำสั่งที่จะรัน <strong>"ก่อน"</strong> เข้าสู่เนื้อหาหลัก<br />
+        มักใช้เตรียมความพร้อม เช่น ติดตั้ง SSH Client, เตรียม Key, หรือ Docker Login
+      </td>
+      <td>ถ้า before_script พัง script หลักจะไม่ทำงาน</td>
+    </tr>
+    <tr>
+      <td><code>script</code></td>
+      <td>
+        <strong>"เนื้อหาหลัก"</strong> ของงาน<br />
+        คือชุดคำสั่ง Linux Command Line ที่เราต้องการให้ทำ เช่น <code>npm install</code>, <code>docker build</code>, <code>ssh ...</code>
+      </td>
+      <td>เขียนเหมือนพิมพ์ Terminal ทุกประการ</td>
+    </tr>
+    <tr>
+      <td><code>only</code> / <code>rules</code></td>
+      <td>
+        <strong>"เงื่อนไขการทำงาน"</strong><br />
+        เราใส่ <code>- main</code> แปลว่า Job นี้จะทำงานก็ต่อเมื่อมีการแก้ไขโค้ดที่ Branch main เท่านั้น
+      </td>
+      <td>
+        สามารถตั้งเงื่อนไขได้ละเอียด เช่น:<br />
+        - <code>changes: ["Dockerfile"]</code> (ทำเฉพาะเมื่อแก้ไฟล์นี้)<br />
+        - <code>if: $CI_COMMIT_TAG</code> (ทำเมื่อมีการติด Tag เวอร์ชัน)
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3. เจาะลึกตัวแปรพิเศษ</h3>
+<ul>
+  <li>
+    <strong><code>DOCKER_TLS_CERTDIR: ""</code></strong
+    >: ปกติ Docker-in-Docker จะพยายามสร้าง Certificate เพื่อความปลอดภัย แต่ในการใช้งานภายในที่เน้นความง่าย เราตั้งเป็นค่าว่างเพื่อปิด TLS (สื่อสารแบบ HTTP ธรรมดาภายใน Container)
+  </li>
+  <li>
+    <strong><code>$SSH_PRIVATE_KEY</code></strong
+    >: นี่คือตัวแปรที่เราซ่อนไว้ในเมนู Settings ของ GitLab (Masked Variable) เพื่อความปลอดภัย ไม่ควรใส่ Private Key ลงในไฟล์ Code โดยตรง
+  </li>
+</ul>
 <hr style="margin: 40px 0" />
 
 <h2>ส่วนที่ 4: เริ่มต้นใช้งาน (Execution)</h2>
