@@ -97,7 +97,18 @@ services:
       - NET_ADMIN # จำเป็นเพื่อให้ DNS Server ทำงานได้เต็มประสิทธิภาพ
 </code></pre>
 <p>จากนั้นคลิก <strong>Deploy the stack</strong></p>
-
+<h2>กรณีที่ต้องการติดตั้งบน Host โดยไม่ใช้ Docker</h2>
+<p>สามารถใช้การติดตั้ง ด้วยคำสั่ง ด้านล่าง แล้วเข้าสู่หน้า Web UI และตั้งค่าเริ่มต้น ผ่าน Port 5380 ตามขั้นตอนที่ 4</p>
+<pre><code>curl -sSL https://download.technitium.com/dns/install.sh | sudo bash
+</code></pre>
+<h3>คำสั่งจัดการ Service ทั่วไป หากติดตั้งใน Host ที่ไม่ใช่ Docker</h3>
+<ul>
+  <li>หยุดการทำงาน: <code>sudo systemctl stop dns</code></li>
+  <li>เริ่มการทำงาน: <code>sudo systemctl start dns</code></li>
+  <li>รีสตาร์ท: <code>sudo systemctl restart dns</code></li>
+</ul>
+<h3>การอัปเดตในอนาคต</h3>
+<p>เมื่อมีเวอร์ชันใหม่ สามารถเข้าหน้า Web UI และกดอัปเดตผ่านปุ่ม Update บนหน้าเว็บได้เลย</p>
 <hr style="margin: 40px 0" />
 
 <h2>ขั้นตอนที่ 4: การตั้งค่าเริ่มต้นผ่าน Web UI</h2>

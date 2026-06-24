@@ -1,0 +1,247 @@
+<h1>การติดตั้งและใช้งาน ChartDB (Offline Mode)</h1>
+<p>
+  <strong>ChartDB</strong> คือเครื่องมือสำหรับออกแบบฐานข้อมูล (Database Design tool) ที่ทำงานบนหน้าเว็บ มีจุดเด่นด้านความสวยงาม ลื่นไหล และสามารถเปลี่ยนข้อมูลดิบ (DDL Script) ให้กลายเป็นแผนภาพ ER
+  Diagram (Entity-Relationship Diagram) ได้ในไม่กี่วินาทีด้วยระบบ AI และ Query Parser
+</p>
+<p>
+  การติดตั้ง ChartDB บน Server ของเราเองผ่าน Docker จะช่วยให้ทีมงานสามารถใช้งานได้แบบ <strong>Offline 100%</strong> ข้อมูลโครงสร้างฐานข้อมูลที่เป็นความลับขององค์กรจะไม่ถูกส่งออกไปยังภายนอก
+  เพื่อความปลอดภัยสูงสุด
+</p>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 1: การติดตั้ง ChartDB</h2>
+<p>
+  ในคู่มือนี้เราจะตั้งค่าให้ ChartDB ทำงานบนโดเมน <code>chartdb.vecskill.ovec</code> (หรือ <code>chartdb.vecskill.ovec</code> ตามที่คุณเลือกใช้) และเชื่อมต่อผ่าน Network กลาง
+  <code>app_net</code> เพื่อให้สามารถทำ Reverse Proxy ร่วมกับ Caddy หรือ Nginx Proxy Manager ได้
+</p>
+
+<h3>ขั้นตอนที่ 1.1: ติดตั้งผ่าน Docker Command Line</h3>
+<p>หากคุณต้องการรันอย่างรวดเร็วด้วยคำสั่งเดียวบน Terminal:</p>
+<pre><code>sudo docker run -d --name chartdb --network app_net -p 8008:80 --restart always ghcr.io/chartdb/chartdb:latest</code></pre>
+
+<h3>ขั้นตอนที่ 1.2: ติดตั้งผ่าน Portainer Stack (วิธีแนะนำ)</h3>
+<p>ไปที่ <strong>Portainer > Stacks > + Add stack</strong> ตั้งชื่อว่า <code>chartdb-stack</code> แล้ววางโค้ด Docker Compose นี้ใน Web editor:</p>
+<pre><code>
+services:
+  chartdb:
+    image: ghcr.io/chartdb/chartdb:latest
+    container_name: chartdb
+    ports:
+      - "8008:80"  # สามารถเปลี่ยน 8008 เป็นพอร์ตอื่นที่ต้องการได้ เช่น 9000:80
+    #environment:
+    #  - OPENAI_API_KEY=your_openai_api_key_here # ใส่ Key ถ้าต้องการใช้ฟีเจอร์ AI ช่วยเขียน/ปรับแต่ง SQL
+    restart: always
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    external: true
+</code></pre>
+<p>คลิกที่ปุ่ม <strong>Deploy the stack</strong> แล้วรอระบบดึง Image มาทำงานสักครู่</p>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 2: การทำ Reverse Proxy และ HTTPS</h2>
+<p>หลังจากติดตั้งสำเร็จ ให้คุณเลือกทำตามโปรแกรม Proxy ที่คุณเลือกใช้ในบทก่อนหน้านี้เพื่อชี้โดเมนเข้าหากล่อง ChartDB</p>
+
+<div class="tab">
+  <button class="tablinks active" data-target-tab="CaddyTab">หากใช้ Caddy</button>
+  <button class="tablinks" data-target-tab="NPMTab">หากใช้ Nginx Proxy Manager</button>
+</div>
+
+<div id="CaddyTab" class="tabcontent" style="display: block">
+  <h3>เพิ่มคอนฟิกใน `Caddyfile`</h3>
+  <p>เปิดไฟล์ <code>/srv/caddy/Caddyfile</code> แล้วเพิ่มบรรทัดคอนฟิกนี้ลงไป:</p>
+  <pre><code>chartdb.vecskill.ovec {
+    reverse_proxy chartdb:80
+}</code></pre>
+  <p>บันทึกไฟล์แล้ว Caddy จะโหลดคอนฟิกใหม่และสร้าง HTTPS ให้โดเมนนี้โดยอัตโนมัติ</p>
+</div>
+
+<div id="NPMTab" class="tabcontent">
+  <h3>เพิ่ม Proxy Host ใน Web UI</h3>
+  <ol>
+    <li>ไปที่หน้าเว็บ NPM (Port 81) > <strong>Add Proxy Host</strong></li>
+    <li><strong>Domain Names:</strong> <code>chartdb.vecskill.ovec</code></li>
+    <li><strong>Forward Hostname:</strong> <code>chartdb</code></li>
+    <li><strong>Forward Port:</strong> <code>80</code></li>
+    <li>ในแท็บ <strong>SSL</strong> เลือกขอใบรับรอง (Request new...) และติ๊ก Force SSL แล้วบันทึก</li>
+  </ol>
+</div>
+
+<hr style="margin: 40px 0" />
+
+<h2>ส่วนที่ 3: วิธีการใช้งาน ChartDB เบื้องต้นแบบ Offline</h2>
+<p>เปิดเว็บเบราว์เซอร์แล้วเข้าสู่ระบบผ่านโดเมนที่คุณตั้งค่าไว้ เช่น <code>https://chartdb.vecskill.ovec</code></p>
+
+<ol>
+  <li>
+    <strong>สร้าง Diagram ใหม่จากศูนย์ (Blank Canvas):</strong><br />
+    คุณสามารถคลิกปุ่ม "+" หรือสร้าง Table ใหม่ ลากเส้นความสัมพันธ์ระหว่าง Primary Key (PK) และ Foreign Key (FK) ได้อย่างอิสระผ่านระบบ Drag & Drop
+  </li>
+  <li>
+    <strong>การ Import ข้อมูลจากฐานข้อมูลเดิม (Reverse Engineering):</strong><br />
+    นี่คือฟีเจอร์เด่น หากคุณมีโครงสร้างฐานข้อมูลเดิมอยู่แล้ว (เช่น MySQL, PostgreSQL, SQL Server) ให้รันคำสั่งดึง DDL Script (คำสั่ง `CREATE TABLE`) จากฐานข้อมูลเดิมของคุณ จากนั้นคลิกเมนู
+    <strong>Import / Export</strong> บน ChartDB แล้ววางโค้ดสคริปต์ SQL ลงไป ระบบจะวาดหน้าตาโครงสร้างเป็นตารางเชื่อมโยงกันให้เองโดยอัตโนมัติ
+  </li>
+  <li>
+    <strong>การทำงานแบบ Offline เต็มรูปแบบ (Local Storage):</strong><br />
+    เนื่องจากเราใช้งานแบบ Offline ข้อมูลโครงสร้างแผนภาพทั้งหมดจะถูกบันทึกไว้ใน <strong>Local Storage ของเว็บเบราว์เซอร์เครื่องที่คุณใช้งาน</strong> ไม่ได้ส่งไปยังระบบ Cloud ของผู้พัฒนา
+    เพื่อป้องกันไฟล์สูญหายเมื่อล้างเบราว์เซอร์ แนะนำให้ทำตามข้อถัดไป
+  </li>
+  <li>
+    <strong>การเซฟและสำรองข้อมูล (Export Project):</strong><br />
+    เมื่อออกแบบเสร็จแล้ว ทุกครั้งควรคลิกปุ่ม <strong>Export</strong> เพื่อดาวน์โหลดไฟล์เก็บไว้ในเครื่องของคุณ:
+    <ul>
+      <li><strong>Export as JSON (.json):</strong> เพื่อเก็บไฟล์โปรเจกต์ไว้ กลับมา Import เพื่อแก้ไขโครงสร้างและขยับย้ายตารางต่อได้ในวันหลัง</li>
+      <li><strong>Export as Image (.png / .svg):</strong> สำหรับนำรูปภาพแผนภาพโครงสร้างไปใส่ในเอกสารคู่มือโปรเจกต์ (Documentation)</li>
+      <li><strong>Export as SQL DDL:</strong> แปลงแผนภาพที่เรานั่งวาดทั้งหมด ออกมาเป็นโค้ดสคริปต์ SQL เพื่อนำไปสั่งรันสร้างฐานข้อมูลจริงใน Server</li>
+    </ul>
+  </li>
+</ol>
+<h1>คู่มือไวยากรณ์ DBML เบื้องต้น (DBML Syntax Cheat Sheet)</h1>
+<p>DBML (Database Markup Language) เป็นภาษาที่เข้าใจง่ายสำหรับออกแบบโครงสร้างฐานข้อมูล (Database Schema) เพื่อนำไปแสดงผลเป็น ER Diagram ในเครื่องมืออย่าง ChartDB หรือ dbdiagram.io</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>องค์ประกอบ / รูปแบบ</th>
+      <th>คำอธิบายโครงสร้าง (Syntax)</th>
+      <th>ตัวอย่างการใช้งาน (Example)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>1. การสร้างตาราง<br />(Table Definition)</strong>
+      </td>
+      <td>ใช้คำว่า <code>Table</code> ตามด้วยชื่อตาราง และเปิด-ปิดด้วยปีกกา <code>{ }</code></td>
+      <td>
+        <pre>
+Table users {
+  id int
+  username varchar
+}</pre
+        >
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>2. คีย์หลัก<br />(Primary Key)</strong>
+      </td>
+      <td>ใส่ข้อความ <code>[pk]</code> หรือ <code>[primary key]</code> ไว้ท้ายชื่อฟิลด์ข้อมูล</td>
+      <td>
+        <pre>
+Table products {
+  id int [pk]
+  name varchar
+}</pre
+        >
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>3. ข้อจำกัดข้อมูล<br />(Constraints)</strong>
+      </td>
+      <td>ระบุเงื่อนไขในวงเล็บเหลี่ยม <code>[ ]</code> เช่น <code>[not null]</code>, <code>[unique]</code>, <code>[increment]</code></td>
+      <td>
+        <pre>
+Table users {
+  email varchar [unique, not null]
+  id int [pk, increment]
+}</pre
+        >
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>4. ค่าเริ่มต้น<br />(Default Value)</strong>
+      </td>
+      <td>ใช้คำสั่ง <code>[default: value]</code> สำหรับฟังก์ชันระบบให้ใช้สัญลักษณ์ backtick (`)</td>
+      <td>
+        <pre>
+Table orders {
+  status varchar [default: 'pending']
+  created_at timestamp [default: `now()`]</pre
+        >
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>5. ความสัมพันธ์<br />(One-to-Many: <br />หนึ่ง ไป หลาย)</strong>
+      </td>
+      <td>ใช้สัญลักษณ์ <code>&gt;</code> หมายถึง ฝั่งซ้ายมีได้หลายรายการ (Many) ลิงก์ไปหาฝั่งขวาที่มีรายการเดียว (One)</td>
+      <td>
+        <pre>
+Table posts {
+  id int [pk]
+  user_id int [ref: > users.id]
+}</pre
+        >
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>6. ความสัมพันธ์แบบเขียนแยก<br />(Ref outside Table)</strong>
+      </td>
+      <td>เขียนกำหนดความสัมพันธ์แยกออกมาด้านนอกตาราง โดยใช้คำสำคัญ <code>Ref:</code></td>
+      <td>
+        <pre>Ref: posts.user_id > users.id</pre>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>7. คำอธิบายเพิ่มเติม<br />(Notes / Comments)</strong>
+      </td>
+      <td>ใช้คำสั่ง <code>[note: "ข้อความ"]</code> ภายในฟิลด์ หรือใช้คอมเมนต์โค้ดด้วย <code>//</code> (ไม่ควรเขียนไว้บรรทัดแรกสุดใน ChartDB)</td>
+      <td>
+        <pre>
+Table products {
+  status int [note: "1=Active, 0=Inactive"]
+}
+// นี่คือคอมเมนต์อธิบายโค้ด</pre
+        >
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note"><strong>💡 คำแนะนำสำหรับ ChartDB:</strong> หลีกเลี่ยงการใส่คอมเมนต์ <code>//</code> ไว้ที่บรรทัดแรกสุดของไฟล์ เพื่อป้องกันการเกิด Syntax Error ในตัวแปลงรหัส (Parser) ของระบบ</div>
+<hr style="margin: 40px 0" />
+<h1>ตัวอย่างหน้าจอเครื่องมือระบบ ChartDB</h1>
+<div class="image-container">
+  <img src="images/chartdb-01.png" alt="หน้าจอเริ่มต้นใช้งาน เพื่อเลือกประเภทและระบบฐานข้อมูลที่ต้องการออกแบบ (ตัวอย่างเลือก MySQL)" class="content-image" />
+  <p>หน้าจอเริ่มต้นใช้งาน เพื่อเลือกประเภทและระบบฐานข้อมูลที่ต้องการออกแบบ (ตัวอย่างเลือก MySQL)</p>
+</div>
+
+<div class="image-container">
+  <img src="images/chartdb-02.png" alt="หน้าต่างการนำเข้าข้อมูล (Import your Database) ให้คลิกเลือกวิธีเป็นแบบ DBML" class="content-image" />
+  <p>หน้าต่างการนำเข้าข้อมูล (Import your Database) ให้คลิกเลือกวิธีเป็นแบบ DBML</p>
+</div>
+
+<div class="image-container">
+  <img src="images/chartdb-03.png" alt="วางสคริปต์ DBML ของระบบร้านค้าลงในช่องขวามือ ระบบจะตรวจสอบความถูกต้องของ Syntax และขึ้นแถบสีเขียวเตือนเมื่อผ่าน" class="content-image" />
+  <p>วางสคริปต์ DBML ของระบบร้านค้าลงในช่องขวามือ ระบบจะตรวจสอบความถูกต้องของ Syntax และขึ้นแถบสีเขียวเตือนเมื่อผ่าน</p>
+</div>
+
+<div class="image-container">
+  <img src="images/chartdb-04.png" alt="ระบบแสดงแผนภาพความสัมพันธ์ ER Diagram ฝั่งขวา และตัวช่วยจัดการสคริปต์ฝั่งซ้ายหลังจากกดปุ่ม Import" class="content-image" />
+  <p>ระบบแสดงแผนภาพความสัมพันธ์ ER Diagram ฝั่งขวา และตัวช่วยจัดการสคริปต์ฝั่งซ้ายหลังจากกดปุ่ม Import</p>
+</div>
+
+<div class="image-container">
+  <img src="images/chartdb-05.png" alt="แถบเมนูฝั่งซ้ายสลับเป็นหน้าต่าง Tables สำหรับคลิกดูโครงสร้าง ฟิลด์ข้อมูล คีย์หลัก และข้อจำกัด (Constraints) ของแต่ละตาราง" class="content-image" />
+  <p>แถบเมนูฝั่งซ้ายสลับเป็นหน้าต่าง Tables สำหรับคลิกดูโครงสร้าง ฟิลด์ข้อมูล คีย์หลัก และข้อจำกัด (Constraints) ของแต่ละตาราง</p>
+</div>
+
+<div class="image-container">
+  <img src="images/chartdb-06.png" alt="ขั้นตอนการส่งออกชุดคำสั่งเพื่อนำไปสร้างจริงใน Database โดยเลือก Actions -> Export SQL -> MySQL" class="content-image" />
+  <p>ขั้นตอนการส่งออกชุดคำสั่งเพื่อนำไปสร้างจริงใน Database โดยเลือก Actions -> Export SQL -> MySQL</p>
+</div>
+
+<div class="image-container">
+  <img src="images/chartdb-07.png" alt="หน้าต่าง Pop-up แสดงโค้ดสคริปต์ MySQL DDL (CREATE TABLE) ที่แปลงจาก DBML สำเร็จ สามารถคัดลอกไปรันบนระบบฐานข้อมูลได้ทันที" class="content-image" />
+  <p>หน้าต่าง Pop-up แสดงโค้ดสคริปต์ MySQL DDL (CREATE TABLE) ที่แปลงจาก DBML สำเร็จ สามารถคัดลอกไปรันบนระบบฐานข้อมูลได้ทันที</p>
+</div>
