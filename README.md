@@ -1,16 +1,16 @@
 # IT VECSkill Guide: คู่มือเตรียมความพร้อมการแข่งขันทักษะ DevOps
 
-"IT VECSkill Guide" คือโปรเจกต์คู่มือออนไลน์ (Single Page Application) ที่สร้างด้วย HTML, CSS และ JavaScript พื้นฐาน โดยมีจุดประสงค์หลักเพื่อใช้เป็น **คู่มือเตรียมความพร้อมสำหรับการแข่งขันทักษะวิชาชีพ** (เช่น ทักษะเทคโนโลยีสารสนเทศด้านโปรแกรมและเครือข่ายด้วยกระบวนการ DevOps )
+"IT VECSkill Guide" คือโปรเจกต์คู่มือออนไลน์ (Single Page Application ฝั่ง Client เชื่อมกับ Backend PHP + MySQL) โดยมีจุดประสงค์หลักเพื่อใช้เป็น **คู่มือเตรียมความพร้อมสำหรับการแข่งขันทักษะวิชาชีพ** (ทักษะเทคโนโลยีสารสนเทศด้านโปรแกรมและเครือข่ายด้วยกระบวนการ DevOps)
 
 คู่มือนี้ถูกออกแบบมาเพื่อ 2 กลุ่มเป้าหมายหลัก:
 
 1.  **สำหรับผู้เข้าแข่งขัน (ทีม):**
     * ใช้เป็น **"คู่มือฝึกซ้อม" (Training Guide)** ที่สมบูรณ์แบบ
-    * สามารถฝึกฝนการติดตั้งและตั้งค่าเครื่องมือ DevOps ที่จำเป็นทั้งหมดได้ด้วยตนเอง ตั้งแต่การเตรียม Server, Docker, GitLab, Private Registries (Docker, PyPI), การตั้งค่า DNS ภายใน (Technitium) และการทำ HTTPS ภายใน (Caddy)
+    * ครอบคลุมตั้งแต่การเตรียม Server, Docker/Portainer, Reverse Proxy + HTTPS (Caddy/NPM), GitLab + CI/CD, Registry, Security & Code Quality (OWASP ZAP, Trivy, SonarQube), API Docs (Swagger) ไปจนถึง DNS ภายใน (Technitium)
 
 2.  **สำหรับเจ้าภาพ (ผู้จัดการแข่งขัน):**
     * ใช้เป็น **"คู่มืออ้างอิง" (Host's Playbook)**
-    * ช่วยให้คณะกรรมการสามารถเตรียมสภาพแวดล้อม Server กลางสำหรับการแข่งขัน (เช่น Container Registry Server หรือ Git Server ได้อย่างถูกต้องและเป็นมาตรฐานเดียวกัน
+    * ช่วยให้คณะกรรมการสามารถเตรียมสภาพแวดล้อม Server กลางสำหรับการแข่งขัน (เช่น Container Registry Server, Git Server, หรือ Package Mirror สำหรับเครือข่ายที่ไม่มีอินเทอร์เน็ต) ได้อย่างถูกต้องและเป็นมาตรฐานเดียวกัน
 
 <div align="center">
   <img src="https://vecskill.bncc.ac.th/images/00-visio.png" alt="Project Architecture Diagram" width="700">
@@ -21,18 +21,18 @@
 ## 🚀 คุณสมบัติของหน้าเว็บ (Features)
 
 * **Responsive Design:** รองรับการแสดงผลบนทุกอุปกรณ์ (Desktop/Mobile)
-* **Dynamic Content Loading:** โหลดเนื้อหาแบบไดนามิกโดยใช้ JavaScript `fetch()` (ไม่โหลดหน้าใหม่)
+* **Dynamic Content Loading + Clean URL:** โหลดเนื้อหาแบบไดนามิกโดยใช้ JavaScript `fetch()` (ไม่โหลดหน้าใหม่) พร้อม URL จริงของแต่ละหน้า (เช่น `/docker`, `/gitlab`) ที่ Refresh/Bookmark/กด Back-Forward ได้ตามปกติ
 * **Collapsible Sidebar:** เมนูที่สามารถพับเก็บ/ขยายได้ (ทั้งแบบอัตโนมัติบนมือถือ และแบบ Manual บน Desktop)
 * **Copy Code Button:** ปุ่มคัดลอกโค้ดอัตโนมัติในทุกโค้ดบล็อก (`<pre>`)
-* **View Counter:** ระบบนับจำนวนการเข้าชมหน้าแต่ละหน้า (เก็บใน `localStorage`)
+* **Offline-First:** Asset หลัก (Font Awesome, jQuery, DataTables) และไฟล์ประกอบ (เช่น ภาษาไทยของ DataTables) ถูกเก็บไว้ในเครื่องทั้งหมด ไม่พึ่ง CDN ภายนอก เพื่อให้ใช้งานได้ในเครือข่ายปิดของสนามแข่งขัน
+* **View Counter:** ระบบนับจำนวนการเข้าชมหน้าแต่ละหน้า (เก็บลงฐานข้อมูล MySQL ผ่าน `api/track.php`, `api/stats.php`)
 * **Embedded Content:** รองรับการฝังเนื้อหาจากภายนอก เช่น Google Drive `<iframe>`
 
 ## 💻 เทคโนโลยีที่ใช้
 
-* **HTML5**
-* **CSS3** (Flexbox, Grid, Media Queries)
-* **Vanilla JavaScript (ES6+)** (Fetch API, DOM Manipulation, LocalStorage)
-* **Font Awesome** (สำหรับไอคอน)
+* **Frontend:** HTML5, CSS3 (Flexbox, Grid, Media Queries), Vanilla JavaScript (ES6+, Fetch API, History API), Font Awesome
+* **Backend:** PHP 8.2 + Apache (mod_rewrite สำหรับ Clean URL), MySQL 8.0
+* **Deployment:** Docker + Docker Compose (ดูหัวข้อติดตั้งด้านล่าง) หรือ XAMPP
 
 ---
 
@@ -68,16 +68,18 @@ docker compose up -d --build
 
 
 ### 📚 ทักษะ DevOps ที่ครอบคลุม (Core Skills Covered)
-ภาพรวม: สถาปัตยกรรม, ผังการเชื่อมต่อ, Google Drive Embed
 
-Server Setup: การเตรียม Ubuntu Server, Static IP, Firewall (UFW)
+* **ภาพรวม:** สถาปัตยกรรม, ผังการเชื่อมต่อ, Quick Start ด้วย VM สำเร็จรูป (VMWare)
+* **Server Setup:** การเตรียม Ubuntu Server, Static IP, ผู้ใช้งาน/SSH Key (รวม Windows↔Linux), Firewall (UFW)
+* **Containerization:** Docker, Portainer
+* **Reverse Proxy & HTTPS:** Caddy Reverse Proxy, Nginx Proxy Manager (ทางเลือก), Caddy Internal CA (HTTPS ภายใน)
+* **Source Control & Registry:** การติดตั้ง Docker Registry + UI, GitLab, การใช้งาน Git เบื้องต้น
+* **CI/CD:** GitLab Runner, GitLab CI/CD, ตัวอย่าง Pipeline (2 แบบ)
+* **Security & Code Quality:** OWASP ZAP (Security Scan), Trivy (Vulnerability Scan), SonarQube Community Edition (Code Quality), Swagger/OpenAPI (API Docs)
+* **Network Services:** Technitium DNS (ภายใน)
+* **Database Design Tool:** ChartDB
+* **IoT (ตามเงื่อนไขของแต่ละสนามแข่งขัน):** Node-RED + MQTT Broker (Mosquitto/EMQX), ตัวอย่าง ESP32 + BME/BMP280
+* **Offline Package Mirrors (สำหรับเจ้าภาพ):** Apt-Cacher-Ng, APT Mirror (Ubuntu), DNF Mirror (Rocky/CentOS), Node.js (ติดตั้งออนไลน์ + Local Repo แบบออฟไลน์), Devpi (Private PyPI), Verdaccio (Private NPM Registry)
+* **ตัวอย่างระบบ:** ระบบประเมินครู (PES), เกณฑ์การแข่งขัน (Hardware/Software ปวช./ปวส.)
 
-Containerization: การติดตั้ง Docker, Portainer
-
-DevOps Tools: GitLab, Git (Basic)
-
-Internal Services: Technitium DNS, Caddy (Internal CA), Apt-Cacher-Ng, Devpi (Private PyPI)
-
-ตัวอย่าง: ระบบประเมินครู (PES), เกณฑ์การแข่งขัน (ปวช./ปวส.), ตัวอย่าง IoT (ESP32 + MQTT)
-
-(กำลังพัฒนา): GitLab CI/CD, GitLab Runner,Verdaccio, Nginx Proxy Manager, Cloudflare
+> แต่ละหัวข้อจะระบุไว้ในหน้านั้นๆ ว่าตรงกับเกณฑ์การให้คะแนนของการแข่งขันโดยตรง, เป็นโครงสร้างพื้นฐานที่เจ้าภาพต้องเตรียม, หรือเป็นข้อมูลอ้างอิงเสริมที่ไม่ได้อยู่ในเกณฑ์การให้คะแนน
