@@ -64,8 +64,6 @@ Value/Points to: [IP_ADDRESS_ของ_SERVER_คุณ]</code></pre>
 
 <h3>ขั้นตอนที่ 2.2: โค้ด Docker Compose สำหรับ Stack</h3>
 <pre><code>
-version: '3.8'    # กำหนดเวอร์ชันของ Docker Compose ปัจจุบันไม่จำเป็นต้องระบุเวอร์ชันก็ได้
-
 networks:
   app_net:
     external: true
@@ -159,8 +157,30 @@ services:
 <hr style="margin: 40px 0;">
 
 <h2>ส่วนที่ 3: การตั้งค่า Client และวิธีการใช้งาน</h2>
+
+<h3 style="color: #28a745;">วิธีที่แนะนำ: Push ผ่าน HTTPS ที่เชื่อถือได้ (ปลอดภัยกว่า ไม่ต้องใช้ insecure-registries)</h3>
 <p>
-    ส่วนนี้จะเหมือนเดิมทุกประการ คุณยังคงต้องตั้งค่า <code>daemon.json</code> เพื่อให้ Docker Client ของคุณเชื่อใจ <code>registry.vecskill.ovec:5000</code> และใช้คำสั่ง `docker push` ตามปกติ
+    หากคุณได้ทำตามบท <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a> ไว้แล้ว (ตั้งให้ Caddy ทำ Reverse Proxy ให้ <code>registry.vecskill.ovec</code> แบบ
+    <code>tls internal</code> และติดตั้ง Root CA บนเครื่อง Client เรียบร้อย) Docker Client ของคุณจะ "เชื่อถือ" Certificate ของ <code>https://registry.vecskill.ovec</code> โดยอัตโนมัติ
+    <strong>ทำให้ไม่จำเป็นต้องตั้งค่า <code>insecure-registries</code> เลย</strong> ซึ่งปลอดภัยกว่าเพราะข้อมูล (รวมถึง Image) จะถูกเข้ารหัสระหว่างทาง
+</p>
+<p>
+    ข้อแตกต่างเดียวคือ <strong>ไม่ต้องใส่ Port <code>:5000</code></strong> ต่อท้ายชื่อโดเมน (เพราะ Caddy รับทราฟฟิกที่ Port 443 ตามปกติของ HTTPS แล้วส่งต่อไปยัง Registry ที่ Port 5000 ภายในให้เอง):
+</p>
+<ol>
+    <li><strong>Tag Image ใหม่ (ไม่มี :5000):</strong> <pre><code>docker tag ubuntu:latest registry.vecskill.ovec/devops-os:v1</code></pre></li>
+    <li><strong>Push Image ไปยัง Private Registry:</strong><pre><code>docker push registry.vecskill.ovec/devops-os:v1</code></pre></li>
+</ol>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+    <strong>หมายเหตุ:</strong> วิธีนี้ใช้ได้เฉพาะเครื่อง Client ที่ติดตั้ง Root CA ของ Caddy ไว้แล้วเท่านั้น (ทำตามขั้นตอนที่ 3 ในบท HTTPS ภายใน) หากเครื่องไหนยังไม่ได้ติดตั้ง ให้ใช้วิธีสำรองด้านล่างแทนไปก่อน
+</p>
+
+<hr style="margin: 30px 0;">
+
+<h3>วิธีสำรอง: Push ผ่าน Insecure Registry (HTTP เปล่าๆ บน Port 5000)</h3>
+<p>
+    ใช้วิธีนี้ในกรณีที่ยังไม่ได้ตั้งค่า Caddy Internal CA หรือต้องการทดสอบแบบเร็วๆ โดยไม่เข้ารหัส ข้อมูลที่ส่ง (รวมถึง Username/Password ถ้ามี) จะไม่ถูกเข้ารหัสระหว่างทาง
+    จึงควรใช้เฉพาะในเครือข่ายภายในที่เชื่อถือได้เท่านั้น คุณต้องตั้งค่า <code>daemon.json</code> เพื่อให้ Docker Client ของคุณเชื่อใจ <code>registry.vecskill.ovec:5000</code> ก่อน แล้วจึงใช้คำสั่ง `docker push` ตามปกติ
 </p>
 
 <h4 style="color: #c0392b;">ขั้นตอนการตั้งค่า Docker Daemon (เลือกทำตามระบบของคุณ)</h4>

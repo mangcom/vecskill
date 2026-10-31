@@ -263,8 +263,9 @@ Get-ChildItem Cert:\LocalMachine\Root | Where-Object Subject -like "*Caddy Local
         nginx['listen_https'] = false
         letsencrypt['enable'] = false
         gitlab_rails['gitlab_shell_ssh_port'] = 2222
-        # ถ้าเปิดใช้งาน Prometheus ใน GitLab ให้ปิดไป และถ้าใช้ ควรกำหนด shm_size ประมาณ 512m - 2g
-        prometheus_monitoring['enable'] = false 
+        # ปิด Prometheus monitoring ของ GitLab ไว้ (ไม่จำเป็นสำหรับการแข่งขัน ช่วยประหยัดทรัพยากร)
+        # หากต้องการเปิดใช้งาน ให้เปลี่ยนเป็น true และกำหนด shm_size ของ service gitlab ไว้ที่ประมาณ 512m - 2g ด้านล่าง
+        prometheus_monitoring['enable'] = false
         # เก็บ IP จริงเมื่อมี reverse proxy
         nginx['real_ip_header'] = 'X-Forwarded-For'
         nginx['real_ip_recursive'] = 'on'
