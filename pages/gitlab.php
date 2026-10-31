@@ -47,13 +47,11 @@ sudo mkdir -p /srv/gitlab/data</code></pre>
 <h3>ขั้นตอนที่ 2.1: สร้าง Docker volume</h3>
 <pre><code>sudo docker volume create gitlab_config
 sudo docker volume create gitlab_logs
-sufo docker volume create gitlab_data
+sudo docker volume create gitlab_data
 </code></pre>
 
 <h3>ขั้นตอนที่ 2.2: โค้ด Docker Compose สำหรับ Stack</h3>
-<pre><code>version: '3.8'
-
-services:
+<pre><code>services:
   gitlab:
     image: 'gitlab/gitlab-ce:latest'
     container_name: gitlab

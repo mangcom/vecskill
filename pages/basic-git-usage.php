@@ -69,7 +69,7 @@ echo "# Demo Task Project" >> README.md
 
 <h3>ขั้นตอนที่ 6: เปลี่ยนชื่อ Branch ให้เป็น main (`git branch`)</h3>
 <p>ใช้ -M เพื่อบังคับเปลี่ยนชื่อ branch เป็น main</p>
-<pre><code>git commit branch -M main</code></pre>
+<pre><code>git branch -M main</code></pre>
 
 <h3>ขั้นตอนที่ 7: Push โค้ดขึ้นไปยัง GitLab (`git push`)</h3>
 <p>
