@@ -20,9 +20,9 @@ document.addEventListener("DOMContentLoaded", function () {
       container.appendChild(pre);
       const copyButton = document.createElement("button");
       copyButton.className = "copy-btn";
-      // copyButton.innerHTML = '<i class="far fa-copy"></i>';
-      copyButton.innerHTML = "Copy";
-      copyButton.style.fontWeight = "bold"; //
+      copyButton.innerHTML = '<i class="far fa-copy"></i>';
+      // copyButton.innerHTML = "Copy";
+      // copyButton.style.fontWeight = "bold"; //
       copyButton.setAttribute("title", "Copy code");
       container.appendChild(copyButton);
       copyButton.addEventListener("click", () => {
@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
             copyButton.classList.add("copied");
             copyButton.setAttribute("title", "Copied!");
             setTimeout(() => {
-              //   copyButton.innerHTML = '<i class="far fa-copy"></i>';
-              copyButton.innerHTML = "Copied!";
+              copyButton.innerHTML = '<i class="far fa-copy"></i>';
+              // copyButton.innerHTML = "Copied!";
               copyButton.classList.remove("copied");
               copyButton.setAttribute("title", "Copy code");
             }, 2000);
