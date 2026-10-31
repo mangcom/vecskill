@@ -120,6 +120,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // --- (ส่วน Routing: ทำให้ URL ตรงกับหน้าที่เปิดอยู่ รองรับ Refresh / Back-Forward) ---
+  const DEFAULT_PAGE = "project-overview";
+
+  function pageFromPath(pathname) {
+    const clean = pathname.replace(/^\/+|\/+$/g, "");
+    if (!clean || clean === "index.php" || clean === "index.html") return DEFAULT_PAGE;
+    return clean;
+  }
+
+  function setActiveMenuItem(page) {
+    menuItems.forEach((item) => item.classList.remove("active"));
+    const activeLink = mainMenu.querySelector(`a[data-page="${page}"]`);
+    if (activeLink) {
+      activeLink.closest("li").classList.add("active");
+    }
+  }
+
   // --- (ฟังก์ชัน loadContent อัปเดตใหม่) ---
   function loadContent(page) {
     contentDisplay.innerHTML = '<h1><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</h1>';
@@ -136,10 +153,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     // --- End View Counting Logic ---
 
-    fetch(`pages/${page}.html`)
+    fetch(`pages/${page}.php`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`ไม่พบไฟล์: ${page.html}`);
+          throw new Error(`ไม่พบไฟล์: ${page}.php`);
         }
         return response.text();
       })
@@ -155,6 +172,18 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("เกิดข้อผิดพลาด:", error);
         contentDisplay.innerHTML = `<h1>เกิดข้อผิดพลาด</h1><p>${error.message}</p>`;
       });
+  }
+
+  // --- นำทางไปหน้าใหม่ พร้อมอัปเดต URL แบบ Clean URL (ไม่มี .php, ไม่ reload หน้า) ---
+  function navigateTo(page, { pushState = true } = {}) {
+    setActiveMenuItem(page);
+    loadContent(page);
+    const url = page === DEFAULT_PAGE ? "/" : `/${page}`;
+    if (pushState) {
+      history.pushState({ page }, "", url);
+    } else {
+      history.replaceState({ page }, "", url);
+    }
   }
 
   // --- (ส่วนที่เหลือของ script.js ... toggle functions, event listeners ... เหมือนเดิม) ---
@@ -178,17 +207,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const link = event.target.closest("a");
     if (link && link.hasAttribute("data-page")) {
       event.preventDefault();
-      menuItems.forEach((item) => item.classList.remove("active"));
-      link.closest("li").classList.add("active");
       const page = link.getAttribute("data-page");
-      loadContent(page);
+      navigateTo(page);
       if (window.innerWidth <= 800 && body.classList.contains("sidebar-visible")) {
         toggleMobileSidebar();
       }
     }
   });
 
-  loadContent("project-overview"); // โหลดหน้าแรก
+  // --- ปุ่ม Back/Forward ของเบราว์เซอร์ ---
+  window.addEventListener("popstate", function (event) {
+    const page = (event.state && event.state.page) || pageFromPath(window.location.pathname);
+    setActiveMenuItem(page);
+    loadContent(page);
+  });
+
+  navigateTo(pageFromPath(window.location.pathname), { pushState: false }); // โหลดหน้าแรกตาม URL ปัจจุบัน (รองรับ Refresh)
 
   contentDisplay.addEventListener("click", function (event) {
     if (event.target.classList.contains("tablinks")) {

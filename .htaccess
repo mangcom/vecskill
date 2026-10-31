@@ -1,0 +1,13 @@
+# Clean URL สำหรับ SPA: /docker, /portainer ฯลฯ -> index.php
+# ไฟล์/โฟลเดอร์ที่มีอยู่จริง (css, js, images, pages/*.php, api/*.php) ให้ผ่านไปตามปกติ
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# pages/ และ api/ เป็น endpoint ภายในที่ JS fetch() เรียกตรงๆ
+# ถ้าไฟล์ไม่มีจริงให้ 404 ตามปกติ ห้าม fallback ไป index.php (ไม่งั้น JS จะได้ทั้งหน้า SPA แทน error)
+RewriteRule ^(pages|api)/ - [L]
+
+# เส้นทางอื่นๆ ทั้งหมด (Clean URL เช่น /docker, /portainer) -> index.php
+RewriteRule ^ index.php [L]
