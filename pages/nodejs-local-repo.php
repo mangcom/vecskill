@@ -7,6 +7,11 @@
   <strong>แนวคิด:</strong> เราจะดาวน์โหลดไฟล์ติดตั้ง (.deb) ของ Node.js มาเก็บไว้ที่ Server แล้วใช้คำสั่ง <code>dpkg-scanpackages</code> สร้างสารบัญ (Index) ขึ้นมาเอง
   เพื่อให้เครื่องลูกข่ายมองเห็นโฟลเดอร์นี้เป็น Repository
 </p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+    <strong>ทำไมต้องมีหน้านี้แยกจาก Apt-Cacher-Ng?</strong> เพราะ NodeSource Repository เป็น HTTPS ล้วน ซึ่ง Apt-Cacher-Ng ได้แค่ "ส่งผ่าน" (Tunnel) ไม่ได้แคชไฟล์จริง
+    (ดูหัวข้อ <a href="#" onclick="document.querySelector('a[data-page=\'apt-cacher-ng\']').click();">Apt-Cacher-Ng</a>) ถ้าอินเทอร์เน็ตถูกตัดแล้ว เครื่องที่ยังไม่เคยติดตั้ง Node.js จะติดตั้งผ่าน Apt-Cacher-Ng
+    ไม่ได้อีก วิธีในหน้านี้คือการสร้าง Repository ของเราเองแบบ HTTP ธรรมดา (ไม่ต้องพึ่ง HTTPS ของ NodeSource อีกต่อไป) จึงใช้งานได้แน่นอนแม้ไม่มีอินเทอร์เน็ตแล้ว
+</p>
 
 <hr style="margin: 40px 0" />
 
@@ -18,8 +23,25 @@
 sudo apt install dpkg-dev nginx -y</code></pre>
 
 <h3>1.2 เพิ่ม NodeSource Repository ลงในเครื่อง Server</h3>
-<p>เลือกเวอร์ชันที่ต้องการ เช่น เวอร์ชัน 22 (LTS ล่าสุด) เพื่อให้ Server มีสิทธิ์สั่งดาวน์โหลดไฟล์ตัวล่าสุด</p>
-<pre><code>curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -</code></pre>
+<p>
+  เพิ่ม Repository ของ NodeSource ด้วยวิธี Manual (ปลอดภัยกว่าการสั่ง <code>curl | sudo bash</code> ตรงๆ เพราะเราเห็นเนื้อหาที่ดาวน์โหลดมาก่อนนำไปใช้งานจริง)
+  เลือกเวอร์ชันที่ต้องการผ่านตัวแปร <code>NODE_MAJOR</code> (ตัวอย่างนี้ใช้ 24 ซึ่งเป็น LTS ปัจจุบัน) วิธีนี้เหมือนกับที่ใช้ในหัวข้อ
+  <a href="#" onclick="document.querySelector('a[data-page=\'nodejs-install\']').click();">การติดตั้ง Node.js (Online)</a> ทุกประการ
+</p>
+<pre><code>sudo apt install -y ca-certificates curl gnupg
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+NODE_MAJOR=24
+sudo tee /etc/apt/sources.list.d/nodesource.sources > /dev/null <<EOF
+Types: deb
+URIs: https://deb.nodesource.com/node_${NODE_MAJOR}.x/
+Suites: nodistro
+Components: main
+Signed-By: /etc/apt/keyrings/nodesource.gpg
+EOF
+
+sudo apt update</code></pre>
 
 <h3>1.3 สร้างโฟลเดอร์สำหรับเก็บไฟล์</h3>
 <p>เราจะใช้โฟลเดอร์นี้เป็นที่อยู่ของ Repository ของเรา</p>
@@ -104,6 +126,10 @@ deb [trusted=yes] http://10.20.30.101/nodejs-local ./</code></pre>
 </div>
 <p style="color: #666; font-size: 0.9em">
   <em>สังเกต: ด้านหลังสุดเป็น <code>./</code> (เว้นวรรค จุด สแลช) ไม่ต้องใส่ main หรือ noble เหมือน repo ปกติ</em>
+</p>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+    <strong>ข้อควรระวัง:</strong> <code>[trusted=yes]</code> ปิดการตรวจสอบลายเซ็นของแพ็กเกจทั้งหมดจาก Repo นี้ APT จึงไม่สามารถยืนยันได้ว่าไฟล์ไม่ถูกแก้ไขระหว่างทาง ยอมรับได้เฉพาะในเครือข่ายภายในที่ควบคุมได้
+    (เช่นในการแข่งขัน) เท่านั้น ไม่ควรใช้วิธีนี้กับ Repository ที่เข้าถึงผ่านเครือข่ายสาธารณะ
 </p>
 
 <hr style="margin: 40px 0" />

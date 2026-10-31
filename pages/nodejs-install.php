@@ -1,6 +1,7 @@
-<h1>การติดตั้ง Node.js 22 (LTS) บน Ubuntu 24.04</h1>
+<h1>การติดตั้ง Node.js 24 (LTS) บน Ubuntu 24.04</h1>
 <p>
-    Node.js คือ Runtime Environment สำหรับรัน JavaScript ฝั่ง Server ในคู่มือนี้เราจะติดตั้ง <strong>Node.js เวอร์ชัน 22 (LTS - Long Term Support)</strong> ซึ่งเป็นเวอร์ชันที่เสถียรและแนะนำสำหรับการใช้งานจริง
+    Node.js คือ Runtime Environment สำหรับรัน JavaScript ฝั่ง Server ในคู่มือนี้เราจะติดตั้ง <strong>Node.js เวอร์ชัน 24 (LTS - Long Term Support)</strong> ซึ่งเป็นเวอร์ชันที่เสถียรและแนะนำสำหรับการใช้งานจริงในปัจจุบัน
+    (เกณฑ์การแข่งขันกำหนดขั้นต่ำไว้ที่ Node 18 ขึ้นไป แนะนำให้ใช้เวอร์ชัน LTS ล่าสุดเสมอเพื่อความปลอดภัยและ Ecosystem ที่สมบูรณ์กว่า)
 </p>
 <p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px;">
     <strong>ทำไมต้อง NodeSource?</strong><br>
@@ -45,11 +46,21 @@ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg 
 
 <h3>3.2 เพิ่ม Repository ลงใน Sources List</h3>
 <p>
-    สร้างไฟล์ <code>nodesource.list</code> เพื่อชี้เป้าไปยัง Server ของ NodeSource
+    สร้างไฟล์ <code>nodesource.sources</code> (รูปแบบ DEB822 ซึ่งเป็นวิธีที่ NodeSource แนะนำในเอกสารทางการปัจจุบัน) เพื่อชี้เป้าไปยัง Server ของ NodeSource
+    กำหนดตัวแปร <code>NODE_MAJOR</code> ไว้ด้านบนเพื่อให้เปลี่ยนเวอร์ชันได้ง่ายในที่เดียว
 </p>
-<pre><code>echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list</code></pre>
+<pre><code>NODE_MAJOR=24
+
+sudo tee /etc/apt/sources.list.d/nodesource.sources > /dev/null <<EOF
+Types: deb
+URIs: https://deb.nodesource.com/node_${NODE_MAJOR}.x/
+Suites: nodistro
+Components: main
+Signed-By: /etc/apt/keyrings/nodesource.gpg
+EOF</code></pre>
 <p style="font-size: 0.9em; color: #666;">
-    <em>เกร็ดความรู้: คำว่า <code>nodistro</code> ในคำสั่ง หมายถึงใช้ได้กับทุก Distro (Ubuntu/Debian) โดยไม่ต้องระบุชื่อรุ่น (เช่น noble หรือ jammy) ทำให้คำสั่งนี้ใช้ได้กับ Ubuntu ทุกเวอร์ชัน</em>
+    <em>เกร็ดความรู้: คำว่า <code>nodistro</code> ในคำสั่ง หมายถึงใช้ได้กับทุก Distro (Ubuntu/Debian) โดยไม่ต้องระบุชื่อรุ่น (เช่น noble หรือ jammy) ทำให้คำสั่งนี้ใช้ได้กับ Ubuntu ทุกเวอร์ชัน
+    ต้องการเวอร์ชันอื่น เช่น Node 26 (LTS ล่าสุด) หรือ Node 22 (ยังอยู่ใน Maintenance) แค่เปลี่ยนค่า <code>NODE_MAJOR</code> ด้านบนแล้วรันซ้ำ</em>
 </p>
 
 <hr style="margin: 40px 0;">
@@ -72,10 +83,10 @@ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg 
 <h3>5.1 ตรวจสอบเวอร์ชัน</h3>
 <p>เช็คว่าติดตั้งสำเร็จหรือไม่</p>
 <pre><code>node -v
-# ควรขึ้น v22.x.x
+# ควรขึ้น v24.x.x
 
 npm -v
-# ควรขึ้น 10.x.x</code></pre>
+# ควรขึ้น 10.x.x หรือใหม่กว่า</code></pre>
 
 <h3>5.2 (แนะนำเพิ่ม) ติดตั้ง Build Tools</h3>
 <p>
