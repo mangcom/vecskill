@@ -299,13 +299,12 @@ code {
 
 /* ปรับความกว้างของ Code Block ในตารางให้ดูสวยขึ้น */
 /* .spec-table code {
-  white-space: pre-wrap; /* ให้ Code ขึ้นบรรทัดใหม่ได้ถ้าตกขอบ */
+  white-space: pre-wrap;
   display: block;
   background-color: #f4f4f4;
   padding: 5px;
   border-radius: 4px;
 } */
-/* <<< ลบ } ที่เกินมาตรงนี้ */
 /* --- ส่วนเพิ่มใหม่สำหรับปุ่ม Copy Code --- */
 
 /* 1. กรอบสำหรับ pre และ button */

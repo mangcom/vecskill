@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
         info: true,
         responsive: true, // รองรับการแสดงผลบนมือถือ
         language: {
-          url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json", // ใช้ภาษาไทย
+          url: "assets/i18n/datatables-th.json", // ใช้ภาษาไทย (เก็บไฟล์ไว้ในเครื่อง รองรับการทำงานแบบ Offline)
         },
       });
     } catch (error) {
