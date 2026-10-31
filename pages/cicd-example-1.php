@@ -6,8 +6,7 @@
 <h2>1. Docker Compose (Production)</h2>
 <p>ไฟล์ <code>docker-compose.yaml</code> สำหรับรันบนเครื่อง Production</p>
 
-<pre><code class="language-yaml">version: "3.9"
-services:
+<pre><code class="language-yaml">services:
   db:
     image: mysql:8
     container_name: db

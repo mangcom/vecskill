@@ -16,9 +16,7 @@ root@dev:/# cd gitlab-runner/</code></pre>
 <h3>1.2 สร้างไฟล์ docker-compose.yml</h3>
 <p><code>root@dev:/gitlab-runner# vi docker-compose.yml</code></p>
 <div class="code-container">
-<pre><code class="language-yaml">version: '3.8'
-
-services:
+<pre><code class="language-yaml">services:
   gitlab-runner:
     image: gitlab/gitlab-runner:latest
     container_name: gitlab-runner
@@ -32,7 +30,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
     extra_hosts:
-      # ชี้ชื่อ Host ไปยัง IP ของ GitLab/Registry 192.168.20.106
+      # ชี้ชื่อ Host ไปยัง IP ของ GitLab/Registry (แก้ IP ให้ตรงกับเครื่อง Dev Server จริงของคุณ)
       - "gitlab.vecskill.ovec:192.168.20.106"
       - "registry.vecskill.ovec:192.168.20.106"
 
