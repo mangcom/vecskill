@@ -20,38 +20,40 @@
   <p>หน้าจอแสดง Registration Token ใน GitLab Admin Area</p>
 </div>
 
-<p>สร้าง Directory สำหรับ Config Gitlab Runner</p>
-<pre><code> mkdir -p /opt/gitlab-runner</code></pre>
+<p>สร้าง Docker Volume สำหรับเก็บ Config ของ Runner (ให้ข้อมูลไม่หายไปเมื่อสร้าง Container ใหม่)</p>
+<pre><code>docker volume create gitlab_runner_config</code></pre>
 
 <hr style="margin: 40px 0" />
 
 <h2>2. ติดตั้งผ่าน Portainer Stack</h2>
 <p>เราจะติดตั้ง Runner ใน Network เดียวกับ GitLab (`app_net`) และ Mount Volume ที่จำเป็น</p>
 
-<!-- <h3>2.1 สร้าง Volume สำหรับเก็บ Config</h3>
-<pre><code>docker volume create gitlab_runner_config</code></pre> -->
-
-<h3>2.2 สร้าง Stack (`runner-stack`)</h3>
+<h3>2.1 สร้าง Stack (`runner-stack`)</h3>
 <p>ไปที่ Portainer > Stacks > + Add stack และใช้โค้ดนี้:</p>
 
-<pre><code>
-services:
+<pre><code>services:
   gitlab-runner:
     image: gitlab/gitlab-runner:latest
-    container_name: gitlab_runner
+    container_name: gitlab-runner
     restart: always
     networks:
       - app_net
     volumes:
-      - /opt/gitlab-runner:/etc/gitlab-runner # เก็บ config.toml
+      # เก็บ config.toml ไว้ถาวรใน Volume
+      - gitlab_runner_config:/etc/gitlab-runner
+      # (สำคัญ) เชื่อมต่อ Docker Socket เพื่อให้ Runner สั่งงาน Docker ได้
       - /var/run/docker.sock:/var/run/docker.sock
-      # (ทางเลือก) ถ้าใช้ Internal CA สำหรับ HTTPS
-      - /opt/caddy/caddy-root.crt:/usr/local/share/ca-certificates/caddy-root.crt:ro 
-    environment:
-      - DOCKER_HOST=unix:///var/run/docker.sock
+    # (ทางเลือก) ใช้เฉพาะกรณี DNS ภายใน (Technitium) ยังไม่พร้อม หรือทดสอบนอก Network เดียวกัน
+    # extra_hosts:
+    #   - "gitlab.vecskill.ovec:172.16.3.101"
+    #   - "registry.vecskill.ovec:172.16.3.101"
 
 networks:
   app_net:
+    external: true
+
+volumes:
+  gitlab_runner_config:
     external: true
 </code></pre>
 <p>คลิก <strong>Deploy the stack</strong></p>
@@ -75,7 +77,7 @@ networks:
     <ul>
       <li>
         <strong>GitLab instance URL:</strong>
-        <code>http://gitlab</code>
+        <code>https://gitlab.vecskill.ovec</code> (หรือ <code>http://gitlab</code> ถ้า Runner อยู่ใน Network <code>app_net</code> เดียวกันและยังไม่ได้ทำ HTTPS)
       </li>
       <li><strong>Registration token:</strong> (วาง Token ที่ได้จากขั้นตอนที่ 1)</li>
       <li>
@@ -85,7 +87,7 @@ networks:
       <li><strong>Tags:</strong> <code>docker,build</code> (สำคัญ! ต้องตรงกับที่เรียกใช้ใน Pipeline)</li>
       <li><strong>Maintenance note:</strong> (กด Enter ข้าม)</li>
       <li><strong>Executor:</strong> พิมพ์ว่า <code>docker</code></li>
-      <li><strong>Default Docker image:</strong> พิมพ์ว่า <code>node:22</code> (หรือ image ที่จะใช้งาน เช่น registry.vecskill.ovec:5000/node:22)</li>
+      <li><strong>Default Docker image:</strong> พิมพ์ว่า <code>docker:24.0.5</code> (หรือ image อื่นที่ต้องการให้เป็นค่าเริ่มต้น)</li>
     </ul>
   </li>
 </ol>
@@ -95,52 +97,33 @@ networks:
 
 <h2>4. การปรับแต่ง Config (สำคัญมาก!)</h2>
 <p>
-  ค่าเริ่มต้นของการ Register อาจยังไม่เพียงพอสำหรับการ Build Docker Image (Docker-in-Docker) หรือการเชื่อมต่อ HTTPS ภายใน เราต้องแก้ไขไฟล์
-  <code>config.toml</code>
+  ค่าเริ่มต้นของการ Register ยังไม่เพียงพอสำหรับการ Build Docker Image ด้วยเทคนิค Docker-in-Docker (ตามที่ใช้ในบทการทำ CI/CD) เราต้องแก้ไขไฟล์
+  <code>config.toml</code> เพื่อเปิดสิทธิ์ <code>privileged</code> ให้ Runner ก่อน ไม่เช่นนั้น Job ที่เรียกใช้ <code>docker:dind</code> จะ Build/Push Image ไม่ได้
 </p>
 <ol>
   <li>
     <strong>แก้ไขไฟล์ config:</strong> (ยังอยู่ใน Console ของ gitlab-runner)
-    <pre><code>nano /opt/gitlab-runner/config.toml</code></pre>
+    <pre><code>nano /etc/gitlab-runner/config.toml</code></pre>
     (หากไม่มี nano ให้ติดตั้งก่อน:
     <code>apt-get update && apt-get install -y nano</code>)
   </li>
   <li>
     <strong>ปรับแก้ค่าในส่วน <code>[runners.docker]</code> ดังนี้:</strong>
-    <pre><code class="language-toml">concurrent = 1
-check_interval = 0
-shutdown_timeout = 0
-
-[session_server]
-  session_timeout = 1800
-
-[[runners]]
+    <pre><code class="language-toml">[[runners]]
   name = "docker-runner-01"
-  url = "http://gitlab" 
-  # clone_url = "http://gitlab" # บังคับให้ Clone ผ่านชื่อ Container ในวงภายใน ในกรณีที่มีปัญหา SSL
-  id = 39
-  token = "<GITLAB_TONEN_VALUE>"
-  token_obtained_at = 2025-12-12T07:41:56Z
-  token_expires_at = 0001-01-01T00:00:00Z
+  url = "https://gitlab.vecskill.ovec"
+  # ... (ค่าอื่นๆ ที่ gitlab-runner register สร้างไว้ให้แล้ว เช่น id, token, token_obtained_at ไม่ต้องแก้) ...
   executor = "docker"
-  [runners.cache]
-    MaxUploadedArchiveSize = 0
-    [runners.cache.s3]
-    [runners.cache.gcs]
-    [runners.cache.azure]
   [runners.docker]
-    host = "unix:///var/run/docker.sock"
-    tls_verify = false
-    image = "node:22"
-    privileged = false
+    tls_verify = false  # (1) ปิดตรวจสอบ SSL หากใช้ Self-signed/Internal CA
+    image = "docker:24.0.5"
+    privileged = true   # (2) สำคัญที่สุด! ต้องเป็น true เพื่อให้ Build Docker Image (Docker-in-Docker) ได้
     disable_entrypoint_overwrite = false
     oom_kill_disable = false
     disable_cache = false
-    #volumes = ["/cache"]
-    shm_size = 0
-    network_mtu = 0
-    volumes = ["/cache","/var/run/docker.sock:/var/run/docker.sock"]
-    network_mode = "app_net" # เพิ่มตัวนี้ สำคัญ</code></pre>
+    volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"] # (3) Mount Socket
+    pull_policy = ["if-not-present"] # (4) ช่วยประหยัดเน็ต ไม่โหลด image ซ้ำถ้ามีอยู่แล้ว
+    # ...</code></pre>
   </li>
   <li>
     <strong>(ทางเลือก) แก้ปัญหา HTTPS/Clone ไม่ได้:</strong><br />
