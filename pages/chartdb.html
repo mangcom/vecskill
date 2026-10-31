@@ -119,12 +119,10 @@ networks:
       </td>
       <td>ใช้คำว่า <code>Table</code> ตามด้วยชื่อตาราง และเปิด-ปิดด้วยปีกกา <code>{ }</code></td>
       <td>
-        <pre>
-Table users {
+        <pre><code>Table users {
   id int
   username varchar
-}</pre
-        >
+}</code></pre>
       </td>
     </tr>
     <tr>
@@ -133,12 +131,10 @@ Table users {
       </td>
       <td>ใส่ข้อความ <code>[pk]</code> หรือ <code>[primary key]</code> ไว้ท้ายชื่อฟิลด์ข้อมูล</td>
       <td>
-        <pre>
-Table products {
+        <pre><code>Table products {
   id int [pk]
   name varchar
-}</pre
-        >
+}</code></pre>
       </td>
     </tr>
     <tr>
@@ -147,12 +143,10 @@ Table products {
       </td>
       <td>ระบุเงื่อนไขในวงเล็บเหลี่ยม <code>[ ]</code> เช่น <code>[not null]</code>, <code>[unique]</code>, <code>[increment]</code></td>
       <td>
-        <pre>
-Table users {
+        <pre><code>Table users {
   email varchar [unique, not null]
   id int [pk, increment]
-}</pre
-        >
+}</code></pre>
       </td>
     </tr>
     <tr>
@@ -161,11 +155,9 @@ Table users {
       </td>
       <td>ใช้คำสั่ง <code>[default: value]</code> สำหรับฟังก์ชันระบบให้ใช้สัญลักษณ์ backtick (`)</td>
       <td>
-        <pre>
-Table orders {
+        <pre><code>Table orders {
   status varchar [default: 'pending']
-  created_at timestamp [default: `now()`]</pre
-        >
+  created_at timestamp [default: `now()`]</code></pre>
       </td>
     </tr>
     <tr>
@@ -174,12 +166,10 @@ Table orders {
       </td>
       <td>ใช้สัญลักษณ์ <code>&gt;</code> หมายถึง ฝั่งซ้ายมีได้หลายรายการ (Many) ลิงก์ไปหาฝั่งขวาที่มีรายการเดียว (One)</td>
       <td>
-        <pre>
-Table posts {
+        <pre><code>Table posts {
   id int [pk]
   user_id int [ref: > users.id]
-}</pre
-        >
+}</code></pre>
       </td>
     </tr>
     <tr>
@@ -188,7 +178,7 @@ Table posts {
       </td>
       <td>เขียนกำหนดความสัมพันธ์แยกออกมาด้านนอกตาราง โดยใช้คำสำคัญ <code>Ref:</code></td>
       <td>
-        <pre>Ref: posts.user_id > users.id</pre>
+        <pre><code>Ref: posts.user_id > users.id</code></pre>
       </td>
     </tr>
     <tr>
@@ -197,12 +187,10 @@ Table posts {
       </td>
       <td>ใช้คำสั่ง <code>[note: "ข้อความ"]</code> ภายในฟิลด์ หรือใช้คอมเมนต์โค้ดด้วย <code>//</code> (ไม่ควรเขียนไว้บรรทัดแรกสุดใน ChartDB)</td>
       <td>
-        <pre>
-Table products {
+        <pre><code>Table products {
   status int [note: "1=Active, 0=Inactive"]
 }
-// นี่คือคอมเมนต์อธิบายโค้ด</pre
-        >
+// นี่คือคอมเมนต์อธิบายโค้ด</code></pre>
       </td>
     </tr>
   </tbody>

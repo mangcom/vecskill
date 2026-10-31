@@ -72,8 +72,26 @@ portainer/portainer-ce:latest</code>
         <em>(<strong>หมายเหตุ:</strong> เบราว์เซอร์อาจจะแจ้งเตือนว่าการเชื่อมต่อไม่ปลอดภัย เนื่องจากเรายังไม่ได้ติดตั้ง SSL Certificate ให้คลิก "Advanced" และ "Proceed" เพื่อเข้าสู่หน้าเว็บ)</em>
     </li>
     <li>
+        <strong>ดึง Initial Token จาก Docker Logs:</strong><br>
+        Portainer เวอร์ชันใหม่ (เพื่อความปลอดภัย ป้องกันไม่ให้คนอื่นที่เข้าหน้า Setup ได้ก่อนมาสร้างบัญชี Admin แทนเรา) จะกำหนดให้ต้องกรอก <strong>Initial Admin Token</strong> ก่อนจะสร้างบัญชีผู้ดูแลระบบได้ โดย Token นี้จะถูกสร้างขึ้นอัตโนมัติและพิมพ์ไว้ใน log ของ Container ตอนเริ่มทำงานครั้งแรก
+        <br>ให้เปิด Terminal/Command Prompt บนเครื่อง Server แล้วรันคำสั่งเพื่อดู Token:
+        <pre><code>docker logs portainer</code></pre>
+        <p>
+            หรือถ้า log มีข้อความเยอะ ให้กรองดูเฉพาะบรรทัดที่มีคำว่า token (Linux/Mac หรือ WSL):
+        </p>
+        <pre><code>docker logs portainer 2>&amp;1 | grep -i token</code></pre>
+        <p>
+            สำหรับ Windows PowerShell:
+        </p>
+        <pre><code>docker logs portainer 2>&amp;1 | Select-String -Pattern "token"</code></pre>
+        <ul>
+            <li>คัดลอกค่า Token ที่แสดงอยู่ (เป็นข้อความยาวๆ) เก็บไว้</li>
+            <li><strong>ข้อควรระวัง:</strong> Token นี้จะหมดอายุหลังจากสร้าง Container ไปแล้วสักระยะ (ปกติประมาณ 5 นาที) หากกรอกไม่ทันหรือ Token หมดอายุ ให้ลบ Container เดิมแล้วสร้างใหม่ (<code>docker rm -f portainer</code> แล้วรันคำสั่งสร้าง Container ตามขั้นตอนด้านบนอีกครั้ง) จากนั้นดู Token ใหม่แล้วรีบกรอกให้ทันเวลา</li>
+        </ul>
+    </li>
+    <li>
         <strong>สร้างบัญชีผู้ดูแลระบบ (Admin):</strong><br>
-        ในครั้งแรกที่เข้าใช้งาน Portainer จะให้เราสร้างบัญชีผู้ดูแลระบบ ให้กำหนด Username และรหัสผ่านที่คาดเดายาก แล้วกด "Create user"
+        ในครั้งแรกที่เข้าใช้งาน Portainer จะให้เรานำ Token ที่คัดลอกมาวางในช่อง "Initial admin token" ก่อน จากนั้นกำหนด Username และรหัสผ่านที่คาดเดายาก แล้วกด "Create user"
     </li>
     <li>
         <strong>เชื่อมต่อกับ Docker Environment:</strong><br>
