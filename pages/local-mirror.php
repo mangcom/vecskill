@@ -4,7 +4,12 @@
   <strong>ไม่ต้องเชื่อมต่ออินเทอร์เน็ตเลย (Offline 100%)</strong>
 </p>
 <p style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 15px">
-  <strong>⚠️ ข้อควรระวัง:</strong> การ Mirror Repositories เพิ่มเติม (Docker, GitLab, etc.) จะใช้พื้นที่ฮาร์ดดิสก์เพิ่มขึ้นอีกมาก ควรเตรียมพื้นที่ว่างให้เพียงพอ (แนะนำ 500GB+)
+  <strong>⚠️ ข้อควรระวัง:</strong> การ Mirror ทั้ง Ubuntu Base (main+restricted+universe+multiverse) และ Repositories เพิ่มเติม (Docker, GitLab, etc.) ใช้พื้นที่ฮาร์ดดิสก์เยอะมาก
+  ในทางปฏิบัติมักอยู่ที่ <strong>600GB–1TB ขึ้นไป</strong> ไม่ใช่แค่ 500GB ควรเผื่อพื้นที่ว่างให้มากกว่านั้น และเผื่อเวลาดาวน์โหลดหลายชั่วโมงถึงเป็นวัน แล้วแต่ความเร็วอินเทอร์เน็ต
+</p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+    <strong>ควรใช้วิธีนี้เมื่อไหร่:</strong> หน้านี้เหมาะกับกรณี Server ของคุณ<strong>ไม่มีทางเข้าถึงอินเทอร์เน็ตได้เลยแม้แต่ตอนเตรียมงาน</strong> (Air-gapped จริงๆ) เท่านั้น ถ้ายังพอมีอินเทอร์เน็ตให้ใช้ช่วงเตรียมงาน
+    การใช้ <a href="#" onclick="document.querySelector('a[data-page=\'apt-cacher-ng\']').click();">Apt-Cacher-Ng</a> แล้วอุ่นแคชล่วงหน้า มักเพียงพอและประหยัดพื้นที่/เวลากว่ามาก
 </p>
 
 <hr style="margin: 40px 0" />
@@ -33,14 +38,17 @@ deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe mult
 # deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
 
 # --- External 3rd Party Repositories ---
+# หมายเหตุ: Node.js ไม่ได้รวมไว้ที่นี่ เพราะมีคู่มือแยกเฉพาะอยู่แล้วที่หัวข้อ Node.js Local Repo
 
-# 1. Docker CE
+# 1. Docker CE (ใช้จริงตามคู่มือหัวข้อการติดตั้ง Docker)
 deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable
 
 # 2. Jenkins (LTS Version)
 deb https://pkg.jenkins.io/debian-stable binary/
 
 # 3. GitLab CE (Community Edition)
+# หมายเหตุ: คู่มือหลักติดตั้ง GitLab ผ่าน Docker Container ไม่ใช่ผ่าน apt
+# ส่วนนี้มีไว้เผื่อกรณีต้องการติดตั้งแบบ Native/Omnibus แทน Docker เท่านั้น
 deb [arch=amd64] https://packages.gitlab.com/gitlab/gitlab-ce/ubuntu/ noble main
 
 # 4. GitLab Runner (เพิ่มใหม่)
@@ -66,8 +74,9 @@ clean https://packages.gitlab.com/runner/gitlab-runner/ubuntu/
     <pre><code># Docker Key
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /var/www/html/keys/docker.gpg
 
-# Jenkins Key
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo gpg --dearmor -o /var/www/html/keys/jenkins.gpg
+# Jenkins Key (Jenkins หมุนเวียนคีย์เป็นระยะ ชื่อไฟล์จะมีปีต่อท้าย
+# เช็กชื่อไฟล์ล่าสุดได้ที่ https://pkg.jenkins.io/debian-stable/ ก่อนรันจริงเสมอ)
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key | sudo gpg --dearmor -o /var/www/html/keys/jenkins.gpg
 
 # Node.js Key
 # curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /var/www/html/keys/nodesource.gpg
@@ -113,6 +122,11 @@ wget -O- http://10.20.30.101/keys/gitlab.gpg | sudo tee /etc/apt/keyrings/gitlab
 wget -O- http://10.20.30.101/keys/gitlab-runner.gpg | sudo tee /etc/apt/keyrings/gitlab-runner.gpg</code></pre>
 
 <h3>2.2 ตั้งค่า Sources List</h3>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+    <strong>สำคัญ (เครื่อง Client ที่เป็น Ubuntu 24.04 ขึ้นไป):</strong> ต้องปิด/ลบไฟล์ Source เริ่มต้นที่ยังชี้ไปหาอินเทอร์เน็ตจริงก่อน ไม่งั้น <code>apt update</code> จะพยายามต่อออกอินเทอร์เน็ตไปหา
+    <code>archive.ubuntu.com</code> ด้วยเสมอ (ซึ่งเครื่องนี้ไม่มีทางต่อได้) ทำให้ขึ้น Error ทุกครั้งแม้ว่า Source อื่นจะใช้งานได้ปกติ:
+    <pre><code>sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak</code></pre>
+</p>
 <p>
   <strong>สำหรับ Ubuntu Base (`/etc/apt/sources.list`):</strong>
 </p>

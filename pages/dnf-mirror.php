@@ -7,6 +7,10 @@
   <strong>Concept:</strong> เราจะใช้เครื่องมือ <code>dnf</code> บน Ubuntu เพื่อดาวน์โหลดแพ็กเกจ (.rpm) มาเก็บไว้ใน Web Root ของ Apache2 (<code>/var/www/html</code>)
   เพื่อให้เครื่องลูกข่ายดึงไปติดตั้งได้ทันที
 </p>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+    <strong>⚠️ ไม่อยู่ในเกณฑ์การแข่งขัน:</strong> เกณฑ์ทักษะของการแข่งขันนี้ระบุให้ใช้ระบบปฏิบัติการ <strong>Ubuntu หรือ Debian เท่านั้น</strong> สำหรับเครื่องของผู้เข้าแข่งขัน ไม่มี Rocky Linux หรือ CentOS
+    อยู่ในขอบเขตที่ให้คะแนน หน้านี้จึงไม่จำเป็นสำหรับการเตรียมตัวแข่งขันโดยตรง แต่เก็บไว้เป็นข้อมูลอ้างอิงเผื่อกรณีที่ต้องรองรับเครื่อง Client ที่เป็น RPM-based แยกต่างหาก (เช่น Server อื่นของเจ้าภาพ)
+</p>
 
 <hr style="margin: 40px 0" />
 
@@ -20,6 +24,10 @@ sudo apt install -y apache2 dnf dnf-plugins-core createrepo-c</code></pre>
 <h3>1.2 สร้างโฟลเดอร์ Config สำหรับ DNF</h3>
 <pre><code>sudo mkdir -p /etc/dnf/repos.d</code></pre>
 
+<p>
+  <strong>หมายเหตุด้านความปลอดภัย:</strong> Config ด้านล่างนี้ตั้ง <code>gpgcheck=0</code> (ปิดการตรวจสอบลายเซ็นดิจิทัลของแพ็กเกจ) เพื่อความง่ายในการตั้งค่า ยอมรับได้เพราะดาวน์โหลดตรงจาก Official Mirror
+  ของ Rocky/CentOS เอง แต่ถ้าต้องการความปลอดภัยสูงขึ้น ควรเปลี่ยนเป็น <code>gpgcheck=1</code> พร้อมระบุ <code>gpgkey=</code> ชี้ไปยัง GPG Key ของแต่ละ Distro แทน
+</p>
 <h3>1.3 สร้างไฟล์ Config ของ Rocky Linux 9</h3>
 <p>สร้างไฟล์ <code>/etc/dnf/repos.d/rocky-mirror.repo</code>:</p>
 <pre><code>sudo nano /etc/dnf/repos.d/rocky-mirror.repo</code></pre>
