@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: vecskill-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER:-apps}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME:-apps_vecskill}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [vecskill_net]
+
+  db:
+    image: mysql:8.0
+    container_name: vecskill-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_DATABASE: ${DB_NAME:-apps_vecskill}
+      MYSQL_USER: ${DB_USER:-apps}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - vecskill_db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASS}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [vecskill_net]
+
+networks:
+  vecskill_net:
+
+volumes:
+  vecskill_db_data:

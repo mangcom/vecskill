@@ -1,0 +1,9 @@
+.git
+.gitignore
+.env
+.env.example
+*.md
+fontawesome-free-7.1.0-web.zip
+docker-compose.yml
+Dockerfile
+db/
