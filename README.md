@@ -49,54 +49,21 @@ git clone https://github.com/mangcom/vecskill.git
 ```
 cd vecskill
 ```
-### 2. วิธีการรันโปรเจกต์ (สำคัญมาก: การรันแบบ Offline)
-โปรเจกต์นี้ใช้ JavaScript fetch() API เพื่อโหลดเนื้อหาจากโฟลเดอร์ pages/ ซึ่งเบราว์เซอร์ส่วนใหญ่จะบล็อกการทำงานนี้ (เนื่องจากนโยบาย CORS) เมื่อเปิดไฟล์ index.html โดยตรงจากระบบไฟล์ (เช่น file:///C:/...)
+### 2. วิธีการรันโปรเจกต์
+โปรเจกต์นี้เป็น PHP (index.php, pages/*.php) ที่ต่อฐานข้อมูล MySQL จริง (api/stats.php, api/track.php) และใช้ Clean URL ผ่าน .htaccess
+ดังนั้น**ต้องรันผ่าน Web Server ที่รองรับ PHP + mod_rewrite เท่านั้น** (VS Code Live Server หรือ `python3 -m http.server` จะใช้ไม่ได้ เพราะไม่รัน PHP)
 
-ดังนั้น คุณจำเป็นต้องรันโปรเจกต์นี้ผ่าน Web Server
-
-#### นี่คือ 3 วิธีที่ง่ายที่สุดในการรัน Web Server บนเครื่องของคุณ:
-
-#### วิธีที่ 1: (ง่ายที่สุด) ใช้ VS Code + Live Server Extension
-เปิดโฟลเดอร์โปรเจกต์ vecskill ด้วย Visual Studio Code
-
-ไปที่แท็บ Extensions (ไอคอนรูปสี่เหลี่ยม) ค้นหาและติดตั้ง Extension ที่ชื่อว่า Live Server
-
-คลิกขวาที่ไฟล์ index.html แล้วเลือก "Open with Live Server"
-
-โปรเจกต์จะเปิดขึ้นมาในเบราว์เซอร์ของคุณ (เช่น http://127.0.0.1:5500) และทำงานได้อย่างสมบูรณ์
-
-#### วิธีที่ 2: ใช้ Python Simple HTTP Server
-หากคุณมี Python ติดตั้งอยู่บนเครื่อง สามารถใช้คำสั่งนี้ใน Terminal ภายในโฟลเดอร์โปรเจกต์ได้:
-
-#สำหรับ Python 3
-```
-python3 -m http.server 8000
-```
-จากนั้น เปิดเบราว์เซอร์แล้วไปที่ http://localhost:8000
-
-
-#### วิธีที่ 3: ใช้ Docker (Nginx)
-คุณสามารถใช้ Docker เพื่อรัน Web Server (เช่น Nginx) เพื่อให้บริการไฟล์เหล่านี้ได้:
-
-1.สร้างไฟล์ Dockerfile ในโฟลเดอร์โปรเจกต์:
+#### วิธีที่ 1: (แนะนำ) ใช้ Docker
+โปรเจกต์มี `Dockerfile` และ `docker-compose.yml` ให้พร้อมใช้งาน (PHP 8.2 + Apache + MySQL 8.0):
 
 ```
-# ใช้ Nginx image ขนาดเล็ก
-FROM nginx:alpine
-# คัดลอกไฟล์โปรเจกต์ทั้งหมดเข้าไปใน Web Root ของ Nginx
-COPY . /usr/share/nginx/html
+cp .env.example .env
+docker compose up -d --build
 ```
-2.Build และ Run Docker image:
+จากนั้นเปิดเบราว์เซอร์ไปที่ http://localhost:8080 (แก้พอร์ตได้ที่ `APP_PORT` ใน `.env`)
 
-#Build image ชื่อ vecskill-guide
-```
-docker build -t vecskill-guide .
-```
-#รัน container ที่ Port 8080
-```
-docker run -d -p 8080:80 --name vecskill-guide-web vecskill-guide
-```
-3.จากนั้น เปิดเบราว์เซอร์แล้วไปที่ http://localhost:8080
+#### วิธีที่ 2: ใช้ XAMPP
+วาง/clone โปรเจกต์ไว้ใน `htdocs` แล้วเปิดใช้งาน Apache + MySQL ผ่าน XAMPP Control Panel จากนั้นสร้างไฟล์ `db-config.php` และฐานข้อมูลตามที่ `api/stats.php` และ `api/track.php` ต้องการ แล้วเปิด http://localhost/vecskill
 
 
 
