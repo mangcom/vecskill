@@ -76,6 +76,18 @@ $v = function (string $path): string {
               <a href="/cicd-example-2" data-page="cicd-example-2"><i class="fas fa-layer-group fa-fw"></i><span> ตัวอย่าง Pipeline 2</span></a>
             </li>
             <li>
+              <a href="/owasp-zap" data-page="owasp-zap"><i class="fas fa-shield-alt fa-fw"></i><span> OWASP ZAP (Security Scan)</span></a>
+            </li>
+            <li>
+              <a href="/trivy" data-page="trivy"><i class="fas fa-bug fa-fw"></i><span> Trivy (Vulnerability Scan)</span></a>
+            </li>
+            <li>
+              <a href="/sonarqube" data-page="sonarqube"><i class="fas fa-chart-line fa-fw"></i><span> SonarQube (Code Quality)</span></a>
+            </li>
+            <li>
+              <a href="/swagger" data-page="swagger"><i class="fas fa-book fa-fw"></i><span> Swagger (API Docs)</span></a>
+            </li>
+            <li>
               <a href="/technitium-dns" data-page="technitium-dns"><i class="fas fa-network-wired fa-fw"></i><span> การติดตั้ง DNS Server</span></a>
             </li>
             <li>
