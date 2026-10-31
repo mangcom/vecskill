@@ -45,9 +45,7 @@
 docker volume create verdaccio_storage</code></pre>
 <h4>4.1.2 สร้าง Stack (`verdaccio-stack`)</h4>
 <p>ไปที่ Portainer > Stacks > + Add stack, ตั้งชื่อ (เช่น `verdaccio-stack`) แล้วใช้โค้ด Docker Compose นี้:</p>
-<pre><code>version: '3.8'
-
-services:
+<pre><code>services:
   verdaccio:
     image: verdaccio/verdaccio:latest
     container_name: verdaccio
@@ -80,16 +78,31 @@ volumes:
 <h3>4.2 วิธีที่ 2: ติดตั้งบน Server โดยตรง (Native Install)</h3>
 <p>วิธีนี้เหมาะสำหรับผู้ที่ต้องการรัน Verdaccio โดยตรงบน Host OS โดยใช้ Node.js และ Systemd</p>
 <h4>4.2.1 ติดตั้ง Node.js (LTS)</h4>
-<p>Verdaccio ต้องการ Node.js ในการทำงาน แนะนำให้ติดตั้งเวอร์ชัน LTS ล่าสุด:</p>
+<p>
+  Verdaccio ต้องการ Node.js ในการทำงาน แนะนำให้ติดตั้งเวอร์ชัน LTS ล่าสุด ด้วยวิธีเดียวกับหัวข้อ
+  <a href="#" onclick="document.querySelector('a[data-page=\'nodejs-install\']').click();">การติดตั้ง Node.js (Online)</a> (ถ้าเครื่องนี้ติดตั้ง Node.js ไว้แล้วจากหัวข้อนั้น ข้ามขั้นตอนนี้ไปได้เลย):
+</p>
 <pre><code>sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+NODE_MAJOR=24
+sudo tee /etc/apt/sources.list.d/nodesource.sources > /dev/null <<EOF
+Types: deb
+URIs: https://deb.nodesource.com/node_${NODE_MAJOR}.x/
+Suites: nodistro
+Components: main
+Signed-By: /etc/apt/keyrings/nodesource.gpg
+EOF
+
+sudo apt-get update
 sudo apt-get install -y nodejs</code></pre>
 
 <h4>4.2.2 ติดตั้ง Verdaccio</h4>
-<p>ติดตั้ง Verdaccio แบบ Global โดยใช้ `npm`:</p>
+<p>ติดตั้ง Verdaccio แบบ Global โดยใช้ `npm` (เวอร์ชันล่าสุดตอนเขียนคู่มือนี้คือ 7.x เช็กเวอร์ชันปัจจุบันได้ที่ <code>npmjs.com/package/verdaccio</code>):</p>
 <pre><code># -g หมายถึงการติดตั้งแบบ Global
-sudo npm install -g verdaccio@5</code></pre>
+sudo npm install -g verdaccio@7</code></pre>
 
 <h4>4.2.3 สร้าง User และโฟลเดอร์</h4>
 <p>เพื่อความปลอดภัย เราจะสร้าง User `verdaccio` แยกต่างหากสำหรับรัน Service:</p>
@@ -177,7 +190,11 @@ sudo systemctl status verdaccio</code></pre>
 <hr style="margin: 40px 0" />
 
 <h2>5. (แนะนำ) การใช้งานร่วมกับ Caddy</h2>
-<p>เพื่อให้เข้าถึงได้ง่ายและปลอดภัยด้วย HTTPS ภายใน ให้เพิ่ม Block นี้ใน <code>/opt/caddy/Caddyfile</code> ของคุณ</p>
+<p>
+  เพื่อให้เข้าถึงได้ง่ายและปลอดภัยด้วย HTTPS ภายใน ให้เพิ่ม Block นี้ใน <code>/opt/caddy/Caddyfile</code> ของคุณ (จะใช้
+  <a href="#" onclick="document.querySelector('a[data-page=\'npm-proxy\']').click();">Nginx Proxy Manager</a> แทนก็ได้ หลักการเดียวกัน แค่ชี้ Forward Hostname/Port ไปที่ <code>verdaccio:4873</code>
+  หรือ <code>127.0.0.1:4873</code> ตามวิธีที่ติดตั้ง)
+</p>
 <p>
   <strong>เลือก <code>reverse_proxy</code> ให้ตรงกับวิธีติดตั้งของคุณ:</strong>
 </p>

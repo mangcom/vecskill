@@ -10,6 +10,10 @@
 <p>
     ในคู่มือนี้ เราจะติดตั้ง `devpi` เป็น Service บน Server Ubuntu ของเรา (สมมติ IP: <code>10.20.30.101</code> และต้องการเข้าถึงผ่าน <code>pypi.vecskill.ovec</code>)
 </p>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+    <strong>⚠️ ไม่อยู่ในเกณฑ์การแข่งขัน:</strong> เกณฑ์ทักษะของการแข่งขันนี้ระบุเทคโนโลยีฝั่ง Back-end/Front-end เป็น <strong>Node.js เท่านั้น</strong> ไม่มี Python/PyPI อยู่ในขอบเขตที่ให้คะแนนเลย
+    หน้านี้จึงไม่จำเป็นสำหรับการเตรียมตัวแข่งขันโดยตรง เก็บไว้เป็นข้อมูลอ้างอิงเผื่อมีการใช้ Python ประกอบ (เช่น Script อัตโนมัติ) หรือปีถัดไปเกณฑ์เปลี่ยน
+</p>
 
 <h3>แนวคิดหลัก</h3>
 <ul>
@@ -111,7 +115,8 @@ sudo -u devpi /srv/devpi/venv/bin/devpi index -c teacher/dev bases=root/pypi vol
 
 <h2>ส่วนที่ 2: การตั้งค่า Reverse Proxy ด้วย Caddy (แนะนำ)</h2>
 <p>
-    เพื่อให้เข้าถึง `devpi` ผ่าน Domain Name (<code>pypi.vecskill.ovec</code>) และใช้งาน HTTPS ภายในได้สะดวก แนะนำให้ตั้งค่า Caddy ดังนี้:
+    เพื่อให้เข้าถึง `devpi` ผ่าน Domain Name (<code>pypi.vecskill.ovec</code>) และใช้งาน HTTPS ภายในได้สะดวก แนะนำให้ตั้งค่า Caddy ดังนี้ (จะใช้
+    <a href="#" onclick="document.querySelector('a[data-page=\'npm-proxy\']').click();">Nginx Proxy Manager</a> แทนก็ได้ หลักการเดียวกัน แค่ชี้ Forward Hostname/Port ไปที่ <code>127.0.0.1:3141</code>)
 </p>
 <p>เปิดไฟล์ `/opt/caddy/Caddyfile` ของคุณ แล้วเพิ่ม Block นี้เข้าไป:</p>
 <pre><code># ---------- PyPI (devpi) ----------
