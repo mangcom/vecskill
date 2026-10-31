@@ -23,8 +23,20 @@
 <p>จากนั้นรีสตาร์ท Docker:</p>
 <pre><code>sudo systemctl restart docker</code></pre>
 
-<h3>1.2 สร้าง SSH Key สำหรับ Deploy</h3>
-<p>เราต้องสร้างกุญแจเพื่อให้ GitLab Runner สามารถ SSH เข้าไปวางไฟล์และรันคำสั่งที่เครื่อง Production ได้โดยไม่ต้องใช้รหัสผ่าน</p>
+<h3>1.2 เตรียม User <code>devops</code> บนเครื่อง Production ให้สั่งงาน Docker ได้</h3>
+<p style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 15px">
+  <strong>อย่าใช้ `root` ในการ Deploy:</strong> ตามที่เราปิดการ Login ด้วย `root` ผ่าน SSH ไปแล้วในบท
+  <a href="#" onclick="document.querySelector('a[data-page=\'ubuntu-setup\']').click();">การเตรียม Ubuntu Server</a> ขั้นตอน CI/CD ทั้งหมดนี้จึงต้องใช้ User ปกติ (เช่น `devops`) แทน `root` ด้วยเช่นกัน
+  เพื่อให้สอดคล้องกัน
+</p>
+<p>ปกติคำสั่ง <code>docker</code> ต้องใช้ <code>sudo</code> เสมอ หากอยาก Deploy ด้วย User <code>devops</code> โดยไม่ต้อง sudo ให้เพิ่ม User นี้เข้ากลุ่ม <code>docker</code> ที่เครื่อง Production ก่อน (ทำครั้งเดียว):</p>
+<pre><code>sudo usermod -aG docker devops</code></pre>
+<p>
+  จากนั้นต้อง Logout แล้ว Login เข้า Production ใหม่ (หรือรัน <code>newgrp docker</code>) เพื่อให้สิทธิ์กลุ่มมีผล แล้วทดสอบว่าเรียก <code>docker ps</code> ได้โดยไม่ต้อง sudo
+</p>
+
+<h3>1.3 สร้าง SSH Key สำหรับ Deploy</h3>
+<p>เราต้องสร้างกุญแจเพื่อให้ GitLab Runner สามารถ SSH เข้าไปวางไฟล์และรันคำสั่งที่เครื่อง Production (ในฐานะ User <code>devops</code>) ได้โดยไม่ต้องใช้รหัสผ่าน</p>
 <ol>
   <li>
     <strong>ที่เครื่อง DevOps (หรือเครื่องของคุณ):</strong> สร้าง Key
@@ -37,10 +49,10 @@
     <em>ผลลัพธ์: <code>ssh-ed25519 AAAAC3NzaC... root@devops</code></em>
   </li>
   <li>
-    <strong>นำ Public Key ไปใส่ที่เครื่อง Production:</strong>
+    <strong>นำ Public Key ไปใส่ที่เครื่อง Production (ในฐานะ User `devops`):</strong>
     <ul>
-      <li>SSH เข้าไปที่เครื่อง Production</li>
-      <li>แก้ไขไฟล์ <code>~/.ssh/authorized_keys</code></li>
+      <li>SSH เข้าไปที่เครื่อง Production ด้วย User <code>devops</code></li>
+      <li>แก้ไขไฟล์ <code>~/.ssh/authorized_keys</code> (คือ <code>/home/devops/.ssh/authorized_keys</code>)</li>
       <li>วาง Public Key ที่ได้ต่อท้ายบรรทัดเดิม</li>
     </ul>
   </li>
@@ -132,8 +144,8 @@ CMD ["node", "index.js"]
       - "81:80"
     environment:
       #PORT: 80
-      JWT_SECRET: jwtsecretekey
-      JWT_REFRESH_SECRET: jwtsecreatekeyrefresh
+      JWT_SECRET: jwtsecretkey
+      JWT_REFRESH_SECRET: jwtsecretkeyrefresh
       ROOT_USERNAME: admin
       ROOT_PASSWORD: 1234
       MYSQL_HOST: localhost
@@ -159,7 +171,7 @@ volumes:
 variables:
   # แก้ไข IP เครื่อง Production ให้ถูกต้อง
   PRODUCTION_IP: "192.168.100.102"
-  PRODUCTION_USER: "root"
+  PRODUCTION_USER: "devops"
   IMAGE_NAME: "registry.vecskill.ovec/my-image:latest"
 
 # --- TEST STAGE ---
@@ -239,8 +251,8 @@ deploy_to_production:
     </tr>
     <tr>
       <td><code>PRODUCTION_USER</code></td>
-      <td>root</td>
-      <td>User ที่จะใช้ SSH เข้าไป (แนะนำเป็น root หรือ user ที่มีสิทธิ์ docker)</td>
+      <td>devops</td>
+      <td>User ที่จะใช้ SSH เข้าไป (ใช้ User ปกติที่อยู่ในกลุ่ม docker แล้ว ไม่ใช้ root ตามที่ปิด SSH ของ root ไว้)</td>
     </tr>
     <tr>
       <td><code>IMAGE_NAME</code></td>
@@ -362,8 +374,8 @@ deploy_to_production:
       <td>สร้างตัวแปรชื่อ <strong>PRODUCTION_IP</strong> เก็บค่า IP Address ของเครื่อง Server ปลายทางไว้ เพื่อให้แก้ไขง่ายในที่เดียว</td>
     </tr>
     <tr>
-      <td><code>&nbsp;&nbsp;PRODUCTION_USER: "root"</code></td>
-      <td>สร้างตัวแปรชื่อ <strong>PRODUCTION_USER</strong> เก็บชื่อ User ที่จะใช้ SSH เข้าไป (ในที่นี้ใช้ root)</td>
+      <td><code>&nbsp;&nbsp;PRODUCTION_USER: "devops"</code></td>
+      <td>สร้างตัวแปรชื่อ <strong>PRODUCTION_USER</strong> เก็บชื่อ User ที่จะใช้ SSH เข้าไป (ใช้ `devops` ที่เพิ่มเข้ากลุ่ม docker ไว้แล้ว ไม่ใช้ root)</td>
     </tr>
     <tr>
       <td><code>&nbsp;&nbsp;IMAGE_NAME: "registry.vecskill.ovec/my-image:latest"</code></td>
