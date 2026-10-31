@@ -78,9 +78,7 @@ portainer.vecskill.ovec {
 
 <h3>ขั้นตอนที่ 1.3: ติดตั้ง Caddy ผ่าน Portainer Stack</h3>
 <p>ไปที่ <strong>Stacks > + Add stack</strong>, ตั้งชื่อ (เช่น `caddy-stack`) แล้วใช้โค้ด Docker Compose นี้:</p>
-<pre><code>version: '3.8'
-
-services:
+<pre><code>services:
   caddy:
     image: caddy:latest
     container_name: caddy
@@ -171,8 +169,6 @@ docker build -t my-caddy-custom .</code></pre>
       <li>เพิ่มส่วน <code>environment</code> เพื่อใส่ API Token ของคุณ (ปลอดภัยกว่าการใส่ใน Caddyfile)</li>
     </ul>
     <pre><code># โค้ด caddy-stack ที่อัปเดตแล้ว
-version: '3.8'
-
 services:
   caddy:
     image: my-caddy-custom:latest  # <--- เปลี่ยนตรงนี้

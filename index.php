@@ -46,6 +46,12 @@ $v = function (string $path): string {
               <a href="/portainer" data-page="portainer"><i class="fas fa-cubes fa-fw"></i><span> การติดตั้ง Portainer</span></a>
             </li>
             <li>
+              <a href="/caddy-proxy" data-page="caddy-proxy"><i class="fas fa-route fa-fw"></i><span> Caddy Reverse Proxy</span></a>
+            </li>
+            <li>
+              <a href="/npm-proxy" data-page="npm-proxy"><i class="fas fa-random fa-fw"></i><span> Nginx Proxy Manager (ทางเลือก)</span></a>
+            </li>
+            <li>
               <a href="/caddy-internal-ca" data-page="caddy-internal-ca"><i class="fas fa-lock fa-fw"></i><span> การทำ HTTPS ภายใน</span></a>
             </li>
             <li>

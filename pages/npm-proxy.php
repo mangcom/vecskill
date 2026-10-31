@@ -36,9 +36,7 @@ sudo ufw allow 81/tcp</code></pre>
 <pre><code>sudo mkdir -p /srv/npm/data
 sudo mkdir -p /srv/npm/letsencrypt</code></pre>
 <p>จากนั้นไปที่ <strong>Stacks > + Add stack</strong>, ตั้งชื่อ (เช่น `npm-stack`) แล้วใช้โค้ด Docker Compose นี้:</p>
-<pre><code>version: '3.8'
-
-services:
+<pre><code>services:
   app:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: npm
@@ -65,17 +63,18 @@ networks:
 
 <h2>ส่วนที่ 2: ตั้งค่าเริ่มต้นและทำ Reverse Proxy (HTTPS ภายนอก)</h2>
 
-<h3>ขั้นตอนที่ 2.1: ล็อกอินครั้งแรก</h3>
+<h3>ขั้นตอนที่ 2.1: สร้างบัญชี Admin ครั้งแรก</h3>
+<p>NPM เวอร์ชันปัจจุบัน (2.x) ไม่ได้ใช้บัญชีเริ่มต้น <code>admin@example.com</code> / <code>changeme</code> แบบเวอร์ชันเก่าอีกต่อไป แต่จะบังคับให้สร้างบัญชี Admin ของตัวเองทันทีตั้งแต่ครั้งแรกที่เข้าใช้งาน</p>
 <ol>
   <li>เปิดเว็บเบราว์เซอร์แล้วไปที่ <code>http://[IP_ADDRESS_SERVER_ของคุณ]:81</code></li>
   <li>
-    ล็อกอินด้วยข้อมูลเริ่มต้น:
-    <ul>
-      <li><strong>Email:</strong> <code>admin@example.com</code></li>
-      <li><strong>Password:</strong> <code>changeme</code></li>
-    </ul>
+    หน้าจอ "Welcome! Get started by creating your admin account" จะปรากฏขึ้น ให้กรอก <strong>Full Name</strong>, <strong>Email address</strong> และ <strong>New Password</strong>
+    (ตั้งรหัสผ่านที่คาดเดายาก) แล้วกด <strong>Save</strong>
+    <div class="image-container">
+      <img src="images/08-npm-01-create-admin.jpg" alt="NPM สร้างบัญชี Admin ครั้งแรก" class="content-image" />
+      <p><em>หน้าจอสร้างบัญชี Admin ครั้งแรกของ Nginx Proxy Manager</em></p>
+    </div>
   </li>
-  <li>ระบบจะบังคับให้คุณเปลี่ยนข้อมูลส่วนตัวและรหัสผ่านทันที <strong>(สำคัญมาก)</strong></li>
 </ol>
 
 <h3>ขั้นตอนที่ 2.2: สร้าง Proxy Host สำหรับ GitLab</h3>
@@ -84,20 +83,24 @@ networks:
   <li>ไปที่เมนู <strong>Hosts</strong> > <strong>Proxy Hosts</strong> แล้วคลิกปุ่ม <strong>Add Proxy Host</strong></li>
   <li>
     <strong>ในแท็บ `Details`:</strong><br />
-    - <strong>Domain Names:</strong> พิมพ์ <code>gitlab.vecskill.ovec</code><br />
+    - <strong>Domain Names:</strong> พิมพ์ <code>gitlab.vecskill.ovec</code> แล้วกด Enter<br />
     - <strong>Scheme:</strong> เลือก <code>http</code><br />
     - <strong>Forward Hostname / IP:</strong> พิมพ์ <code>gitlab</code> (นี่คือชื่อ Service ของ GitLab Container ใน `app_net`)<br />
     - <strong>Forward Port:</strong> พิมพ์ <code>80</code><br />
     - <strong>เปิดใช้งาน `Block Common Exploits`</strong>
-    <img src="https://i.imgur.com/k2e43j1.png" alt="NPM Proxy Host Details" class="content-image" />
+    <div class="image-container">
+      <img src="images/08-npm-02-proxyhost-details.jpg" alt="NPM Proxy Host Details" class="content-image" />
+      <p><em>แท็บ Details ของการสร้าง Proxy Host</em></p>
+    </div>
   </li>
   <li>
     <strong>ในแท็บ `SSL`:</strong><br />
-    - <strong>SSL Certificate:</strong> เลือก "Request a new SSL Certificate"<br />
+    - <strong>SSL Certificate:</strong> เลือก "Request a new Certificate"<br />
     - <strong>เปิดใช้งาน `Force SSL`</strong> (เพื่อให้ redirect จาก http ไป https อัตโนมัติ)<br />
-    - <strong>Email Address for Let's Encrypt:</strong> ใส่อีเมลจริงของคุณ<br />
-    - <strong>ติ๊กยอมรับ "I Agree..."</strong><br />
-    <img src="https://i.imgur.com/83p16qF.png" alt="NPM Proxy Host SSL" class="content-image" />
+    <div class="image-container">
+      <img src="images/08-npm-03-ssl.jpg" alt="NPM Proxy Host SSL" class="content-image" />
+      <p><em>แท็บ SSL ของการสร้าง Proxy Host</em></p>
+    </div>
   </li>
   <li>คลิก <strong>Save</strong></li>
 </ol>
@@ -109,44 +112,34 @@ networks:
 <hr style="margin: 40px 0" />
 
 <h2>ส่วนที่ 3: การทำ Internal HTTPS (ด้วย DNS Challenge)</h2>
-<p>เช่นเดียวกับ Caddy, NPM ก็สามารถใช้ DNS Challenge เพื่อขอ Certificate ให้กับโดเมนที่ไม่เปิด Public ได้เช่นกัน ซึ่งทั้งหมดนี้สามารถทำได้ง่ายๆ ผ่าน UI</p>
+<p>เช่นเดียวกับ Caddy, NPM ก็สามารถใช้ DNS Challenge เพื่อขอ Certificate ให้กับโดเมนที่ไม่เปิด Public ได้เช่นกัน ใน NPM เวอร์ชันปัจจุบัน ขั้นตอนนี้ถูกรวมไว้ในหน้าสร้าง/แก้ไข Proxy Host หน้าเดียวเลย ไม่ต้องไปสร้าง Credential แยกต่างหากอีกต่อไป</p>
 
-<h3>ขั้นตอนที่ 3.1: เพิ่ม Credentials ของผู้ให้บริการ DNS</h3>
-<p>เราต้องบอก NPM ถึง API Token ของเราก่อน (ตัวอย่างนี้ใช้ Cloudflare)</p>
+<h3>ขั้นตอนที่ 3.1: สร้าง Proxy Host สำหรับ Service ภายใน</h3>
 <ol>
-  <li>ไปที่เมนู <strong>SSL Certificates</strong></li>
-  <li>คลิกที่ <strong>Add SSL Certificate</strong> > เลือก <strong>Let's Encrypt</strong></li>
-  <li>ในส่วน `Credentials` คลิกที่ <strong>Add Credential</strong></li>
+  <li>ไปที่เมนู <strong>Hosts</strong> > <strong>Proxy Hosts</strong> > <strong>Add Proxy Host</strong></li>
   <li>
-    - <strong>Name:</strong> ตั้งชื่อ (เช่น `My Cloudflare Token`)<br />
-    - <strong>DNS Provider:</strong> เลือก `Cloudflare`<br />
-    - ในช่อง `Credential File Content` ให้ใส่ API Token ของคุณตามรูปแบบนี้:<br />
-    <pre><code>dns_cloudflare_api_token = [YOUR_CLOUDFLARE_API_TOKEN]</code></pre>
-  </li>
-  <li>คลิก <strong>Save</strong></li>
-</ol>
-
-<h3>ขั้นตอนที่ 3.2: ขอ Certificate ด้วย DNS Challenge</h3>
-<ol>
-  <li>หลังจากบันทึก Credential แล้ว ให้กลับมาที่หน้า <strong>Add SSL Certificate > Let's Encrypt</strong> อีกครั้ง</li>
-  <li>
-    - <strong>Domain Names:</strong> ใส่โดเมนภายในของคุณ เช่น <code>wiki.internal.vecskill.ovec</code><br />
-    - <strong>เปิดใช้งาน `Use a DNS Challenge`</strong><br />
-    - <strong>DNS Provider:</strong> เลือก Credential ที่คุณเพิ่งสร้าง (`My Cloudflare Token`)<br />
-    - <strong>ติ๊กยอมรับ "I Agree..."</strong> แล้วคลิก <strong>Save</strong>
+    <strong>ในแท็บ `Details`:</strong> กรอกข้อมูลเหมือนขั้นตอนที่ 2.2 แต่เปลี่ยน Domain Names เป็นโดเมนภายในของคุณ เช่น <code>wiki.internal.vecskill.ovec</code> และ Forward Hostname/IP
+    ไปยัง Service ภายในของคุณ
   </li>
 </ol>
-<p>NPM จะใช้ API Token เพื่อสร้าง TXT Record และขอ Certificate มาให้ ตอนนี้คุณจะมี Certificate สำหรับโดเมนภายในพร้อมใช้งานแล้ว</p>
 
-<h3>ขั้นตอนที่ 3.3: นำ Certificate ไปใช้กับ Proxy Host</h3>
+<h3>ขั้นตอนที่ 3.2: เปิด DNS Challenge ในแท็บ SSL</h3>
 <ol>
-  <li>สร้าง Proxy Host ใหม่สำหรับ Service ภายในของคุณ (เหมือนขั้นตอนที่ 2.2)</li>
-  <li>ในแท็บ `Details` ให้ตั้งค่า Forward Hostname / IP ไปยัง Service ภายในของคุณ</li>
+  <li>ไปที่แท็บ <strong>`SSL`</strong> แล้วเลือก <strong>SSL Certificate: "Request a new Certificate"</strong></li>
   <li>
-    <strong>ในแท็บ `SSL` (นี่คือส่วนที่ต่าง):</strong><br />
-    - <strong>SSL Certificate:</strong> แทนที่จะเลือก "Request a new...", ให้<strong>เลือก Certificate ที่คุณเพิ่งสร้าง</strong> (<code>wiki.internal.vecskill.ovec</code>) จากในรายการ<br />
-    - <strong>เปิดใช้งาน `Force SSL`</strong>
+    เปิดสวิตช์ <strong>`Use DNS Challenge`</strong> จะมีฟอร์มเพิ่มเติมปรากฏขึ้นมาในหน้าเดียวกันนี้เลย:
+    <ul>
+      <li><strong>DNS Provider:</strong> เลือก `Cloudflare` (หรือผู้ให้บริการ DNS ของคุณ)</li>
+      <li>
+        <strong>Credentials File Content:</strong> ใส่ API Token ของคุณตามรูปแบบนี้ (ตัวอย่าง placeholder ในช่องจะแสดงให้ดูอยู่แล้ว):
+        <pre><code>dns_cloudflare_api_token = [YOUR_CLOUDFLARE_API_TOKEN]</code></pre>
+      </li>
+    </ul>
+    <div class="image-container">
+      <img src="images/08-npm-04-dns-challenge.jpg" alt="NPM DNS Challenge ในแท็บ SSL" class="content-image" />
+      <p><em>เปิด Use DNS Challenge แล้วเลือก Cloudflare เป็น DNS Provider พร้อมใส่ Credentials File Content</em></p>
+    </div>
   </li>
-  <li>คลิก <strong>Save</strong></li>
+  <li>เปิดใช้งาน <strong>`Force SSL`</strong> แล้วคลิก <strong>Save</strong></li>
 </ol>
-<p>เพียงเท่านี้ Service ภายในของคุณก็พร้อมใช้งานผ่าน HTTPS ที่น่าเชื่อถือแล้ว ทำให้การพัฒนาและเชื่อมต่อภายในเครือข่ายมีความปลอดภัยสูงสุด</p>
+<p>NPM จะใช้ API Token เพื่อสร้าง TXT Record ชั่วคราวและขอ Certificate มาให้โดยอัตโนมัติ เมื่อสำเร็จ Service ภายในของคุณก็จะพร้อมใช้งานผ่าน HTTPS ที่น่าเชื่อถือทันที แม้จะไม่ได้เปิด Public ก็ตาม</p>
