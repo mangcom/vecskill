@@ -125,7 +125,7 @@ sudo nano /etc/hosts</code></pre>
 </p>
 <ol>
   <li>
-    <strong>สร้าง User ใหม่:</strong> (แทนที่ `devops` ด้วยชื่อที่คุณต้องการ)
+    <strong>สร้าง User หลัก:</strong> (แทนที่ `devops` ด้วยชื่อที่คุณต้องการ)
     <pre><code>sudo adduser devops</code></pre>
     ระบบจะให้คุณตั้งรหัสผ่านและกรอกข้อมูลเล็กน้อย
   </li>
@@ -135,35 +135,126 @@ sudo nano /etc/hosts</code></pre>
     <pre><code>sudo usermod -aG sudo devops</code></pre>
   </li>
   <li>
-    <strong>(แนะนำอย่างยิ่ง) คัดลอก SSH Key ไปยัง User ใหม่:</strong><br />
-    เพื่อการล็อกอินที่ปลอดภัยและไม่ต้องใช้รหัสผ่าน ให้รันคำสั่งนี้จาก "เครื่องคอมพิวเตอร์ของคุณ"
-    <pre><code>ssh-copy-id devops@[IP_ADDRESS_SERVER_ของคุณ]</code></pre>
-  </li>
-  <li>
-    <strong>ปิดการล็อกอินด้วย `root` ผ่าน SSH:</strong><br />
-    หลังจากที่คุณสามารถล็อกอินด้วย User ใหม่ (`ssh devops@...`) ได้แล้ว ให้ทำการปิดการล็อกอินของ `root`
-    <pre><code>sudo nano /etc/ssh/sshd_config</code></pre>
-    หาบรรทัดที่เขียนว่า `PermitRootLogin` และเปลี่ยนค่าเป็น `no`:
-    <pre><code>PermitRootLogin no</code></pre>
-    จากนั้นรีสตาร์ท service SSH เพื่อให้การตั้งค่ามีผล:
-    <pre><code>sudo systemctl restart sshd</code></pre>
+    <strong>สร้าง User ที่สอง:</strong><br />
+    การแข่งขันกำหนดให้ต้องมี User ที่ Login เข้าใช้งานได้อย่างน้อย <strong>2 User</strong> ตามที่คณะกรรมการกำหนด ให้ทำซ้ำขั้นตอนเดิม (แทนที่ `devops2` ด้วยชื่อที่ต้องการ):
+    <pre><code>sudo adduser devops2
+sudo usermod -aG sudo devops2</code></pre>
   </li>
 </ol>
 
-<h2>6. (ทางเลือก) การใช้ `sudo` โดยไม่ต้องใส่รหัสผ่าน</h2>
-<p>สำหรับ Server ที่ใช้ส่วนตัวหรือในเครือข่ายที่เชื่อถือได้ หากคุณต้องการความสะดวกสบายในการรันคำสั่ง `sudo` โดยไม่ต้องกรอกรหัสผ่านทุกครั้ง สามารถทำได้ดังนี้</p>
-<p><strong>คำเตือน:</strong> การทำเช่นนี้จะลดระดับความปลอดภัยลงเล็กน้อย ควรทำเมื่อเข้าใจความเสี่ยง<br /># คำสั่ง visudo เป็นวิธีที่ปลอดภัยในการแก้ไขไฟล์ sudoers</p>
+<h3>5.1 เชื่อมต่อแบบไม่ใช้รหัสผ่านด้วย SSH Key</h3>
+<p>
+  เพื่อความปลอดภัยและความสะดวก ควร Login ด้วย SSH Key แทนรหัสผ่าน โดยสร้างคู่กุญแจ (Key Pair) ไว้ที่ "เครื่องคอมพิวเตอร์ของคุณ" (Client) แล้วนำเฉพาะ Public Key ไปวางไว้ที่ Server เท่านั้น
+  Private Key จะไม่ถูกส่งออกจากเครื่องของคุณเลย
+</p>
+
+<style>
+.tab { overflow: hidden; border-bottom: 1px solid #ccc; background-color: #f1f1f1; border-radius: 5px 5px 0 0;}
+.tab button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; font-family: 'Sarabun', sans-serif;}
+.tab button:hover { background-color: #ddd; }
+.tab button.active { background-color: #ccc; font-weight: bold;}
+.tabcontent { display: none; padding: 20px 12px; border: 1px solid #ccc; border-top: none; border-radius: 0 0 5px 5px; background-color: white;}
+</style>
+<div class="tab">
+  <button class="tablinks active" data-target-tab="SSHWindows">จากเครื่อง Windows</button>
+  <button class="tablinks" data-target-tab="SSHLinuxMac">จากเครื่อง Linux / macOS</button>
+</div>
+
+<div id="SSHLinuxMac" class="tabcontent">
+  <p>บน Linux และ macOS มีคำสั่ง <code>ssh-copy-id</code> ให้ใช้งานได้ทันที ซึ่งจะจัดการสร้างโฟลเดอร์ <code>~/.ssh</code> และสิทธิ์ไฟล์บน Server ให้ถูกต้องโดยอัตโนมัติ</p>
+  <ol>
+    <li>
+      <strong>สร้าง Key Pair (ถ้ายังไม่มี):</strong>
+      <pre><code>ssh-keygen -t ed25519 -C "your_email@example.com"</code></pre>
+      กด Enter ผ่านได้ทุกช่อง (ไม่ใส่ Passphrase ก็ได้ ถ้าต้องการความสะดวก)
+    </li>
+    <li>
+      <strong>คัดลอก Public Key ไปยัง Server:</strong>
+      <pre><code>ssh-copy-id devops@[IP_ADDRESS_SERVER_ของคุณ]</code></pre>
+    </li>
+    <li>
+      <strong>ทดสอบ Login:</strong> ควร Login ได้โดยไม่ถามรหัสผ่านอีกต่อไป
+      <pre><code>ssh devops@[IP_ADDRESS_SERVER_ของคุณ]</code></pre>
+    </li>
+  </ol>
+</div>
+
+<div id="SSHWindows" class="tabcontent" style="display: block">
+  <p>
+    Windows 10/11 มี OpenSSH Client ติดตั้งมาให้แล้วโดยปกติ (ใช้งานผ่าน PowerShell หรือ Command Prompt) แต่ <strong>ไม่มีคำสั่ง <code>ssh-copy-id</code></strong> มาให้ ต้องคัดลอก Public Key
+    ไปวางเองตามขั้นตอนนี้
+  </p>
+  <ol>
+    <li>
+      <strong>เปิด PowerShell แล้วสร้าง Key Pair (ถ้ายังไม่มี):</strong>
+      <pre><code class="language-powershell">ssh-keygen -t ed25519 -C "your_email@example.com"</code></pre>
+      กด Enter ผ่านได้ทุกช่อง ไฟล์ที่ได้จะอยู่ที่ <code>C:\Users\&lt;ชื่อคุณ&gt;\.ssh\id_ed25519</code> (Private) และ <code>id_ed25519.pub</code> (Public)
+    </li>
+    <li>
+      <strong>ส่ง Public Key ไปต่อท้ายไฟล์ <code>authorized_keys</code> บน Server โดยตรงผ่าน SSH:</strong><br />
+      คำสั่งนี้จะยังถามรหัสผ่านของ <code>devops</code> อยู่ 1 ครั้งสุดท้าย (เพราะยังไม่มี Key ให้ใช้) หลังจากนี้จะไม่ถามอีก
+      <pre><code class="language-powershell">type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh devops@[IP_ADDRESS_SERVER_ของคุณ] "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"</code></pre>
+    </li>
+    <li>
+      <strong>(ถ้าคำสั่งด้านบนใช้ไม่ได้) วิธี Manual:</strong>
+      <ol>
+        <li>
+          เปิดไฟล์ Public Key ด้วย Notepad เพื่อคัดลอกเนื้อหา:
+          <pre><code class="language-powershell">notepad $env:USERPROFILE\.ssh\id_ed25519.pub</code></pre>
+        </li>
+        <li>SSH เข้า Server ด้วยรหัสผ่านตามปกติ แล้ววางเนื้อหานั้นต่อท้ายไฟล์ <code>~/.ssh/authorized_keys</code> (สร้างไฟล์/โฟลเดอร์ใหม่ถ้ายังไม่มี)</li>
+      </ol>
+    </li>
+    <li>
+      <strong>ทดสอบ Login:</strong> ควร Login ได้โดยไม่ถามรหัสผ่านอีกต่อไป
+      <pre><code class="language-powershell">ssh devops@[IP_ADDRESS_SERVER_ของคุณ]</code></pre>
+    </li>
+  </ol>
+</div>
+
+<h3>5.2 ปิดการล็อกอินด้วย `root` ผ่าน SSH</h3>
+<p>
+  หลังจากที่คุณสามารถ Login ด้วย User ใหม่ (`ssh devops@...`) ด้วย SSH Key ได้แล้ว <strong>(สำคัญ: ต้องทดสอบ Login ด้วย User ใหม่ให้สำเร็จก่อน)</strong> ให้ทำการปิดการล็อกอินของ `root`
+  เพื่อป้องกันการโจมตีแบบ Brute-force ที่เป้าหมายแรกมักจะเป็น Account `root` เสมอ
+</p>
+<pre><code>sudo nano /etc/ssh/sshd_config</code></pre>
+<p>หาบรรทัดที่เขียนว่า `PermitRootLogin` และเปลี่ยนค่าเป็น `no`:</p>
+<pre><code>PermitRootLogin no</code></pre>
+<p>ยังไม่ต้อง Restart service ตอนนี้ ให้ทำขั้นตอนถัดไป (เปลี่ยน Port SSH) ในไฟล์เดียวกันนี้ให้เสร็จก่อน แล้วค่อย Restart พร้อมกันทีเดียว</p>
+
+<h3>5.3 เปลี่ยน Port SSH เริ่มต้น</h3>
+<p>
+  การแข่งขันกำหนดให้ต้องสามารถ Remote เข้าเครื่องผ่าน Port ที่คณะกรรมการกำหนด (ไม่ใช่ Port 22 ที่เป็นค่าเริ่มต้นเสมอไป) ในไฟล์ <code>sshd_config</code> เดียวกันนี้ (ที่ยังเปิดค้างจากขั้นตอนที่แล้ว)
+  ให้หาบรรทัด <code>#Port 22</code> แล้วแก้ไข/เพิ่มเป็น Port ที่ต้องการ (ตัวอย่างใช้ <code>2200</code>):
+</p>
+<pre><code>Port 2200</code></pre>
+<p>บันทึกไฟล์ (`Ctrl+X` > `Y` > `Enter`) แล้วรีสตาร์ท service SSH เพื่อให้ทั้ง `PermitRootLogin no` และ Port ใหม่มีผลพร้อมกัน:</p>
+<pre><code>sudo systemctl restart sshd</code></pre>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+  <strong>ข้อควรระวังสำคัญที่สุด:</strong> <strong>ห้ามปิดหน้าต่าง Terminal ที่เชื่อมต่ออยู่เดิมเด็ดขาด</strong> จนกว่าจะทดสอบเปิด Session ใหม่ด้วย Port และ User ใหม่สำเร็จก่อน
+  (เช่น <code>ssh -p 2200 devops@[IP]</code>) เพื่อป้องกันกรณีตั้งค่าผิดแล้วหลุดออกจาก Server ไปโดยเข้าใหม่ไม่ได้อีก (Lockout) ถ้าเข้าไม่ได้ ให้กลับไปแก้ที่หน้าต่างเดิมที่ยังเปิดอยู่ได้ทันที
+</p>
+
+<h2>6. การใช้ `sudo` โดยไม่ต้องใส่รหัสผ่าน (ข้อกำหนดของการแข่งขัน)</h2>
+<p>
+  เกณฑ์การแข่งขันกำหนดให้ User ที่ Login เข้ามาต้องสามารถใช้คำสั่ง <code>sudo</code> ได้โดยไม่ต้องยืนยันรหัสผ่าน จึงเป็นขั้นตอนที่ <strong>ต้องทำ</strong> ไม่ใช่ทางเลือก
+</p>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+  <strong>ทำความเข้าใจความเสี่ยง:</strong> การตั้งค่านี้ทำให้ User คนนั้นมีสิทธิ์เทียบเท่า `root` ได้ทันทีโดยไม่ต้องยืนยันตัวตนซ้ำ จึงควรทำคู่กับการปิด Root Login (ข้อ 5.2) และการใช้ SSH Key แทนรหัสผ่าน
+  (ข้อ 5.1) เสมอ เพื่อให้การเข้าถึง Server ยังต้องพิสูจน์ตัวตนด้วย Key ที่เก็บไว้เฉพาะเครื่องของคุณอยู่ดี<br />
+  # คำสั่ง visudo เป็นวิธีที่ปลอดภัยในการแก้ไขไฟล์ sudoers
+</p>
 <pre><code>sudo visudo</code></pre>
-<p>จากนั้นเลื่อนไปที่ท้ายไฟล์และเพิ่มบรรทัดนี้เข้าไป (แทนที่ `devops` ด้วยชื่อของคุณ):</p>
+<p>จากนั้นเลื่อนไปที่ท้ายไฟล์และเพิ่มบรรทัดนี้เข้าไป (ทำกับทุก User ที่สร้างไว้ แทนที่ `devops` ด้วยชื่อของคุณ):</p>
 <pre><code>devops ALL=(ALL) NOPASSWD: ALL</code></pre>
 <p>กด `Ctrl + X` > `Y` > `Enter` ในกรณีที่เป็น nano Editor หรือ กด Esc ตามด้วย :wq ในกรณีที่เป็น vi Editor เพื่อบันทึกและออก</p>
 
 <h2>7. ตั้งค่า Firewall พื้นฐาน (UFW)</h2>
 <p>
   UFW (Uncomplicated Firewall) เป็นเครื่องมือจัดการ Firewall ที่ใช้งานง่ายและควรเปิดใช้งานเสมอ
-  <br />อนุญาตการเชื่อมต่อที่จำเป็น
+  <br />อนุญาตการเชื่อมต่อที่จำเป็น (แทนที่ <code>2200</code> ด้วย Port SSH ที่คุณตั้งไว้ในข้อ 5.3)
 </p>
-<pre><code>sudo ufw allow OpenSSH     # Port 22 สำหรับ SSH
+<pre><code>sudo ufw allow 2200/tcp     # Port SSH ใหม่ที่ตั้งไว้ (แทนที่ OpenSSH/Port 22 เดิม)
 sudo ufw allow 80/tcp       # Port 80 สำหรับ HTTP
 sudo ufw allow 443/tcp      # Port 443 สำหรับ HTTPS
 </code></pre>
@@ -172,6 +263,7 @@ sudo ufw allow 443/tcp      # Port 443 สำหรับ HTTPS
 <pre><code>sudo ufw allow 2222/tcp     # สำหรับ GitLab SSH
 sudo ufw allow 5000/tcp     # สำหรับ Docker Registry
 sudo ufw allow 8080/tcp     # สำหรับ Registry UI
+sudo ufw allow 81/tcp       # สำหรับ Nginx Proxy Manager Admin UI (ถ้าเลือกใช้ NPM แทน Caddy)
 sudo ufw allow 9443/tcp     # สำหรับ Portainer
 </code></pre>
 <p>เปิดใช้งาน Firewall และ ตรวจสอบสถานะของ UFW</p>
