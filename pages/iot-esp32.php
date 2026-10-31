@@ -4,6 +4,15 @@
   แล้วส่งข้อมูลผ่านโปรโตคอล MQTT ไปยัง Node-RED เพื่อนำไปประมวลผลหรือบันทึกลงฐานข้อมูลต่อไป
 </p>
 <p>ตัวอย่างนี้จะแสดงให้เห็นถึงการทำงานร่วมกันของ Hardware (ESP32, Sensor), Network Protocol (MQTT), และ Software (Node-RED) ที่ทำงานอยู่บน Server ของเรา</p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+    <strong>หมายเหตุเรื่องคะแนน:</strong> หัวข้อ IoT นี้มีคะแนนแบบมีเงื่อนไขตามรูปแบบสนามแข่งขัน ("มี IoT" หรือ "ไม่มี IoT") ให้ตรวจสอบประกาศของคณะกรรมการในปีและสนามของคุณก่อนเตรียมตัวในส่วนนี้
+    (ดูรายละเอียดเพิ่มเติมที่หัวข้อ <a href="#" onclick="document.querySelector('a[data-page=\'node-red\']').click();">Node-RED</a>)
+</p>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+    <strong>⚠️ สำคัญ - MQTT Topic ต้องตรงกัน:</strong> โค้ดตัวอย่าง 4 แบบด้านล่างนี้ <strong>ใช้ชื่อ Topic ไม่เหมือนกัน</strong>: ตัวอย่างที่ 1-2 ใช้ <code>vecskill</code>
+    ส่วนตัวอย่างที่ 3-4 (แบบ Non-blocking/Robust Reconnect ที่แนะนำ) ใช้ <code>vecskill/telemetry</code> เมื่อไปตั้งค่า Node `mqtt in` ใน Node-RED ด้านล่าง
+    <strong>ต้องใส่ Topic ให้ตรงกับที่ใช้ในโค้ด ESP32 ที่คุณเลือกจริงๆ</strong> ไม่งั้นข้อมูลจะไม่เข้ามาเลยแม้ว่า ESP32 จะเชื่อมต่อ MQTT สำเร็จก็ตาม
+</p>
 
 <hr style="margin: 40px 0" />
 
@@ -756,7 +765,7 @@ void loop() {
       <li>
         <strong>Server:</strong> คลิกไอคอนดินสอเพื่อตั้งค่า MQTT Broker ของคุณ (ต้องเป็น Server และ Port เดียวกับที่ ESP32 ชี้ไป, เช่น `localhost:1883` หาก MQTT Broker รันบนเครื่องเดียวกับ Node-RED)
       </li>
-      <li><strong>Topic:</strong> ตั้งค่าเป็น `vecskill` (หรือ Topic ที่คุณกำหนดในโค้ด ESP32)</li>
+      <li><strong>Topic:</strong> ตั้งค่าให้ตรงกับโค้ด ESP32 ที่คุณใช้จริง — `vecskill` ถ้าใช้ตัวอย่างที่ 1-2 หรือ `vecskill/telemetry` ถ้าใช้ตัวอย่างที่ 3-4 (ดูคำเตือนด้านบนสุดของหน้านี้)</li>
       <li><strong>Output:</strong> ตั้งค่าเป็น **a parsed JSON object** (สำคัญมาก! เพื่อให้ Node-RED แปลงข้อมูลที่ได้รับเป็น Object)</li>
       <li><strong>Name:</strong> ตั้งชื่อ Node (เช่น "ESP32 Sensor Data")</li>
     </ul>

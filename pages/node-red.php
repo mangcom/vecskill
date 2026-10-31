@@ -4,6 +4,11 @@
   ก่อนจะติดตั้ง Node-RED เราจำเป็นต้องมี "ตลาดกลาง" สำหรับรับส่งข้อมูล IoT ก่อน ซึ่งเรียกว่า **MQTT Broker** ในคู่มือนี้ เราจะเปรียบเทียบและติดตั้ง Broker สองตัวที่นิยมที่สุดคือ **Mosquitto** และ
   **EMQX**
 </p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+    <strong>หมายเหตุเรื่องคะแนน:</strong> ตามเกณฑ์ทักษะ ส่วน MQTT/Node-RED/Hardware/Dashboard นี้เป็นส่วนที่ <strong>มีคะแนนแบบมีเงื่อนไข</strong> ขึ้นอยู่กับว่าสนามแข่งขันนั้นๆ จัดแบบ "มี IoT" หรือ
+    "ไม่มี IoT" (ถ้ามี IoT จะได้คะแนนส่วนนี้ 10 คะแนน แต่คะแนนส่วน Network จะลดลงเล็กน้อยเพื่อถัวเฉลี่ย) ให้ตรวจสอบประกาศของคณะกรรมการจัดการแข่งขันในปีและสนามของคุณว่าใช้รูปแบบไหน
+    ก่อนเตรียมตัวในส่วนนี้
+</p>
 
 <hr style="margin: 40px 0" />
 
@@ -145,6 +150,9 @@ services:
       <li><strong>Username:</strong> <code>admin</code></li>
       <li><strong>Password:</strong> <code>public</code></li>
     </ul>
+    <p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 10px">
+        <strong>ควรเปลี่ยนรหัสผ่านทันที:</strong> <code>admin</code>/<code>public</code> เป็นรหัสผ่านเริ่มต้นที่รู้กันทั่วไป ควรเข้าไปเปลี่ยนที่เมนู Users หลังล็อกอินครั้งแรกเสมอ
+    </p>
     <div class="image-container">
       <p>หน้าล็อกอินของ EMQX Dashboard</p>
     </div>

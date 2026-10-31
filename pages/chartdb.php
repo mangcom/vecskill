@@ -12,7 +12,7 @@
 
 <h2>ส่วนที่ 1: การติดตั้ง ChartDB</h2>
 <p>
-  ในคู่มือนี้เราจะตั้งค่าให้ ChartDB ทำงานบนโดเมน <code>chartdb.vecskill.ovec</code> (หรือ <code>chartdb.vecskill.ovec</code> ตามที่คุณเลือกใช้) และเชื่อมต่อผ่าน Network กลาง
+  ในคู่มือนี้เราจะตั้งค่าให้ ChartDB ทำงานบนโดเมน <code>chartdb.vecskill.ovec</code> (หรือโดเมนอื่นตามที่คุณเลือกใช้) และเชื่อมต่อผ่าน Network กลาง
   <code>app_net</code> เพื่อให้สามารถทำ Reverse Proxy ร่วมกับ Caddy หรือ Nginx Proxy Manager ได้
 </p>
 
