@@ -53,8 +53,10 @@ networks:
 
 <div id="CaddyTab" class="tabcontent" style="display: block">
   <h3>เพิ่มคอนฟิกใน `Caddyfile`</h3>
-  <p>เปิดไฟล์ <code>/srv/caddy/Caddyfile</code> แล้วเพิ่มบรรทัดคอนฟิกนี้ลงไป:</p>
+  <p>เปิดไฟล์ <code>/opt/caddy/Caddyfile</code> แล้วเพิ่มบรรทัดคอนฟิกนี้ลงไป (ตัวอย่างนี้ใช้ <code>tls internal</code> สำหรับเข้าใช้งานภายในทีม ดูรายละเอียดที่บท
+  <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a>):</p>
   <pre><code>chartdb.vecskill.ovec {
+    tls internal
     reverse_proxy chartdb:80
 }</code></pre>
   <p>บันทึกไฟล์แล้ว Caddy จะโหลดคอนฟิกใหม่และสร้าง HTTPS ให้โดเมนนี้โดยอัตโนมัติ</p>
@@ -67,7 +69,10 @@ networks:
     <li><strong>Domain Names:</strong> <code>chartdb.vecskill.ovec</code></li>
     <li><strong>Forward Hostname:</strong> <code>chartdb</code></li>
     <li><strong>Forward Port:</strong> <code>80</code></li>
-    <li>ในแท็บ <strong>SSL</strong> เลือกขอใบรับรอง (Request new...) และติ๊ก Force SSL แล้วบันทึก</li>
+    <li>
+      ในแท็บ <strong>SSL</strong> เลือก Certificate ที่สร้างไว้สำหรับใช้งานภายในทีม (ดูวิธีสร้างด้วย mkcert ที่บท Nginx Proxy Manager ส่วนที่ 3) หรือเลือก "Request a new Certificate" ถ้าต้องการเปิดสู่อินเทอร์เน็ตจริง
+      แล้วติ๊ก Force SSL จากนั้นบันทึก
+    </li>
   </ol>
 </div>
 

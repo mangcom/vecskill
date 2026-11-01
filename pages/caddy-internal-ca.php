@@ -1,12 +1,14 @@
 <h1>การตั้งค่า Caddy เป็น Internal CA (สำหรับ HTTPS ภายใน)</h1>
 <p>
-    ในบทก่อนๆ เราได้เรียนรู้วิธีใช้ Caddy หรือ Nginx Proxy Manager เพื่อทำ Reverse Proxy และขอ SSL Certificate จาก Let's Encrypt สำหรับโดเมนที่เข้าถึงได้จากอินเทอร์เน็ต (Public Domain) แต่วิธีนั้นอาจไม่เหมาะสำหรับ Service ที่เราต้องการให้เข้าถึงได้เฉพาะภายในเครือข่ายของเราเท่านั้น
+    หน้านี้เป็นภาคต่อของบท <a href="#" onclick="document.querySelector('a[data-page=\'caddy-proxy\']').click();">Caddy Reverse Proxy</a> ส่วนที่ 1 ซึ่งแนะนำให้ใช้ความสามารถของ Caddy ในการทำหน้าที่เป็น
+    <strong>Certificate Authority (CA) ภายใน</strong> ของตัวเองสำหรับ Service ที่ต้องการให้เข้าถึงได้เฉพาะเครื่องในทีม (Intranet) เท่านั้น โดยไม่ต้องมีโดเมนสาธารณะหรือขอ Certificate จาก Let's Encrypt
 </p>
 <p>
-    Caddy มีฟีเจอร์ที่ทรงพลังคือความสามารถในการทำหน้าที่เป็น **Certificate Authority (CA) ภายใน** ของตัวเองได้ มันสามารถออก SSL Certificate ที่ถูกต้องและน่าเชื่อถือ *สำหรับใช้งานภายในเครือข่ายของคุณ* ได้โดยอัตโนมัติ ทำให้คุณสามารถเข้าถึง Service ต่างๆ เช่น <code>https://gitlab.vecskill.ovec</code> หรือ <code>https://portainer.vecskill.ovec</code> ด้วย HTTPS โดยไม่มีคำเตือนเรื่องความปลอดภัยจากเบราว์เซอร์เลย!
+    Caddy สามารถออก SSL Certificate ที่ถูกต้องและน่าเชื่อถือ *สำหรับใช้งานภายในเครือข่ายของคุณ* ได้โดยอัตโนมัติ ทำให้คุณสามารถเข้าถึง Service ต่างๆ เช่น <code>https://gitlab.vecskill.ovec</code> หรือ <code>https://portainer.vecskill.ovec</code> ด้วย HTTPS โดยไม่มีคำเตือนเรื่องความปลอดภัยจากเบราว์เซอร์เลย! หน้านี้จะแสดงตัวอย่าง Caddyfile แบบเต็มสำหรับทุก Service ในคู่มือนี้ และขั้นตอนติดตั้ง Root CA บนเครื่อง Client
 </p>
 <p>
-    วิธีนี้เหมาะอย่างยิ่งสำหรับ Homelab หรือเครือข่ายภายในองค์กรที่ไม่ต้องการเปิดเผย Service สู่โลกภายนอก
+    วิธีนี้เหมาะอย่างยิ่งสำหรับการแข่งขันหรือเครือข่ายภายในองค์กรที่ไม่ต้องการเปิดเผย Service สู่โลกภายนอก (ถ้าใช้ Nginx Proxy Manager แทน Caddy ดูวิธีทำ Intranet HTTPS ที่เทียบเท่ากันด้วย <code>mkcert</code>
+    ได้ที่บท <a href="#" onclick="document.querySelector('a[data-page=\'npm-proxy\']').click();">Nginx Proxy Manager</a> ส่วนที่ 3)
 </p>
 
 <h3>แนวคิดหลัก</h3>
