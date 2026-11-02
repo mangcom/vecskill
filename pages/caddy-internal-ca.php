@@ -37,14 +37,14 @@
     <li>
         <strong>คัดลอกเนื้อหาคอนฟิกนี้ไปวาง:</strong> (อย่าลืมเปลี่ยนชื่อโดเมน <code>*.vecskill.ovec</code> ให้เป็นชื่อโดเมนภายในที่คุณต้องการใช้)
         <pre><code>{
-	# สั่งให้ Caddy ใช้ CA ภายในสำหรับทุกโดเมนในไฟล์นี้
-	cert_issuer internal
+	# Global Options Block: สั่งให้ Caddy ออก Certificate จาก Internal CA ของตัวเองให้ทุกโดเมนในไฟล์นี้
+	# โดยอัตโนมัติ (แทนที่จะขอจาก Let's Encrypt) ไม่ต้องใส่ tls internal ซ้ำในทุก Site Block ด้านล่าง
+	local_certs
 	# auto_https on  # เปิดใช้งาน HTTPS อัตโนมัติ (เป็นค่าเริ่มต้นอยู่แล้ว)
 }
 
 # ---------- Technitium DNS (Web Admin) ----------
 dns.vecskill.ovec {
-	tls internal # บอกให้ใช้ Certificate จาก Internal CA
 	encode zstd gzip
 	reverse_proxy http://technitium-dns:5380
 }
@@ -52,7 +52,6 @@ dns.vecskill.ovec {
 # ---------- Portainer ----------
 # (ตัวอย่างนี้สำหรับ Portainer ที่รันบน HTTPS Port 9443)
 portainer.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	reverse_proxy https://portainer:9443 {
 		transport http {
@@ -63,7 +62,6 @@ portainer.vecskill.ovec {
 
 # ---------- Docker Registry (Distribution v2) ----------
 registry.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	header Docker-Distribution-Api-Version "registry/2.0" # Header เฉพาะของ Registry
 	reverse_proxy http://registry:5000 {
@@ -73,7 +71,6 @@ registry.vecskill.ovec {
 
 # ---------- Registry UI ----------
 registry-ui.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	reverse_proxy http://registry-ui:80 {
 		header_up X-Forwarded-Proto {scheme}
@@ -82,7 +79,6 @@ registry-ui.vecskill.ovec {
 
 # ---------- NPM (Verdaccio - สมมติว่ามี Container ชื่อ verdaccio) ----------
 npm.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	header Strict-Transport-Security "max-age=31536000;"
 	log {
@@ -93,7 +89,6 @@ npm.vecskill.ovec {
 
 # ---------- PyPI (devpi - สมมติว่ามี Container ชื่อ devpi) ----------
 pypi.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	reverse_proxy http://devpi:3141 {
 		header_up X-Forwarded-Proto {scheme}
@@ -103,14 +98,12 @@ pypi.vecskill.ovec {
 
 # ---------- APT cacher (สมมติว่ามี Container ชื่อ aptcacher) ----------
 apt.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	reverse_proxy http://aptcacher:3142
 }
 
 # ---------- GitLab ----------
 gitlab.vecskill.ovec {
-	tls internal
 	encode zstd gzip
 	header Strict-Transport-Security "max-age=31536000;"
 	log {

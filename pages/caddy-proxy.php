@@ -61,14 +61,20 @@ sudo mkdir -p /opt/caddy
 
 # สร้างและแก้ไขไฟล์ Caddyfile
 sudo nano /opt/caddy/Caddyfile</code></pre>
-<p>คัดลอกเนื้อหานี้ไปวางในไฟล์ `Caddyfile` สังเกต Directive <code>tls internal</code> ที่บอกให้ Caddy ออก Certificate เองแทนการขอจาก Let's Encrypt:</p>
-<pre><code>gitlab.vecskill.ovec {
-    tls internal
+<p>
+  คัดลอกเนื้อหานี้ไปวางในไฟล์ `Caddyfile` สังเกต Block ว่างๆ ที่ขึ้นต้นไฟล์พร้อม Directive <code>local_certs</code> ด้านใน — นี่คือ <strong>Global Options Block</strong> ที่สั่งให้ Caddy ออก Certificate
+  จาก Internal CA ของตัวเองให้กับ <strong>ทุกโดเมน</strong> ในไฟล์นี้โดยอัตโนมัติ (แทนที่จะขอจาก Let's Encrypt) โดยไม่ต้องใส่ <code>tls internal</code> ซ้ำในทุก Site Block เหมือนตัวอย่างเก่า
+  สะดวกมากขึ้นเมื่อมีหลาย Service:
+</p>
+<pre><code>{
+    local_certs
+}
+
+gitlab.vecskill.ovec {
     reverse_proxy gitlab:80
 }
 
 portainer.vecskill.ovec {
-    tls internal
     # Portainer ทำงานบน HTTPS ภายใน เราจึงต้องตั้งค่า transport เพิ่มเติม
     reverse_proxy portainer:9443 {
         transport http {
@@ -77,6 +83,10 @@ portainer.vecskill.ovec {
     }
 }
 </code></pre>
+<p style="font-size: 0.9em; color: #666">
+  <em>หมายเหตุ: <code>local_certs</code> เป็น Global Option ที่เทียบเท่ากับ <code>cert_issuer internal</code> ที่ใช้ในบท
+  <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a> เพียงแต่ <code>local_certs</code> เป็นคำสั่งลัดที่สื่อความหมายตรงตัวกว่า</em>
+</p>
 
 <h3>ขั้นตอนที่ 1.3: ติดตั้ง Caddy ผ่าน Portainer Stack</h3>
 <p>ไปที่ <strong>Stacks > + Add stack</strong>, ตั้งชื่อ (เช่น `caddy-stack`) แล้วใช้โค้ด Docker Compose นี้:</p>
@@ -134,7 +144,7 @@ sudo ufw allow 443/tcp</code></pre>
 </ol>
 
 <h3>ขั้นตอนที่ 2.2: ปรับ `Caddyfile` ให้ใช้ Let's Encrypt แทน</h3>
-<p>แก้ไขไฟล์ <code>/opt/caddy/Caddyfile</code> โดยเอา <code>tls internal</code> ออก (ไม่ใส่ Directive นี้ = Caddy จะขอ Certificate จาก Let's Encrypt โดยอัตโนมัติแทน):</p>
+<p>แก้ไขไฟล์ <code>/opt/caddy/Caddyfile</code> โดยเอา Global Options Block ที่มี <code>local_certs</code> ออกทั้งก้อน (ไม่ตั้งค่านี้ = Caddy จะขอ Certificate จาก Let's Encrypt โดยอัตโนมัติแทน):</p>
 <pre><code>gitlab.vecskill.ovec {
     reverse_proxy gitlab:80
 }

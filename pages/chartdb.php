@@ -53,10 +53,9 @@ networks:
 
 <div id="CaddyTab" class="tabcontent" style="display: block">
   <h3>เพิ่มคอนฟิกใน `Caddyfile`</h3>
-  <p>เปิดไฟล์ <code>/opt/caddy/Caddyfile</code> แล้วเพิ่มบรรทัดคอนฟิกนี้ลงไป (ตัวอย่างนี้ใช้ <code>tls internal</code> สำหรับเข้าใช้งานภายในทีม ดูรายละเอียดที่บท
-  <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a>):</p>
+  <p>เปิดไฟล์ <code>/opt/caddy/Caddyfile</code> แล้วเพิ่ม Block นี้ต่อท้าย (ถ้าตั้งค่า <code>local_certs</code> ไว้ใน Global Options Block แล้วตามบท
+  <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a> ก็ไม่ต้องใส่ <code>tls internal</code> ซ้ำในนี้อีก):</p>
   <pre><code>chartdb.vecskill.ovec {
-    tls internal
     reverse_proxy chartdb:80
 }</code></pre>
   <p>บันทึกไฟล์แล้ว Caddy จะโหลดคอนฟิกใหม่และสร้าง HTTPS ให้โดเมนนี้โดยอัตโนมัติ</p>
