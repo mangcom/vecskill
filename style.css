@@ -85,6 +85,24 @@ body {
   font-weight: bold;
 }
 
+.menu li.menu-section-label {
+  padding: 16px 20px 8px;
+  margin-top: 6px;
+  font-size: 0.78em;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #95a5a6;
+  background-color: rgba(0, 0, 0, 0.12);
+  border-top: 1px solid var(--secondary-color);
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.menu li.menu-section-label:first-child {
+  margin-top: 0;
+  border-top: none;
+}
+
 /* --- สไตล์ของเนื้อหาด้านขวา (Content) --- */
 .content {
   flex-grow: 1;
@@ -417,6 +435,11 @@ code {
   body.sidebar-collapsed .menu li a span {
     display: none;
     /* Hide menu text */
+  }
+
+  body.sidebar-collapsed .menu li.menu-section-label {
+    display: none;
+    /* Hide section labels when collapsed, no icon to show */
   }
 
   body.sidebar-collapsed .menu li a:hover {

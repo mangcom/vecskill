@@ -69,17 +69,20 @@ docker compose up -d --build
 
 ### 📚 ทักษะ DevOps ที่ครอบคลุม (Core Skills Covered)
 
+**สำหรับผู้เข้าแข่งขัน (ทีม) — เรียงตามลำดับการทำงานจริง:**
+
 * **ภาพรวม:** สถาปัตยกรรม, ผังการเชื่อมต่อ, Quick Start ด้วย VM สำเร็จรูป (VMWare)
-* **Server Setup:** การเตรียม Ubuntu Server, Static IP, ผู้ใช้งาน/SSH Key (รวม Windows↔Linux), Firewall (UFW)
-* **Containerization:** Docker, Portainer
-* **Reverse Proxy & HTTPS:** Caddy Reverse Proxy, Nginx Proxy Manager (ทางเลือก), Caddy Internal CA (HTTPS ภายใน)
+* **Server Setup:** การเตรียม Ubuntu Server, Static IP, ผู้ใช้งาน/SSH Key (รวม Windows↔Linux), Firewall (UFW), Docker, Node.js (Online)
+* **Containerization:** Portainer, ChartDB (ออกแบบ Database)
+* **Network & HTTPS:** Technitium DNS (ภายใน) → Caddy Reverse Proxy + Caddy Internal CA (HTTPS ภายใน), Nginx Proxy Manager (ทางเลือกของ Caddy)
 * **Source Control & Registry:** การติดตั้ง Docker Registry + UI, GitLab, การใช้งาน Git เบื้องต้น
 * **CI/CD:** GitLab Runner, GitLab CI/CD, ตัวอย่าง Pipeline (2 แบบ)
 * **Security & Code Quality:** OWASP ZAP (Security Scan), Trivy (Vulnerability Scan), SonarQube Community Edition (Code Quality), Swagger/OpenAPI (API Docs)
-* **Network Services:** Technitium DNS (ภายใน)
-* **Database Design Tool:** ChartDB
 * **IoT (ตามเงื่อนไขของแต่ละสนามแข่งขัน):** Node-RED + MQTT Broker (Mosquitto/EMQX), ตัวอย่าง ESP32 + BME/BMP280
-* **Offline Package Mirrors (สำหรับเจ้าภาพ):** Apt-Cacher-Ng, APT Mirror (Ubuntu), DNF Mirror (Rocky/CentOS), Node.js (ติดตั้งออนไลน์ + Local Repo แบบออฟไลน์), Devpi (Private PyPI), Verdaccio (Private NPM Registry)
-* **ตัวอย่างระบบ:** ระบบประเมินครู (PES), เกณฑ์การแข่งขัน (Hardware/Software ปวช./ปวส.)
+
+**สำหรับกรรมการ/เจ้าภาพ — เตรียมระบบกลางของสนามแข่งขัน:**
+
+* **Offline Package Mirrors:** Apt-Cacher-Ng, APT Mirror (Ubuntu), DNF Mirror (Rocky/CentOS), Node.js Local Repo (ออฟไลน์), Devpi (Private PyPI), Verdaccio (Private NPM Registry)
+* **เกณฑ์การแข่งขัน/ตัวอย่างระบบ:** Hardware/Software ปวช./ปวส., ระบบประเมินครู (PES)
 
 > แต่ละหัวข้อจะระบุไว้ในหน้านั้นๆ ว่าตรงกับเกณฑ์การให้คะแนนของการแข่งขันโดยตรง, เป็นโครงสร้างพื้นฐานที่เจ้าภาพต้องเตรียม, หรือเป็นข้อมูลอ้างอิงเสริมที่ไม่ได้อยู่ในเกณฑ์การให้คะแนน

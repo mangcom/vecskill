@@ -36,6 +36,8 @@ $v = function (string $path): string {
             <li>
               <a href="/vmware-quickstart" data-page="vmware-quickstart"><i class="fas fa-compact-disc fa-fw"></i><span> Quick Start (VMWare)</span></a>
             </li>
+
+            <li class="menu-section-label"><span>สำหรับผู้เข้าแข่งขัน (ทีม)</span></li>
             <li>
               <a href="/ubuntu-setup" data-page="ubuntu-setup"><i class="fab fa-ubuntu fa-fw"></i><span> การเตรียม Ubuntu Server</span></a>
             </li>
@@ -43,16 +45,25 @@ $v = function (string $path): string {
               <a href="/docker" data-page="docker"><i class="fab fa-docker fa-fw"></i><span> การติดตั้ง Docker</span></a>
             </li>
             <li>
+              <a href="/nodejs-install" data-page="nodejs-install"><i class="fab fa-node-js fa-fw"></i><span> Node.js (Online)</span></a>
+            </li>
+            <li>
               <a href="/portainer" data-page="portainer"><i class="fas fa-cubes fa-fw"></i><span> การติดตั้ง Portainer</span></a>
+            </li>
+            <li>
+              <a href="/chartdb" data-page="chartdb"><i class="fas fa-database fa-fw"></i><span> การติดตั้ง ChartDB</span></a>
+            </li>
+            <li>
+              <a href="/technitium-dns" data-page="technitium-dns"><i class="fas fa-network-wired fa-fw"></i><span> การติดตั้ง DNS Server</span></a>
             </li>
             <li>
               <a href="/caddy-proxy" data-page="caddy-proxy"><i class="fas fa-route fa-fw"></i><span> Caddy Reverse Proxy</span></a>
             </li>
             <li>
-              <a href="/npm-proxy" data-page="npm-proxy"><i class="fas fa-random fa-fw"></i><span> Nginx Proxy Manager (ทางเลือก)</span></a>
+              <a href="/caddy-internal-ca" data-page="caddy-internal-ca"><i class="fas fa-lock fa-fw"></i><span> การทำ HTTPS ภายใน</span></a>
             </li>
             <li>
-              <a href="/caddy-internal-ca" data-page="caddy-internal-ca"><i class="fas fa-lock fa-fw"></i><span> การทำ HTTPS ภายใน</span></a>
+              <a href="/npm-proxy" data-page="npm-proxy"><i class="fas fa-random fa-fw"></i><span> Nginx Proxy Manager</span></a>
             </li>
             <li>
               <a href="/registry" data-page="registry"><i class="fas fa-database fa-fw"></i><span> การติดตั้ง Registry & UI</span></a>
@@ -88,17 +99,13 @@ $v = function (string $path): string {
               <a href="/swagger" data-page="swagger"><i class="fas fa-book fa-fw"></i><span> Swagger (API Docs)</span></a>
             </li>
             <li>
-              <a href="/technitium-dns" data-page="technitium-dns"><i class="fas fa-network-wired fa-fw"></i><span> การติดตั้ง DNS Server</span></a>
-            </li>
-            <li>
-              <a href="/chartdb" data-page="chartdb"><i class="fas fa-database fa-fw"></i><span> การติดตั้ง ChartDB</span></a>
-            </li>
-            <li>
               <a href="/node-red" data-page="node-red"><i class="fa-brands fa-node-js fa-fw"></i><span> Node-Red</span></a>
             </li>
             <li>
               <a href="/iot-esp32" data-page="iot-esp32"><i class="fas fa-microchip fa-fw"></i><span> ตัวอย่าง IoT</span> </a>
             </li>
+
+            <li class="menu-section-label"><span>สำหรับกรรมการ / เจ้าภาพ (เตรียมระบบกลาง)</span></li>
             <li>
               <a href="/apt-cacher-ng" data-page="apt-cacher-ng"><i class="fas fa-box-archive fa-fw"></i><span> Apt-Cacher-Ng</span></a>
             </li>
@@ -107,9 +114,6 @@ $v = function (string $path): string {
             </li>
             <li>
               <a href="/dnf-mirror" data-page="dnf-mirror"><i class="fab fa-redhat fa-fw"></i><span> DNF Mirror (CentOS/Rocky)</span></a>
-            </li>
-            <li>
-              <a href="/nodejs-install" data-page="nodejs-install"><i class="fab fa-node-js fa-fw"></i><span> Node.js (Online)</span></a>
             </li>
             <li>
               <a href="/nodejs-local-repo" data-page="nodejs-local-repo"><i class="fab fa-node-js fa-fw"></i><span> Node.js Local Repo</span></a>
