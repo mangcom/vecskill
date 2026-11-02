@@ -183,26 +183,37 @@ volumes:
 
 <h2>ขั้นตอนที่ 3: ติดตั้ง Root CA ของ Caddy บนเครื่อง Client</h2>
 <p>
-    เพื่อให้เบราว์เซอร์บนเครื่องคอมพิวเตอร์ของคุณเชื่อถือ Certificate ที่ Caddy ออกให้ คุณต้องนำ Root CA ของ Caddy ไปติดตั้งใน "Trusted Root Certification Authorities" store ของระบบปฏิบัติการที่คุณใช้งาน **ขั้นตอนนี้ต้องทำบนเครื่อง Client ทุกเครื่องที่ต้องการเข้าถึง Service ผ่าน HTTPS**
+    เพื่อให้เครื่องต่างๆ เชื่อถือ Certificate ที่ Caddy ออกให้ คุณต้องนำ Root CA ของ Caddy ไปติดตั้งใน Trust Store ของทุกเครื่องที่ต้องเข้าถึง Service ผ่าน HTTPS <strong>"ทุกเครื่อง" ในที่นี้ไม่ได้มีแค่เครื่องเบราว์เซอร์ของผู้ใช้เท่านั้น
+    แต่รวมถึงตัว Server เองและ Server อื่นๆ ที่ต้องเรียก API/Pull Image ผ่าน HTTPS นี้ด้วย</strong> หน้านี้จะแยกอธิบายทีละกรณีให้ชัดเจน
+    (ตัวอย่างนี้ใช้ IP <code>10.20.30.101</code> เป็น Server ที่รัน Caddy และ <code>192.168.100.102</code> เป็น Production Server อีกเครื่อง
+    ตามชื่อ/IP ที่ใช้ตลอดคู่มือนี้ ให้แก้เป็น IP จริงของคุณ)
 </p>
+
+<h3>ขั้นตอนที่ 3.1: ดึงไฟล์ Root CA (`root.crt`) ออกมาจาก Caddy Container</h3>
+<p>รันคำสั่งนี้บน Server ที่รัน Caddy Container (เช่น <code>10.20.30.101</code>):</p>
+<pre><code>docker cp caddy:/data/caddy/pki/authorities/local/root.crt /opt/caddy/caddy-root.crt
+sudo chmod 644 /opt/caddy/caddy-root.crt</code></pre>
+<p>
+    <code>docker cp</code> คัดลอกไฟล์ Root CA ที่ Caddy สร้างขึ้นเองตอนเริ่มทำงานครั้งแรก (เก็บอยู่ภายใน Container ที่ Path <code>/data/caddy/pki/authorities/local/root.crt</code>) ออกมาไว้บน Host ที่
+    <code>/opt/caddy/caddy-root.crt</code> จากนั้น <code>chmod 644</code> เปิดสิทธิ์ให้อ่านได้จากทุก User เพราะขั้นตอนถัดไปจะใช้ <code>scp</code> ดึงไฟล์นี้ออกไปยังเครื่องอื่น ถ้าไม่เปิดสิทธิ์อ่านไว้ก่อนจะดึงไม่ได้
+</p>
+
+<h3>ขั้นตอนที่ 3.2: ติดตั้งบนเครื่อง Client ที่เป็น Windows (เช่น เครื่องของนักพัฒนา)</h3>
 <ol>
     <li>
-        <strong>ดึงไฟล์ Root CA (`root.crt`) ออกมาจาก Caddy Container:</strong><br>
-        รันคำสั่งนี้บน Server ที่รัน Caddy Container
-        <pre><code>docker cp caddy:/data/caddy/pki/authorities/local/root.crt /opt/caddy/caddy-root.crt
-          sudo chmod 644 /opt/caddy/caddy-root.crt</code></pre>
-        ตอนนี้คุณจะได้ไฟล์ Certificate ชื่อ `caddy-root.crt` อยู่ใน `/opt/caddy/` บน Server ของคุณ
-    </li>
-    <li>
-        <strong>คัดลอกไฟล์ `caddy-root.crt` ไปยังเครื่อง Client:</strong><br>
-        ใช้วิธีใดก็ได้ที่คุณสะดวก (เช่น SCP, USB Drive) เพื่อนำไฟล์นี้ไปไว้บนเครื่องคอมพิวเตอร์ของคุณ (ตัวอย่าง: วางไว้ที่ <code>C:\Users\Public\caddy-root.crt</code> บน Windows)
+        <strong>คัดลอกไฟล์มาที่เครื่อง Windows:</strong><br>
+        เปิด PowerShell บนเครื่อง Windows แล้วรันคำสั่งนี้เพื่อดึงไฟล์จาก Caddy Server มาไว้ที่เครื่องของคุณ (ต้องตั้งค่า SSH Key ไว้ก่อนตามบท
+        <a href="#" onclick="document.querySelector('a[data-page=\'ubuntu-setup\']').click();">การเตรียม Ubuntu Server</a> ไม่งั้นจะถูกถามรหัสผ่าน):
+        <pre><code class="language-powershell">scp devops@10.20.30.101:/opt/caddy/caddy-root.crt C:/Users/Public</code></pre>
+        คำสั่งนี้ดึงไฟล์จาก Caddy Server (User <code>devops</code>, IP <code>10.20.30.101</code>) มาวางไว้ที่ <code>C:\Users\Public\caddy-root.crt</code> บนเครื่อง Windows
+        (จะใช้วิธีอื่น เช่น USB Drive ก็ได้ ถ้าไม่สะดวกใช้ scp)
     </li>
     <li>
         <strong>ติดตั้ง Certificate บน Windows (ด้วย PowerShell):</strong><br>
         - คลิกขวาที่ปุ่ม Start > เลือก **"Windows PowerShell (Admin)"** หรือ **"Terminal (Admin)"**<br>
         - รันคำสั่ง `Import-Certificate` โดยระบุตำแหน่งไฟล์และ Store ที่ต้องการติดตั้ง:
         <pre><code class="language-powershell">Import-Certificate -FilePath "C:\Users\Public\caddy-root.crt" -CertStoreLocation Cert:\LocalMachine\Root</code></pre>
-        <p>คุณจะเห็นผลลัพธ์แสดง Thumbprint ของ Certificate ที่ถูกติดตั้ง</p>
+        <p>คำสั่งนี้ติดตั้งไฟล์เข้าสู่ "Trusted Root Certification Authorities" Store ของ Windows ทำให้ Browser บนเครื่องนี้เชื่อถือ HTTPS ที่ Caddy ออกให้ทันที คุณจะเห็นผลลัพธ์แสดง Thumbprint ของ Certificate ที่ถูกติดตั้ง</p>
         <div class="image-container">
             <img src="images/08-01-import-root-ca.png" alt="PowerShell Import-Certificate command result" class="content-image">
             <p>ตัวอย่างผลลัพธ์หลังจากรันคำสั่ง Import-Certificate</p>
@@ -226,6 +237,39 @@ Get-ChildItem Cert:\LocalMachine\Root | Where-Object Subject -like "*Caddy Local
         ปิดเบราว์เซอร์ทั้งหมดแล้วเปิดใหม่ เพื่อให้เบราว์เซอร์อ่านค่า Certificate ที่เพิ่งติดตั้งเข้าไป
     </li>
 </ol>
+
+<h3>ขั้นตอนที่ 3.3: ติดตั้งบนเครื่อง Server ที่รัน Caddy เอง (Linux)</h3>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+    <strong>ทำไมต้องทำขั้นตอนนี้ด้วย:</strong> ขั้นตอนที่ 3.2 ทำให้แค่ <strong>Browser</strong> บนเครื่อง Windows เชื่อถือ Certificate แต่โปรแกรมที่รันบน Command Line ของตัว Caddy Server เอง (เช่น
+    <code>curl</code>, <code>git</code>, <code>docker</code>) จะยังไม่เชื่อถือ Certificate นี้ เพราะ Linux แยก Trust Store ของระบบปฏิบัติการออกจาก Trust Store ของ Browser จึงต้องติดตั้งซ้ำอีกชุดสำหรับระบบปฏิบัติการ
+    ถ้าคุณมี Service บน Server นี้ที่ต้องเรียกกลับมาหา Service อื่นผ่าน <code>https://...vecskill.ovec</code> (เช่น GitLab Runner เรียก Registry) ต้องทำขั้นตอนนี้
+</p>
+<p>รันคำสั่งนี้บน Caddy Server เอง (<code>10.20.30.101</code>):</p>
+<pre><code>sudo cp /opt/caddy/caddy-root.crt /usr/local/share/ca-certificates/caddy-root.crt
+sudo update-ca-certificates</code></pre>
+<p>
+    <code>cp</code> ก๊อปไฟล์เข้าโฟลเดอร์มาตรฐานของ Ubuntu/Debian สำหรับเก็บ Certificate เพิ่มเติม (<code>/usr/local/share/ca-certificates/</code> — ไฟล์ในนี้ต้องนามสกุล <code>.crt</code> เท่านั้นถึงจะถูกตรวจพบ)
+    จากนั้น <code>update-ca-certificates</code> จะสแกนโฟลเดอร์นี้และรวม Certificate ใหม่เข้ากับ Trust Bundle ของระบบ (<code>/etc/ssl/certs/ca-certificates.crt</code>) โดยอัตโนมัติ
+</p>
+
+<h3>ขั้นตอนที่ 3.4: ติดตั้งบนเครื่อง Server อื่นๆ ที่ต้องเชื่อถือ Certificate นี้ด้วย (เช่น Production Server)</h3>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+    <strong>ทำไมต้องทำขั้นตอนนี้ด้วย:</strong> ถ้าคุณทำตามวิธี "Push ผ่าน HTTPS ที่เชื่อถือได้" ในบท
+    <a href="#" onclick="document.querySelector('a[data-page=\'registry\']').click();">การติดตั้ง Registry & UI</a> เครื่อง Production Server ที่ GitLab Runner SSH เข้าไป Deploy ตามบท
+    <a href="#" onclick="document.querySelector('a[data-page=\'cicd\']').click();">การใช้งาน Gitlab CI/CD</a> ก็ต้องเชื่อถือ Certificate ของ Caddy ด้วยเช่นกัน ไม่งั้น <code>docker compose pull</code>
+    บนเครื่องนั้นจะล้มเหลวด้วย TLS Error เพราะไม่รู้จัก Root CA นี้
+</p>
+<p>ทำตามนี้บน Production Server (ตัวอย่างใช้ IP <code>192.168.100.102</code> ตามบท CI/CD):</p>
+<pre><code># 1. ดึงไฟล์ Root CA จาก Caddy Server มาไว้ที่ Production Server
+scp devops@10.20.30.101:/opt/caddy/caddy-root.crt /opt/caddy-root.crt
+
+# 2. ติดตั้งเข้า Trust Store ของระบบ (เหมือนขั้นตอนที่ 3.3)
+sudo cp /opt/caddy-root.crt /usr/local/share/ca-certificates/caddy-root.crt
+sudo update-ca-certificates</code></pre>
+<p style="font-size: 0.9em; color: #666">
+    <em>หมายเหตุ: บน Production Server ไม่จำเป็นต้องสร้างโฟลเดอร์ <code>/opt/caddy/</code> เพราะเครื่องนี้ไม่ได้รัน Caddy เก็บไฟล์ไว้ที่ <code>/opt/caddy-root.crt</code> ตรงๆ ก็พอ
+    ทำขั้นตอนนี้ซ้ำกับทุกเครื่องที่ต้อง Pull Image ผ่าน Registry ที่อยู่หลัง Caddy</em>
+</p>
 
 <hr style="margin: 40px 0;">
 
