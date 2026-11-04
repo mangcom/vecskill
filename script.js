@@ -29,24 +29,58 @@ document.addEventListener("DOMContentLoaded", function () {
         const codeElement = pre.querySelector("code");
         if (!codeElement) return;
         const codeToCopy = codeElement.innerText;
-        navigator.clipboard
-          .writeText(codeToCopy)
-          .then(() => {
-            copyButton.innerHTML = '<i class="fas fa-check"></i>';
-            copyButton.classList.add("copied");
-            copyButton.setAttribute("title", "Copied!");
-            setTimeout(() => {
-              copyButton.innerHTML = '<i class="far fa-copy"></i>';
-              // copyButton.innerHTML = "Copied!";
-              copyButton.classList.remove("copied");
-              copyButton.setAttribute("title", "Copy code");
-            }, 2000);
-          })
-          .catch((err) => {
-            console.error("Failed to copy code: ", err);
-            copyButton.innerHTML = '<i class="fas fa-times"></i>';
-            copyButton.setAttribute("title", "Copy failed!");
+
+        const showCopied = () => {
+          copyButton.innerHTML = '<i class="fas fa-check"></i>';
+          copyButton.classList.add("copied");
+          copyButton.setAttribute("title", "Copied!");
+          setTimeout(() => {
+            copyButton.innerHTML = '<i class="far fa-copy"></i>';
+            copyButton.classList.remove("copied");
+            copyButton.setAttribute("title", "Copy code");
+          }, 2000);
+        };
+
+        const showFailed = (err) => {
+          console.error("Failed to copy code: ", err);
+          copyButton.innerHTML = '<i class="fas fa-times"></i>';
+          copyButton.setAttribute("title", "Copy failed!");
+          setTimeout(() => {
+            copyButton.innerHTML = '<i class="far fa-copy"></i>';
+            copyButton.setAttribute("title", "Copy code");
+          }, 2000);
+        };
+
+        // Fallback แบบเก่า (execCommand) สำหรับตอนเข้าเว็บผ่าน http://IP ธรรมดา
+        // (เช่น ในสนามแข่งขันที่ไม่มีอินเทอร์เน็ต/ไม่มี HTTPS) เพราะ navigator.clipboard
+        // ใช้งานได้เฉพาะใน Secure Context เท่านั้น (HTTPS หรือ http://localhost)
+        const legacyCopy = () => {
+          const textarea = document.createElement("textarea");
+          textarea.value = codeToCopy;
+          textarea.style.position = "fixed";
+          textarea.style.top = "-9999px";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          try {
+            const ok = document.execCommand("copy");
+            document.body.removeChild(textarea);
+            ok ? showCopied() : showFailed(new Error("execCommand('copy') returned false"));
+          } catch (err) {
+            document.body.removeChild(textarea);
+            showFailed(err);
+          }
+        };
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(codeToCopy).then(showCopied).catch((err) => {
+            console.warn("navigator.clipboard failed, falling back to execCommand:", err);
+            legacyCopy();
           });
+        } else {
+          legacyCopy();
+        }
       });
       pre.classList.add("copy-button-added");
     });
