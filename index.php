@@ -45,9 +45,6 @@ $v = function (string $path): string {
               <a href="/docker" data-page="docker"><i class="fab fa-docker fa-fw"></i><span> การติดตั้ง Docker</span></a>
             </li>
             <li>
-              <a href="/nodejs-install" data-page="nodejs-install"><i class="fab fa-node-js fa-fw"></i><span> Node.js (Online)</span></a>
-            </li>
-            <li>
               <a href="/portainer" data-page="portainer"><i class="fas fa-cubes fa-fw"></i><span> การติดตั้ง Portainer</span></a>
             </li>
             <li>
@@ -97,6 +94,9 @@ $v = function (string $path): string {
             </li>
             <li>
               <a href="/swagger" data-page="swagger"><i class="fas fa-book fa-fw"></i><span> Swagger (API Docs)</span></a>
+            </li>
+            <li>
+              <a href="/nodejs-install" data-page="nodejs-install"><i class="fab fa-node-js fa-fw"></i><span> Node.js (Online)</span></a>
             </li>
             <li>
               <a href="/node-red" data-page="node-red"><i class="fa-brands fa-node-js fa-fw"></i><span> Node-Red</span></a>

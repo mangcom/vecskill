@@ -72,13 +72,13 @@ docker compose up -d --build
 **สำหรับผู้เข้าแข่งขัน (ทีม) — เรียงตามลำดับการทำงานจริง:**
 
 * **ภาพรวม:** สถาปัตยกรรม, ผังการเชื่อมต่อ, Quick Start ด้วย VM สำเร็จรูป (VMWare)
-* **Server Setup:** การเตรียม Ubuntu Server, Static IP, ผู้ใช้งาน/SSH Key (รวม Windows↔Linux), Firewall (UFW), Docker, Node.js (Online)
+* **Server Setup:** การเตรียม Ubuntu Server, Static IP, ผู้ใช้งาน/SSH Key (รวม Windows↔Linux), Firewall (UFW), Docker
 * **Containerization:** Portainer, ChartDB (ออกแบบ Database)
 * **Network & HTTPS:** Technitium DNS (ภายใน) → Caddy Reverse Proxy + Caddy Internal CA (HTTPS ภายใน), Nginx Proxy Manager (ทางเลือกของ Caddy)
 * **Source Control & Registry:** การติดตั้ง Docker Registry + UI, GitLab, การใช้งาน Git เบื้องต้น
 * **CI/CD:** GitLab Runner, GitLab CI/CD, ตัวอย่าง Pipeline (2 แบบ)
 * **Security & Code Quality:** OWASP ZAP (Security Scan), Trivy (Vulnerability Scan), SonarQube Community Edition (Code Quality), Swagger/OpenAPI (API Docs)
-* **IoT (ตามเงื่อนไขของแต่ละสนามแข่งขัน):** Node-RED + MQTT Broker (Mosquitto/EMQX), ตัวอย่าง ESP32 + BME/BMP280
+* **IoT (ตามเงื่อนไขของแต่ละสนามแข่งขัน):** Node.js (Online — สำหรับพัฒนา/เครื่องมือ CLI บนเครื่อง Host ไม่ใช่สำหรับรันแอปหลักที่ใช้ Docker), Node-RED + MQTT Broker (Mosquitto/EMQX), ตัวอย่าง ESP32 + BME/BMP280
 
 **สำหรับกรรมการ/เจ้าภาพ — เตรียมระบบกลางของสนามแข่งขัน:**
 

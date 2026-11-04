@@ -3,6 +3,11 @@
     Node.js คือ Runtime Environment สำหรับรัน JavaScript ฝั่ง Server ในคู่มือนี้เราจะติดตั้ง <strong>Node.js เวอร์ชัน 24 (LTS - Long Term Support)</strong> ซึ่งเป็นเวอร์ชันที่เสถียรและแนะนำสำหรับการใช้งานจริงในปัจจุบัน
     (เกณฑ์การแข่งขันกำหนดขั้นต่ำไว้ที่ Node 18 ขึ้นไป แนะนำให้ใช้เวอร์ชัน LTS ล่าสุดเสมอเพื่อความปลอดภัยและ Ecosystem ที่สมบูรณ์กว่า)
 </p>
+<p style="background-color: #fff3cd; border-left: 5px solid #856404; padding: 15px;">
+    <strong>ต้องติดตั้งหน้านี้ตอนไหน?</strong><br>
+    แอปหลักของทีมที่ใช้ตัดสินคะแนนในสนามแข่งขันต้องรันผ่าน <strong>Docker</strong> (Node.js อยู่ใน Image อยู่แล้ว ไม่ต้องติดตั้งซ้ำบนเครื่อง Host) ดังนั้นหัวข้อนี้<strong>ไม่ใช่ขั้นตอนบังคับสำหรับรันแอปหลัก</strong>
+    แต่มีประโยชน์ตอนที่คุณต้อง <strong>พัฒนา/ทดสอบโค้ดบนเครื่อง Host โดยตรง</strong> (เช่น รัน <code>npm install</code>, debug สคริปต์ก่อน build เป็น Docker image) หรือใช้เครื่องมือ CLI ที่เขียนด้วย Node.js (เช่น <code>node-red-admin</code> ในหัวข้อ Node-RED ถัดไป) จึงวางหัวข้อนี้ไว้ก่อนหัวข้อ IoT/Node-RED แทนที่จะอยู่ช่วงเตรียม Docker ตอนต้น
+</p>
 <p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px;">
     <strong>ทำไมต้อง NodeSource?</strong><br>
     Repository ปกติของ Ubuntu มักจะมี Node.js เวอร์ชันเก่า (เช่น v18 หรือ v20) การใช้ <strong>NodeSource</strong> จะช่วยให้เราเลือกติดตั้งเวอร์ชันที่ต้องการ (เช่น v22, v23) ได้อย่างแม่นยำและได้รับอัปเดต Patch ความปลอดภัยที่รวดเร็วกว่า
