@@ -42,6 +42,7 @@
 <ul>
   <li><strong>Adafruit BME280 Library</strong> (Library นี้รองรับทั้ง BME280 และ BMP280)</li>
   <li><strong>Adafruit Unified Sensor</strong> (มักจะถูกติดตั้งพร้อมกับ BME280)</li>
+  <li><strong>Adafruit BusIO</strong> (Library กลางสำหรับสื่อสาร I2C/SPI ที่ Adafruit BME280 Library เรียกใช้ มักจะถูกติดตั้งพร้อมกันโดยอัตโนมัติ แต่ถ้า Compile แล้ว Error ว่าหา Library นี้ไม่เจอ ให้ติดตั้งเพิ่มเอง)</li>
   <li><strong>PubSubClient</strong> (สำหรับจัดการการเชื่อมต่อ MQTT)</li>
 </ul>
 
