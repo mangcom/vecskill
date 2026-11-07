@@ -328,19 +328,7 @@
           </ul>
         </li>
         <li>
-          <strong><a href="https://code.visualstudio.com" target="_blank">Visual Studio Code</a></strong>พร้อม Extension พื้นฐาน:
-          <ul>
-            <li>VS Code for Node.js</li>
-            <li>npm Intellisense</li>
-            <li>ESLint</li>
-            <li>Prettier-Code formatter</li>
-            <li>Path Intellisense</li>
-            <li>DotENV</li>
-            <li>Thunder Client</li>
-            <li>Vue 3 Snippets</li>
-            <li>Vue VSCode Snippets</li>
-            <li>Git</li>
-          </ul>
+          <strong><a href="https://code.visualstudio.com" target="_blank">Visual Studio Code</a></strong>พร้อม Extension พื้นฐาน (ดูรายการและรายละเอียดทั้งหมดในหัวข้อ <strong>"VS Code Extensions แนะนำ"</strong> ด้านล่าง)
         </li>
       </ul>
     </td>
@@ -438,3 +426,214 @@
     </td>
   </tr>
 </table>
+
+<hr style="margin: 40px 0" />
+<h3>VS Code Extensions แนะนำ</h3>
+<p>
+  รายการ Extension สำหรับ <strong>Visual Studio Code</strong> ที่แนะนำให้ติดตั้งไว้ก่อนเริ่มแข่งขัน (เตรียมแบบออฟไลน์ด้วย <code>code --install-extension &lt;ชื่อ-extension&gt;.vsix</code> หากสนามแข่งขันไม่มีอินเทอร์เน็ต)
+</p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+  <strong>ความหมายของสถานะ:</strong><br />
+  <strong>อยู่ในเกณฑ์*</strong> = extension ที่เกี่ยวข้องโดยตรงกับหัวข้อ/ข้อสอบที่ระบุไว้ในเกณฑ์การแข่งขัน (เครื่องหมาย * หมายถึงมีข้อควรตรวจสอบเพิ่มเติม เช่น ชื่อ extension ใน Marketplace ไม่ตรงทุกตัวอักษร หรือมีเงื่อนไขการใช้งาน ให้ดูในช่อง "หมายเหตุ")<br />
+  <strong>เสริม</strong> = extension ที่ช่วยให้ทำงานสะดวกขึ้น แต่ไม่ได้ถูกระบุไว้ในเกณฑ์การแข่งขันโดยตรง
+</p>
+<div style="overflow-x: auto">
+  <table style="width: 100%; border-collapse: collapse; min-width: 900px">
+    <tr style="background-color: #f2f2f2">
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left; width: 4%">No</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left; width: 15%">Extension</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left; width: 10%">Publisher</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left; width: 11%">สถานะ</th>
+      <th style="padding: 8px; border: 1px solid #ddd; text-align: left">หมายเหตุ</th>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">1</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Auto Rename Tag</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Jun Han</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เปลี่ยนชื่อแท็ก JSX ทั้งเปิดและปิดพร้อมกัน</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">2</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Crul Runner</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Anokha Labs</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ชื่อสะกดคล้าย "crul" น่าจะหมายถึง curl ควรตรวจชื่อ extension จริงใน Marketplace ก่อนติดตั้ง ใช้งานได้ไม่ต้อง Login</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">3</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Docker</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Microsoft</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">สำหรับแก้ไข Dockerfile, docker-compose.yml และตรวจเช็ค Syntax (ปัจจุบันเมื่อติดตั้งจะดึง Extension Pack "Container Tools" มาด้วยโดยอัตโนมัติ ดูรายละเอียดแถวถัดไป)</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">4</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Container Tools</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Microsoft</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Extension Pack ของ Docker ติดตั้งมาพร้อมกันโดยอัตโนมัติ (Microsoft เปลี่ยนชื่อ/ควบรวม Docker extension เดิมเข้ามาในนี้) คุณสมบัติ: จัดการ Image/Container/Volume/Network ผ่าน UI แบบ Tree View, Build/Run/Stop/ลบ Container ได้โดยไม่ต้องพิมพ์คำสั่ง, แนบ Shell เข้า Container ที่กำลังรัน, และดีบัก (Debug) แอปที่รันอยู่ใน Container ได้โดยตรงจาก VS Code</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">5</td>
+      <td style="padding: 8px; border: 1px solid #ddd">DotENV</td>
+      <td style="padding: 8px; border: 1px solid #ddd">mikestead</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ไฮไลท์ไฟล์ .env ใช้กับ Node.js, Vue/Nuxt และ Next.js</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">6</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ES7+ React/Redux/React-Native snippets</td>
+      <td style="padding: 8px; border: 1px solid #ddd">dsznajder</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">snippet สร้าง component/hook (เช่นพิมพ์ rafce) เกณฑ์ส่วน React ยังไม่กำหนด</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">7</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ESLint</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Microsoft</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ต้องมีแพ็กเกจ eslint ใน node_modules ของโปรเจกต์ จึงต้องมีในมิเรอร์ npm ของสนามแข่งขัน (ดูหัวข้อ Verdaccio)</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">8</td>
+      <td style="padding: 8px; border: 1px solid #ddd">gitignore</td>
+      <td style="padding: 8px; border: 1px solid #ddd">CodeZombie</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">สร้างไฟล์ .gitignore จากเทมเพลตจากอินเทอร์เน็ต ควรทดสอบแบบออฟไลน์ (เขียนไฟล์เองได้ถ้าโหลดเทมเพลตไม่ได้)</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">9</td>
+      <td style="padding: 8px; border: 1px solid #ddd">GitLab Workflow</td>
+      <td style="padding: 8px; border: 1px solid #ddd">GitLab</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เชื่อมกับ GitLab Server ของทีม (ต้องสร้าง Personal Access Token และระบุ URL ของ GitLab ใน LAN)</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">10</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Markdown All in One</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Yu Zhang</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ทางลัด สารบัญ และจัดตาราง ช่วยเขียน README.md ไม่จำเป็น เพราะ VS Code มี preview ในตัว</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">11</td>
+      <td style="padding: 8px; border: 1px solid #ddd">markdownlint</td>
+      <td style="padding: 8px; border: 1px solid #ddd">David Anson</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ตรวจรูปแบบ Markdown ไม่จำเป็นต่อการแข่งขัน</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">12</td>
+      <td style="padding: 8px; border: 1px solid #ddd">npm Intellisense</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Christian Kohler</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เติมชื่อแพ็กเกจใน import/require ต้องมี node_modules ในโปรเจกต์</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">13</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Path Intellisense</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Christian Kohler</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เติม path ของไฟล์ ไม่ต้องใช้อินเทอร์เน็ต</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">14</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Postman</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Postman</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ตัดออก เพราะต้อง Login จึงไม่เหมาะกับสนามแข่งขันที่ไม่มีอินเทอร์เน็ต ใช้ REST Client หรือ Thunder Client แทน</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">15</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Prettier - Code formatter</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Prettier</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ชื่อที่ถูกต้องใน Marketplace คือ "Prettier - Code formatter" ควรตั้ง Format on Save และมี .prettierrc ให้ตรงกันทุกเครื่อง</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">16</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Remote - SSH</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Microsoft</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ครั้งแรกที่เชื่อมต่อจะดาวน์โหลด VS Code Server ลงเครื่องปลายทาง ถ้า VM ไม่มีอินเทอร์เน็ตต้องเตรียมแบบออฟไลน์ล่วงหน้า (เมื่อติดตั้งจะดึง Extension Pack มาด้วย 2 ตัว ดูแถวถัดไป)</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">17</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Remote - SSH: Editing Configuration Files</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Microsoft</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Extension Pack ของ Remote - SSH ติดตั้งมาพร้อมกันโดยอัตโนมัติ คุณสมบัติ: เพิ่ม Syntax Highlight และ IntelliSense ตอนแก้ไขไฟล์ตั้งค่า SSH (<code>~/.ssh/config</code>) โดยตรงในเครื่องมือแก้ไขของ VS Code</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">18</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Remote Explorer</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Microsoft</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Extension Pack ของ Remote - SSH ติดตั้งมาพร้อมกันโดยอัตโนมัติ คุณสมบัติ: เพิ่มแถบด้านข้าง (Sidebar) สำหรับดูรายชื่อเครื่อง Remote ที่เคยเชื่อมต่อ, สลับ/จัดการการเชื่อมต่อ และลบ Remote ที่ไม่ใช้แล้วได้สะดวกขึ้นโดยไม่ต้องพิมพ์ Host ใหม่ทุกครั้ง</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">19</td>
+      <td style="padding: 8px; border: 1px solid #ddd">REST Client</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Huachao Mao</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เขียนคำขอเป็นไฟล์ .http เก็บใน Git ได้ ไม่ต้อง Login ใช้แทน Postman ได้</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">20</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ShellCheck</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Timon Wong</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ตรวจ shell script อาจต้องมีโปรแกรม shellcheck ติดตั้งในเครื่องด้วย ควรทดสอบแบบออฟไลน์</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">21</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Tailwind CSS IntelliSense</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Tailwind Labs</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เกณฑ์ใช้ TailwindCSS ทั้งฝั่ง Vue และ React ต้องมี tailwindcss ในโปรเจกต์</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">22</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Thunder Client</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Thunder Client</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ใช้งานพื้นฐานได้โดยไม่ต้อง Login แผนฟรีมีข้อจำกัดบางอย่าง ใช้ทดสอบ API ตามเกณฑ์ข้อ 6.1-6.4 ได้</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">23</td>
+      <td style="padding: 8px; border: 1px solid #ddd">VS Code for Node.js</td>
+      <td style="padding: 8px; border: 1px solid #ddd">NodeSource</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">น่าจะเป็น Extension Pack ที่รวม extension อื่นมาด้วย ควรตรวจ dependency ที่ติดตั้งมาก่อนเตรียมไฟล์ .vsix แบบออฟไลน์</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">24</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Vue (Official)</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Vue</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">ใช้กับไฟล์ .vue และ TypeScript</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">25</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Vue 3 Snippets</td>
+      <td style="padding: 8px; border: 1px solid #ddd">hollowtree</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">snippet สำหรับ Vue 3 ควรมีไว้ แม้เกณฑ์จะไม่ได้ระบุชื่อ extension ไว้ตรง ๆ</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">26</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Vue VSCode Snippets</td>
+      <td style="padding: 8px; border: 1px solid #ddd">sarah.drasner</td>
+      <td style="padding: 8px; border: 1px solid #ddd">อยู่ในเกณฑ์*</td>
+      <td style="padding: 8px; border: 1px solid #ddd">snippet สำหรับ Vue</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd">27</td>
+      <td style="padding: 8px; border: 1px solid #ddd">YAML</td>
+      <td style="padding: 8px; border: 1px solid #ddd">Red Hat</td>
+      <td style="padding: 8px; border: 1px solid #ddd">เสริม</td>
+      <td style="padding: 8px; border: 1px solid #ddd">สำหรับ .gitlab-ci.yml และ docker-compose.yml ที่มักผิดบ่อยเรื่อง indent</td>
+    </tr>
+  </table>
+</div>
