@@ -277,3 +277,182 @@ services:
   <li><strong>รีสตาร์ท Container:</strong> <code>exit</code> ออกจาก Shell แล้วรีสตาร์ท Container `node-red` ผ่าน Portainer</li>
 </ol>
 <p>เมื่อรีเฟรชหน้า <code>:1880</code> อีกครั้ง คุณจะพบกับหน้าล็อกอิน</p>
+
+<hr style="margin: 40px 0" />
+
+<h2>5. ตัวอย่าง Docker Compose แบบรวม Stack เดียว (EMQX + Node-RED + Database + phpMyAdmin)</h2>
+<p>
+  ถ้าเกณฑ์การแข่งขันในสนามของคุณต้องการให้ <strong>บันทึกข้อมูลเซนเซอร์จาก IoT ลงฐานข้อมูล</strong> ไม่ใช่แค่ดูผ่าน Debug Node เฉยๆ
+  การรวม EMQX + Node-RED + MySQL + phpMyAdmin ไว้ใน Stack เดียวกันจะช่วยให้ตั้งค่าเชื่อมต่อกันได้ง่ายกว่า (ใช้ชื่อ Service เป็น Hostname เรียกหากันได้ทันที)
+</p>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+  <strong>นี่คือ "ทางเลือก" ไม่ใช่ขั้นตอนเพิ่มเติม:</strong> ถ้าคุณเลือก Deploy Stack นี้ <strong>ไม่ต้อง</strong> สร้าง <code>emqx_stack</code> (ข้อ 1.2) และ <code>nodered_stack</code> (ข้อ 2) แยกต่างหากอีก เพราะ
+  Stack นี้มี EMQX และ Node-RED รวมอยู่แล้ว การ Deploy ซ้ำซ้อนจะทำให้ Port ชนกัน (<code>1883</code>, <code>8083</code>, <code>18083</code>, <code>1880</code> ถูกจองไปแล้วโดย Stack เดิม)
+</p>
+
+<h3>5.1 วิเคราะห์และปรับปรุงจากตัวอย่างต้นฉบับ</h3>
+<p>จากตัวอย่าง Compose ที่ส่งมา มีจุดที่ต้องปรับให้สอดคล้องกับ Service อื่นๆ ที่ตั้งค่าไว้ในคู่มือนี้ และแก้ไขข้อผิดพลาด ดังนี้:</p>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>จุดที่ปรับ</th>
+      <th>รายละเอียด</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Port 8080 ของ phpMyAdmin ชนกับ Registry UI</strong></td>
+      <td>
+        ถ้าใช้ VM สำเร็จรูปแบบ All-in-one (ทุก Service อยู่เครื่องเดียวกันตามหัวข้อ Quick Start) <code>8080</code> ถูกใช้โดย
+        <strong>Registry UI</strong> (ดูหัวข้อ "การติดตั้ง Registry & UI") อยู่แล้ว ถ้า Deploy Stack นี้ซ้ำจะ Error "port is already allocated"
+        จึงเปลี่ยนมาใช้ <strong><code>8081</code></strong> แทน
+      </td>
+    </tr>
+    <tr>
+      <td><strong>ชื่อ Container <code>db</code> / <code>phpmyadmin</code> ซ้ำกับ Stack อื่น</strong></td>
+      <td>
+        ชื่อนี้ถูกใช้ไปแล้วในตัวอย่าง Pipeline (<code>cicd-example-1.php</code>, <code>cicd-example-2.php</code>) ถ้า Deploy อยู่บนเครื่องเดียวกัน Docker
+        จะ Error "The container name is already in use" จึงเปลี่ยนเป็น <strong><code>db-iot</code></strong> และ <strong><code>phpmyadmin-iot</code></strong> เพื่อให้สื่อความหมายและไม่ชนกัน
+      </td>
+    </tr>
+    <tr>
+      <td><strong>ชื่อ Volume <code>db_data</code> ซ้ำ</strong></td>
+      <td>
+        เช่นเดียวกับชื่อ Container ชื่อ Volume <code>db_data</code> ถูกใช้แล้วในตัวอย่าง Pipeline จึงเปลี่ยนเป็น <strong><code>iot_db_data</code></strong>
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Bug: รหัสผ่านใน Healthcheck ไม่ตรงกัน</strong></td>
+      <td>
+        ต้นฉบับตั้ง <code>MYSQL_ROOT_PASSWORD: rootpassword</code> (ไม่มีขีดล่าง) แต่ Healthcheck เช็คด้วย <code>-proot_password</code> (มีขีดล่าง)
+        ทำให้ <code>mysqladmin ping</code> ล็อกอินไม่ผ่านและ Container จะค้างสถานะ "unhealthy" ตลอด ได้แก้ให้ตรงกันแล้ว
+      </td>
+    </tr>
+    <tr>
+      <td><strong>เปิด Port 3306 ออกสู่ Host โดยไม่จำเป็น</strong></td>
+      <td>
+        ทั้ง phpMyAdmin และ Node-RED เชื่อมต่อ MySQL ผ่าน Docker Network ภายใน (เรียกด้วยชื่อ Service) ได้อยู่แล้ว ไม่จำเป็นต้องเปิดพอร์ต 3306
+        ออกสู่ Host/อินเทอร์เน็ต การเปิดทิ้งไว้เป็นความเสี่ยงด้านความปลอดภัยโดยไม่มีประโยชน์เพิ่ม จึงเอาออก (ถ้าต้องการต่อด้วยโปรแกรมอย่าง MySQL Workbench
+        จากเครื่อง Dev จริงๆ ค่อยเปิดเฉพาะตอนใช้งานแล้วปิดทันทีหลังใช้เสร็จ)
+      </td>
+    </tr>
+    <tr>
+      <td><strong>แยก Network เป็น <code>iot_net</code></strong></td>
+      <td>
+        เดิมทุก Service ใช้ <code>app_net</code> เส้นเดียว (Network กลางที่ Caddy ใช้ Reverse Proxy ไปหา Service อื่นๆ ทั้งหมดในคู่มือนี้) แนะนำให้แยกฐานข้อมูลออกมาอยู่ใน
+        Network ใหม่ชื่อ <code>iot_net</code> ตามหลัก <strong>Network Segmentation</strong> คือให้เฉพาะ Service ที่จำเป็นต้องคุยกับฐานข้อมูลเท่านั้นที่เข้าถึงได้
+        (<code>db-iot</code>, <code>phpmyadmin-iot</code>, และ <code>node-red</code>) ส่วน Service อื่นที่อยู่บน <code>app_net</code> เพียงอย่างเดียว (เช่น GitLab, Registry, Portainer)
+        จะเข้าถึงฐานข้อมูลนี้ไม่ได้โดยตรง ลดผลกระทบถ้า Service ใด Service หนึ่งถูกเจาะ (Defense in Depth)<br /><br />
+        <code>node-red</code> และ <code>emqx</code> ยังคงอยู่บน <code>app_net</code> ด้วย เพื่อให้ Caddy/NPM Reverse Proxy เข้าถึง Web UI ของทั้งคู่ได้เหมือนใน Stack แยกเดิม
+        (ข้อ 1.2 และ 2) ส่วน <code>node-red</code> จะอยู่ทั้ง 2 Network เพราะต้องคุยกับทั้ง EMQX (ผ่าน <code>app_net</code>) และฐานข้อมูล (ผ่าน <code>iot_net</code>)
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>5.2 เตรียม Network และ Volumes</h3>
+<pre><code>docker network create iot_net   # หากยังไม่เคยสร้าง (app_net ควรมีอยู่แล้วจากขั้นตอนก่อนหน้าในคู่มือนี้)
+
+docker volume create iot_db_data
+docker volume create emqx_data
+docker volume create emqx_log
+docker volume create nodered_data</code></pre>
+
+<h3>5.3 สร้าง Stack (`iot_stack`)</h3>
+<pre><code class="language-yaml">networks:
+  app_net:
+    external: true
+  iot_net:
+    external: true
+
+volumes:
+  iot_db_data:
+    external: true
+  emqx_data:
+    external: true
+  emqx_log:
+    external: true
+  nodered_data:
+    external: true
+
+services:
+  db-iot:
+    image: mysql:8.0
+    container_name: db-iot
+    restart: unless-stopped
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: iot_db
+      MYSQL_USER: iot_user
+      MYSQL_PASSWORD: iot_password
+      TZ: Asia/Bangkok
+    volumes:
+      - iot_db_data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - iot_net   # ไม่เปิด ports ออกสู่ host เพราะเข้าถึงผ่าน network ภายในอยู่แล้ว
+
+  phpmyadmin-iot:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin-iot
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db-iot
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    ports:
+      - "8081:80"   # เปลี่ยนจาก 8080 เป็น 8081 เพื่อไม่ให้ชนกับ Registry UI
+    depends_on:
+      db-iot:
+        condition: service_healthy
+    networks:
+      - iot_net
+
+  node-red:
+    image: nodered/node-red:latest
+    container_name: node-red
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Bangkok
+    ports:
+      - "1880:1880"   # Web Admin UI
+    volumes:
+      - nodered_data:/data
+    depends_on:
+      db-iot:
+        condition: service_healthy
+    networks:
+      - app_net   # ให้ Caddy/NPM reverse proxy เข้าถึง Web UI ได้ และคุยกับ emqx
+      - iot_net   # ให้เชื่อมต่อฐานข้อมูล db-iot ได้โดยตรง
+
+  emqx:
+    image: emqx/emqx:latest
+    container_name: emqx
+    restart: unless-stopped
+    ports:
+      - "1883:1883"     # MQTT Port
+      - "8083:8083"     # MQTT over WebSockets
+      - "18083:18083"   # Web UI Dashboard (สำคัญ!)
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    networks:
+      - app_net
+</code></pre>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+  <strong>หมายเหตุ:</strong> ไฟล์ <code>./schema.sql</code> เป็น Path บนเครื่อง Host ที่ต้องเตรียมไว้ก่อน Deploy (ใส่คำสั่ง SQL สร้างตารางที่ต้องการให้รันอัตโนมัติตอน MySQL
+  เริ่มทำงานครั้งแรก) ถ้ายังไม่มีไฟล์นี้ ให้ลบบรรทัดนั้นออกจาก <code>volumes</code> ของ <code>db-iot</code> ก่อน แล้วค่อยสร้างตารางเองผ่าน phpMyAdmin ภายหลังก็ได้
+</p>
+<p>
+  หลัง Deploy สำเร็จ เข้าใช้งาน phpMyAdmin ได้ที่ <code>http://[IP_SERVER_ของคุณ]:8081</code> (Username: <code>root</code>, Password: <code>rootpassword</code>)
+  จากนั้นในฝั่ง Node-RED สามารถติดตั้ง Node เสริมอย่าง <code>node-red-node-mysql</code> จากเมนู <strong>Manage Palette</strong> เพื่อเพิ่ม Node สำหรับ Insert/Query
+  ข้อมูลเซนเซอร์ที่รับมาจาก MQTT ลงตาราง MySQL (Host: <code>db-iot</code>, Database: <code>iot_db</code>, User: <code>iot_user</code>) ได้ทันที
+</p>
