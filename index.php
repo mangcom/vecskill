@@ -107,6 +107,9 @@ $v = function (string $path): string {
 
             <li class="menu-section-label"><span>สำหรับกรรมการ / เจ้าภาพ (เตรียมระบบกลาง)</span></li>
             <li>
+              <a href="/judging-system" data-page="judging-system"><i class="fas fa-gavel fa-fw"></i><span> ระบบให้คะแนนกรรมการ</span></a>
+            </li>
+            <li>
               <a href="/apt-cacher-ng" data-page="apt-cacher-ng"><i class="fas fa-box-archive fa-fw"></i><span> Apt-Cacher-Ng</span></a>
             </li>
             <li>
