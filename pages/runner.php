@@ -155,6 +155,23 @@ volumes:
     พิมพ์ <code>docker</code> ลงในช่อง <strong>Tags</strong> (ติ๊ก <strong>Run untagged jobs</strong> ด้วยก็ได้ถ้าต้องการ) แล้วกด <strong>Save changes</strong> — ถ้าข้ามขั้นตอนนี้ Job ใน <code>.gitlab-ci.yml</code> ที่ระบุ
     <code>tags: [docker]</code> จะค้างสถานะ <strong>Pending</strong> ตลอดไปเพราะหา Runner ที่ตรงกับ Tag ไม่เจอ
   </li>
+
+  <div class="image-container">
+    <img src="./images/runner/runner-03-01.png" alt="ตรวจสอบ/เพิ่ม Tag" class="content-image" />
+    <p>หน้าจอแสดง ตรวจสอบ/เพิ่ม Tag</p>
+  </div>
+  <div class="image-container">
+    <img src="./images/runner/runner-03-02.png" alt="Save changes" class="content-image" />
+    <p>หน้าจอแสดง Save changes</p>
+  </div>
+  <div class="image-container">
+    <img src="./images/runner/runner-03-03.png" alt="การคลิกเลือก Run untagged jobs" class="content-image" />
+    <p>หน้าจอแสดงการคลิกเลือก Run untagged jobs</p>
+  </div>
+  <div class="image-container">
+    <img src="./images/runner/runner-03-04.png" alt="ผลการตรวจสอบ Tag และ Un tagged jobs" class="content-image" />
+    <p>หน้าจอแสดง ผลการตรวจสอบ Tag และ Un tagged jobs</p>
+  </div>
 </ol>
 <p>หากขึ้นข้อความ <code>Runner registered successfully.</code> แสดงว่าสำเร็จ! และสถานะ Runner หน้าเว็บควรขึ้นจุดสีเขียว (Online) พร้อมป้ายกำกับ <code>docker</code></p>
 <p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
@@ -204,6 +221,11 @@ volumes:
     #   (5) (ทางเลือก) ใช้เฉพาะกรณี DNS ภายใน (Technitium) ยังไม่พร้อม หรือต้องการ Fallback ไว้เผื่อ DNS ล่ม
     pull_policy = ["if-not-present"] # (6) ช่วยประหยัดเน็ต ไม่โหลด image ซ้ำถ้ามีอยู่แล้ว
     # ...</code></pre>
+    <div class="image-container">
+      <img src="./images/runner/runner-04-01.png" alt="config.toml" class="content-image" />
+      <p>หน้าจอแสดงตัวอย่าง config.toml</p>
+    </div>
+
     <p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
       <strong>ทำไมต้องมี <code>network_mode = "app_net"</code>:</strong> Executor แบบ <code>docker</code> ของ GitLab Runner ปกติจะสร้าง Network แยกใหม่ให้แต่ละ Job โดยอัตโนมัติ (ไม่ใช่ <code>app_net</code>)
       ถ้าไม่ระบุค่านี้ Container ที่รันงานจริง (ไม่ใช่ตัว <code>gitlab-runner</code> container ที่เราเพิ่ง Deploy) จะต่อเน็ตเวิร์กคนละวงกับ GitLab/Registry โดยสิ้นเชิง ทำให้ <code>git clone http://gitlab/...</code>
@@ -215,8 +237,10 @@ volumes:
     <pre><code>gitlab-runner verify</code></pre>
     ควรเห็นข้อความ <code>Verifying runner... is valid</code> โดยไม่มี Error จากนั้น <strong>ออกจาก Container กลับไปที่เครื่อง Host ก่อน แล้วค่อยสั่ง Restart ที่เครื่อง Host</strong>
     (ห้ามสั่ง <code>gitlab-runner restart</code> จากข้างในนะ — ดูเหตุผลในกล่องด้านล่าง):
-    <pre><code>exit
-docker restart gitlab-runner</code></pre>
+    ออกจาก Docker Container
+    <pre><code>exit</code></pre>
+    กลับมาที่หน้าจอ Console ของ Host แล้วสั่ง Restart Container ของ Runner:
+    <pre><code>docker restart gitlab-runner</code></pre>
     <p style="background-color: #f8d7da; border-left: 5px solid #d9534f; padding: 15px">
       <strong>ทำไม <code>gitlab-runner restart</code> ใช้ไม่ได้:</strong> คำสั่งนี้ใช้ได้เฉพาะตอนติดตั้งแบบ Service/systemd บน Linux ปกติเท่านั้น แต่ภายใน Docker Container ตัวโปรแกรม
       <code>gitlab-runner</code> ทำงานเป็น Process หลัก (PID 1) โดยตรง ไม่มี systemd หรือ init.d ให้สั่งงาน การรัน <code>gitlab-runner restart</code> จากข้างใน Container จึงจะ Error
