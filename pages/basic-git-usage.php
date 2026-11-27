@@ -91,3 +91,112 @@ echo "# Demo Task Project" >> README.md
   <p>Pipeline เริ่มทำงานอัตโนมัติทันทีหลังจาก git push สำเร็จ</p>
 </div>
 <p>จากนี้ไป ทุกครั้งที่คุณและทีมทำการ `git push` การเปลี่ยนแปลงใหม่ๆ ขึ้นมา, GitLab CI/CD ก็จะทำงานตามที่คุณกำหนดไว้ในไฟล์ <code>.gitlab-ci.yml</code> โดยอัตโนมัติ</p>
+
+<hr style="margin: 40px 0" />
+
+<h2>ตัวอย่างสถานการณ์จริง: นำโปรเจกต์ที่มีอยู่แล้วขึ้น GitLab (เช่น โปรเจกต์ PES)</h2>
+<p>
+  ตัวอย่างด้านบนเริ่มจากโฟลเดอร์ว่างเปล่า แต่สถานการณ์ที่เจอบ่อยกว่าคือการนำ <strong>โปรเจกต์ที่มีโค้ดอยู่แล้ว</strong> (เช่น ดาวน์โหลดไฟล์ตัวอย่างมาทั้งก้อน หรือพัฒนาไว้บนเครื่องตัวเองมาสักพักแล้ว)
+  มาเชื่อมต่อกับ GitLab เป็นครั้งแรก ซึ่งมีรายละเอียดเพิ่มเติมที่ต้องระวัง 2 เรื่องหลักๆ คือ <strong>การยืนยันตัวตนด้วย Personal Access Token</strong> (GitLab ไม่รับรหัสผ่านบัญชีตรงๆ ผ่าน HTTPS)
+  และ <strong>การป้องกันไฟล์ลับ (เช่น <code>.env</code>) หลุดขึ้น Repository</strong> ตัวอย่างนี้ใช้โปรเจกต์ PES (ตามที่ใช้ในบท
+  <a href="#" onclick="document.querySelector('a[data-page=\'cicd\']').click();">การใช้งาน Gitlab CI/CD</a>) ภายใต้ Group <code>devops</code> เป็นตัวอย่างประกอบ
+</p>
+
+<h3>ขั้นที่ 0: ลบ <code>.git</code> เดิม (ถ้ามี)</h3>
+<p>
+  ถ้าโฟลเดอร์โปรเจกต์ที่ได้มาเคยถูก Clone หรือเชื่อมกับ Git มาก่อน (เช่น คัดลอกมาจากเครื่องอื่น หรือโหลดมาจาก Repository อื่น) อาจมีโฟลเดอร์ซ่อน <code>.git</code> ติดมาด้วย ซึ่งจะยังจำ Remote เดิมของเจ้าของเดิมอยู่
+  ถ้าไม่ลบออกก่อน ขั้นตอน <code>git push</code> ด้านล่างอาจพยายามส่งขึ้น Repository เดิมแทนที่จะเป็นของคุณเอง (หรือ Error ว่ามี Remote ชื่อ <code>origin</code> อยู่แล้ว) ให้ตรวจสอบและลบทิ้งก่อนเสมอ:
+</p>
+<pre><code class="language-powershell"># Windows (Command Prompt / PowerShell)
+rmdir /s /q .git</code></pre>
+<pre><code class="language-bash"># macOS / Linux
+rm -rf .git</code></pre>
+
+<h3>ขั้นที่ 1: สร้าง Personal Access Token บน GitLab</h3>
+<p>
+  GitLab ไม่อนุญาตให้ใช้รหัสผ่านบัญชีปกติตอน Push ผ่าน HTTPS โดยตรง (เพื่อความปลอดภัย) ต้องสร้าง Personal Access Token มาใช้แทนรหัสผ่านก่อน (ถ้าเคยสร้างไว้แล้วจากบท
+  <a href="#" onclick="document.querySelector('a[data-page=\'cicd\']').click();">การใช้งาน Gitlab CI/CD</a> ใช้ Token เดิมได้เลย ข้ามขั้นตอนนี้ไปขั้นที่ 2 ได้):
+</p>
+<ol>
+  <li>ล็อกอินเข้า GitLab แล้วคลิกรูปโปรไฟล์มุมขวาบน &gt; <strong>Edit profile</strong></li>
+  <li>ไปที่เมนู <strong>Access Tokens</strong> ทางซ้าย</li>
+  <li>ตั้งชื่อ Token, เลือกวันหมดอายุ, ติ๊ก Scope <code>write_repository</code> (ครอบคลุม <code>read_repository</code> ด้วยอยู่แล้ว)</li>
+  <li>กด <strong>Create personal access token</strong> แล้วคัดลอกค่าที่ขึ้นต้นด้วย <code>glpat-</code> เก็บไว้ทันที (หน้านี้แสดงให้เห็นครั้งเดียวเท่านั้น)</li>
+</ol>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-01.png" alt="Edit profile" class="content-image" />
+  <p>ภาพ: หน้า Edit profile บน GitLab</p>
+</div>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-02.png" alt="Access Personal access tokens" class="content-image" />
+  <p>ภาพ: หน้า Access Personal access tokens บน GitLab</p>
+</div>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-03.png" alt="Generate Personal access token" class="content-image" />
+  <p>ภาพ: หน้า Generate token (Generate Personal access token) บน GitLab เลือกว่าจะใช้แบบไหน</p>
+</div>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-04.png" alt="Token name" class="content-image" />
+  <p>ภาพ: Generate legacy token ตั้งชื่อ รายละเอียด วันหมดอายุ และเลือก read_repository และ write_repository</p>
+</div>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-05.png" alt="Generated token Button" class="content-image" />
+  <p>ภาพ: ปุ่ม Generate token หลังจากตั้งค่าแล้ว</p>
+</div>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-06.png" alt="View token" class="content-image" />
+  <p>ภาพ: หน้า View token บน GitLab</p>
+</div>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-01-07.png" alt="Copy token" class="content-image" />
+  <p>ภาพ: หน้า Copy token บน GitLab</p>
+</div>
+
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+  <strong>เก็บ Token เป็นความลับเสมอ:</strong> ห้ามวาง Token นี้ลงในไฟล์ที่จะ Commit ขึ้น Git, ห้ามแชร์ในแชทหรือส่งให้ใครดู และห้ามพิมพ์ใส่ในคำสั่งตรงๆ (ให้กรอกตอนถูกถามในขั้นที่ 7 แทน)
+</p>
+
+<h3>ขั้นที่ 2: Init Git ใหม่</h3>
+<p>เข้าไปที่โฟลเดอร์โปรเจกต์ของคุณ แล้วเริ่ม Git Repository ใหม่ พร้อมตั้งชื่อ Branch หลักเป็น <code>main</code> ตั้งแต่ต้น (ไม่ต้องมาเปลี่ยนชื่อทีหลังเหมือนตัวอย่างด้านบน):</p>
+<pre><code>cd D:\vecskill\devops
+git init --initial-branch=main</code></pre>
+<p style="font-size: 0.9em; color: #666">(แทนที่ <code>D:\vecskill\devops</code> ด้วย Path จริงของโฟลเดอร์โปรเจกต์คุณ)</p>
+
+<h3>ขั้นที่ 3: เพิ่ม Remote แบบ HTTPS</h3>
+<p>บอก Git ว่า Repository ปลายทางบน GitLab อยู่ที่ไหน (ตัวอย่างนี้ Project <code>pes</code> อยู่ภายใต้ Group <code>devops</code>):</p>
+<pre><code>git remote add origin https://gitlab.vecskill.ovec/devops/pes.git</code></pre>
+
+<h3>ขั้นที่ 4: เช็คก่อนว่าไฟล์ไหนจะถูกเพิ่ม (กัน <code>.env</code> หลุด)</h3>
+<pre><code>git status</code></pre>
+<p>
+  อ่านรายชื่อไฟล์ที่ขึ้นเป็นสีแดง (Untracked) ให้ละเอียด ตรวจว่าไฟล์ <code>.env</code> <strong>ตัวจริง</strong> (เช่น <code>backend/.env</code>) <strong>ไม่ปรากฏ</strong> ในลิสต์ — ถ้าไม่ขึ้นมาแปลว่าปลอดภัย เพราะถูก
+  <code>.gitignore</code> กันไว้แล้ว (ไฟล์ <code>.env.example</code> ที่ไม่มีค่าจริงขึ้นได้ตามปกติ ไม่เป็นไร)
+</p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+  <strong>ข้อควรรู้เพิ่มเติม:</strong> กฎ <code>.env</code> ใน <code>.gitignore</code> (ไม่มี <code>/</code> นำหน้า) จะกันไฟล์ชื่อ <code>.env</code> ทุกตัวในทุกโฟลเดอร์ย่อย รวมถึง
+  <code>deploy/.env</code> ที่ใช้ตอน Deploy ขึ้น Production ตามบท CI/CD ด้วย นั่นหมายความว่าไฟล์นั้น<strong>จะไม่ถูก Commit ขึ้น Git เช่นกัน</strong> ซึ่งเป็นพฤติกรรมที่ถูกต้องและตั้งใจ (ไม่อยากให้ความลับของ
+  Production หลุดขึ้น Repository) แต่ก็หมายความว่าต้องมีวิธีส่งไฟล์นั้นไปเครื่อง Production ด้วยช่องทางอื่นแทน เช่น สร้างเองบนเครื่อง Production ครั้งเดียวไว้ก่อน
+  หรือให้ Pipeline เขียนไฟล์นี้ขึ้นมาเองจากตัวแปรลับใน GitLab CI/CD Variables ตอน Deploy (ไม่ใช่ดึงจาก Repository)
+</p>
+
+<h3>ขั้นที่ 5: Add + Commit</h3>
+<pre><code>git add .
+git commit -m "Initial commit"</code></pre>
+
+<h3>ขั้นที่ 6: (แนะนำ) ให้ Windows จำ Token ไว้</h3>
+<p>ตั้งค่านี้ครั้งเดียว เพื่อให้ Git Credential Manager ของ Windows จำ Token ไว้ให้ ไม่ต้องกรอกซ้ำทุกครั้งที่ Push:</p>
+<pre><code class="language-powershell">git config --global credential.helper manager</code></pre>
+<p style="font-size: 0.9em; color: #666">(บน macOS ใช้ <code>git config --global credential.helper osxkeychain</code> หรือบน Linux ใช้ <code>git config --global credential.helper store</code> แทน)</p>
+
+<h3>ขั้นที่ 7: Push</h3>
+<pre><code>git push --set-upstream origin main</code></pre>
+<p>ตอนนี้จะถูกถาม:</p>
+<ul>
+  <li><strong>Username:</strong> GitLab Username ของคุณ</li>
+  <li><strong>Password:</strong> วาง Personal Access Token ที่คัดลอกไว้ตอนขั้นที่ 1 (ไม่ใช่รหัสผ่านบัญชี)</li>
+</ul>
+<p>หลัง Push สำเร็จครั้งแรก ครั้งต่อไปจะไม่ถามซ้ำอีก เพราะ Credential Manager จำไว้ให้แล้วตามขั้นที่ 6</p>
+<div class="image-container">
+  <img src="./images/basicgit/basic-git-07-04.png" alt="ตรวจสอบ Repository บน GitLab" class="content-image" />
+  <p>ภาพ: ตรวจสอบ Repository บน GitLab</p>
+</div>

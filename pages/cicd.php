@@ -71,20 +71,20 @@ Password: &lt;วาง Token glpat-... ตรงนี้&gt;</code></pre>
   "insecure-registries": ["registry.vecskill.ovec:5000"]
 }</code></pre>
 <pre><code>sudo systemctl restart docker</code></pre>
-<p>ในแบบนี้ ชื่อ Image ทุกที่จะมี <code>:5000</code> ต่อท้ายโดเมนเสมอ เช่น <code>registry.vecskill.ovec:5000/pes-api:latest</code></p>
+<p>ในแบบนี้ ชื่อ Image ทุกที่จะมี <code>:5000</code> ต่อท้ายโดเมนเสมอ เช่น <code>registry.vecskill.ovec:5000/vecskill-backend:latest</code></p>
 
 <h4 style="color: #28a745">แบบที่ 2: ใช้ SSL ได้ (HTTPS ผ่าน Caddy Internal CA — แนะนำ ปลอดภัยกว่า)</h4>
 <p>
   ถ้าทำตามบท <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a> ไว้แล้ว คุณจะเรียก <code>https://registry.vecskill.ovec</code> และ
-  <code>https://registry-ui.vecskill.ovec</code> ได้โดยไม่มีคำเตือนจากเบราว์เซอร์ แต่สำหรับขั้นตอน <strong>Build ใน dind ยังคงแนะนำให้ใช้ Flag
-  <code>--insecure-registry</code> เหมือนแบบที่ 1</strong> เพราะ dind เป็น Container ชั่วคราวที่ถูกสร้างและทำลายทุก Job การจะติดตั้ง Root CA ของ Caddy ให้ Container ชั่วคราวนี้เชื่อถือทุกครั้งทำได้ยาก
-  และไม่คุ้มค่า (ข้อมูลระหว่าง Build ยังคงถูกเข้ารหัสผ่าน TLS อยู่ดี เพียงแต่ไม่ตรวจสอบ Certificate เท่านั้น)
+  <code>https://registry-ui.vecskill.ovec</code> ได้โดยไม่มีคำเตือนจากเบราว์เซอร์ <strong>นี่คือแบบที่ตัวอย่างเต็มในส่วนที่ 3.5 ใช้เป็นค่าเริ่มต้น</strong> เพราะ Build ฝั่ง dind ใน Docker เวอร์ชันใหม่ๆ
+  เชื่อถือ Certificate จาก CA สาธารณะ/Internal CA ที่เครื่อง Host เชื่อถืออยู่แล้วได้ตามปกติ โดยไม่ต้องใส่ Flag <code>--insecure-registry</code> เพิ่มเลย (ถ้า Build ยัง Error เรื่อง Certificate อยู่
+  ให้สลับไปใช้แบบที่ 1 ชั่วคราวระหว่างแก้ไข)
 </p>
 <p>
   จุดที่ <strong>ต้องทำ</strong> สำหรับแบบนี้คือฝั่ง <strong>Production</strong> (ตอน <code>docker compose pull</code> ซึ่งรันบน Daemon จริงของเครื่อง ไม่ใช่ dind) ให้ติดตั้ง Root CA ของ Caddy ตามขั้นตอนที่
   3.4 ในบท <a href="#" onclick="document.querySelector('a[data-page=\'caddy-internal-ca\']').click();">การทำ HTTPS ภายใน</a> (ใช้ IP <code>10.20.30.101</code> เป็น Caddy Server และ
-  <code>192.168.100.102</code> เป็น Production ตามตัวอย่างในบทนั้นพอดี) แล้วเปลี่ยนชื่อ Image ในไฟล์ <code>.gitlab-ci.yml</code>/<code>docker-compose.prod.yml</code> ให้ไม่มี <code>:5000</code> ต่อท้าย
-  เช่น <code>registry.vecskill.ovec/pes-api:latest</code>
+  <code>192.168.100.102</code> เป็น Production ตามตัวอย่างในบทนั้นพอดี) แล้วใช้ชื่อ Image ในไฟล์ <code>.gitlab-ci.yml</code>/<code>docker-compose.prod.yml</code> แบบไม่มี <code>:5000</code> ต่อท้าย
+  เช่น <code>registry.vecskill.ovec/vecskill-backend:latest</code>
 </p>
 
 <h3>1.2 เตรียม User <code>devops</code> บนเครื่อง Production</h3>
@@ -160,7 +160,7 @@ Password: &lt;วาง Token glpat-... ตรงนี้&gt;</code></pre>
     <tr>
       <td><code>CI_REGISTRY</code></td>
       <td>
-        <code>registry.vecskill.ovec:5000</code> (แบบ Insecure) หรือ <code>registry.vecskill.ovec</code> (แบบ HTTPS — ไม่มี Port)
+        <code>registry.vecskill.ovec</code> (แบบ HTTPS — ไม่มี Port, ค่าเริ่มต้นที่ใช้ในตัวอย่างนี้) หรือ <code>registry.vecskill.ovec:5000</code> (แบบ Insecure)
       </td>
       <td>ไม่ต้องติ๊ก Protect/Masked (ไม่ใช่ความลับ)</td>
     </tr>
@@ -191,7 +191,7 @@ Password: &lt;วาง Token glpat-... ตรงนี้&gt;</code></pre>
 
 <h3>3.1 โครงสร้างโฟลเดอร์</h3>
 <pre><code>pes/
-├── .gitlab-ci.yml            # ไฟล์ควบคุม Pipeline (Test → Build → Deploy)
+├── .gitlab-ci.yml            # ไฟล์ควบคุม Pipeline (Test → Build and push → Deploy)
 ├── .gitignore
 ├── docker-compose.yml        # รันพัฒนาบนเครื่อง Local (Build จากซอร์สโค้ดตรงๆ)
 ├── docker-compose_mysql.yml  # รันเฉพาะฐานข้อมูล MySQL+phpMyAdmin เผื่ออยาก Dev เร็วๆ โดยไม่ build API/Frontend
@@ -199,12 +199,18 @@ Password: &lt;วาง Token glpat-... ตรงนี้&gt;</code></pre>
 ├── schema.sql                # สคริปต์สร้างตารางฐานข้อมูล (ใช้กับ docker-compose.yml บน Local)
 ├── backend/                  # ซอร์สโค้ด API (Node.js/Express) + Dockerfile
 ├── frontend/                 # ซอร์สโค้ดเว็บ (Nuxt 3) + Dockerfile
-└── deploy/                   # ไฟล์ที่ Pipeline จะ rsync ไปเครื่อง Production เท่านั้น (ไม่เอาทั้ง Repo ไป)
+└── deploy/                   # ไฟล์ "ไม่ลับ" ที่ Pipeline จะ rsync ไปเครื่อง Production เท่านั้น (ไม่เอาทั้ง Repo ไป)
     ├── schema.sql             # สำเนาของ schema.sql ไว้ให้ MySQL บน Production รันตอนเริ่มครั้งแรก
-    └── .env                   # ค่า Environment ของ API บน Production (DB_HOST=db เหมือนกัน)</code></pre>
+    └── .env.example           # เทมเพลตไม่มีค่าจริง ใช้ดูอ้างอิงตอนตั้งค่า .env.production ครั้งแรกบน Production เท่านั้น</code></pre>
 <p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
   <strong>ทำไมต้องมีโฟลเดอร์ <code>deploy/</code> แยกต่างหาก:</strong> Pipeline ไม่ได้ Clone ทั้ง Repo ไปไว้ที่ Production (ไม่จำเป็น เพราะ Production แค่รัน Image สำเร็จรูป ไม่ต้องมีซอร์สโค้ด)
   จึงส่งไปเฉพาะไฟล์ที่จำเป็นจริงๆ คือ <code>docker-compose.prod.yml</code> กับโฟลเดอร์ <code>deploy/</code> นี้เท่านั้น (ผ่านคำสั่ง <code>rsync</code> ในขั้นตอน Deploy)
+</p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+  <strong>ไฟล์ <code>.env.production</code> (ความลับจริง) ไม่อยู่ใน Repo เลย:</strong> สังเกตว่าโฟลเดอร์ <code>deploy/</code> ด้านบนมีแค่ <code>.env.example</code> (เทมเพลตเปล่า ไม่มีความลับ) เท่านั้น
+  เพราะไฟล์ <code>.env</code> ตัวจริงถูก <code>.gitignore</code> กันไว้อยู่แล้ว (ดูบท <a href="#" onclick="document.querySelector('a[data-page=\'basic-git-usage\']').click();">การใช้งาน Git เบื้องต้น</a>)
+  วิธีที่ถูกต้องคือสร้างไฟล์ <code>.env.production</code> <strong>ด้วยมือเพียงครั้งเดียว</strong> ไว้ที่เครื่อง Production โดยตรง (เช่น <code>/opt/vecskill/.env.production</code>) โดยอิง
+  <code>deploy/.env.example</code> เป็นแนวทาง แล้ว Pipeline จะไม่ยุ่งหรือเขียนทับไฟล์นี้อีกเลยในทุกรอบ Deploy ถัดไป (ดูการใช้งานจริงในไฟล์ <code>.gitlab-ci.yml</code> ส่วนที่ 3.5 และคำอธิบายในส่วนที่ 4.4)
 </p>
 
 <h3>3.2 Dockerfile (จากโปรเจกต์ PES จริง — ไม่ต้องแก้ไข)</h3>
@@ -302,7 +308,7 @@ networks:
 <h3>3.4 docker-compose.prod.yml (ใหม่ — สำหรับ Production เท่านั้น ดึง Image สำเร็จรูปมารัน)</h3>
 <p>
   ไฟล์นี้<strong>ไม่มีอยู่</strong>ในโปรเจกต์ตั้งต้น ต้องสร้างขึ้นมาใหม่ที่ Root ของ Repo ความแตกต่างหลักจาก <code>docker-compose.yml</code> คือใช้ <code>image:</code> (ดึง Image ที่ Build เสร็จแล้วจาก Registry)
-  แทน <code>build:</code> (สร้าง Image จากซอร์สโค้ด) และอ้างอิงไฟล์ใต้โฟลเดอร์ <code>./deploy/</code> แทนที่จะอยู่ Root ตรงๆ:
+  แทน <code>build:</code> (สร้าง Image จากซอร์สโค้ด) และดึงค่าลับ (รหัสผ่าน DB, JWT Secret ฯลฯ) จากไฟล์ <code>.env.production</code> ที่อยู่บนเครื่อง Production เอง (ไม่ใช่จาก Repo):
 </p>
 <pre><code class="language-yaml">services:
   db:
@@ -312,14 +318,14 @@ networks:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: skills_db
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
       TZ: Asia/Bangkok
     volumes:
       - db_data:/var/lib/mysql
       - ./deploy/schema.sql:/docker-entrypoint-initdb.d/00-schema.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpassword"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -331,7 +337,7 @@ networks:
     environment:
       PMA_HOST: db
       PMA_USER: root
-      PMA_PASSWORD: rootpassword
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD}
     ports: ["8080:80"]
     depends_on:
       db:
@@ -339,10 +345,10 @@ networks:
     networks: [prod_net]
 
   api:
-    image: ${CI_REGISTRY}/pes-api:${IMAGE_TAG:-latest}
+    image: ${CI_REGISTRY}/vecskill-backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
-      - ./deploy/.env
+      - .env.production
     ports: ["7000:7000"]
     depends_on:
       db:
@@ -352,7 +358,7 @@ networks:
     networks: [prod_net]
 
   frontend:
-    image: ${CI_REGISTRY}/pes-frontend:${IMAGE_TAG:-latest}
+    image: ${CI_REGISTRY}/vecskill-frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://192.168.100.102:7000}
@@ -369,168 +375,174 @@ networks:
   prod_net:
     driver: bridge</code></pre>
 <p>
-  <code>deploy/.env</code> คือสำเนา <code>backend/.env</code> ปรับให้เหมาะกับ Production (เช่น <code>CORS_ORIGIN</code> ให้ชี้มาที่ Domain จริงของ Frontend แทน <code>localhost</code>) ส่วน
-  <code>deploy/schema.sql</code> คือไฟล์เดียวกับ <code>schema.sql</code> ที่ Root ของ Repo คัดลอกมาวางไว้
+  <code>${DB_ROOT_PASSWORD}</code>/<code>${DB_NAME}</code> ถูกแทนค่าตอน Parse ไฟล์นี้ จากค่าที่อยู่ใน <code>.env.production</code> (ผ่าน Flag <code>--env-file .env.production</code> ตอนเรียก
+  <code>docker compose</code> ในขั้นตอน Deploy) ส่วน Service <code>api</code> ใช้ <code>env_file: - .env.production</code> โดยตรง เพื่อส่งค่าทั้งหมด (เช่น <code>DB_HOST</code>, <code>DB_USER</code>,
+  <code>DB_PASSWORD</code>, <code>JWT_SECRET</code> ตามที่ <code>backend/.env</code> ใช้บน Local) เข้าไปเป็น Environment Variable จริงๆ ของ Container — <code>deploy/schema.sql</code> คือไฟล์เดียวกับ
+  <code>schema.sql</code> ที่ Root ของ Repo คัดลอกมาวางไว้
 </p>
 
 <h3>3.5 .gitlab-ci.yml (ไฟล์ Pipeline ฉบับสมบูรณ์)</h3>
-<p>วางไฟล์นี้ไว้ที่ Root ของ Repo (ตัวอย่างนี้ใช้แบบ <strong>Insecure Registry</strong> — ดูหมายเหตุท้ายโค้ดสำหรับการสลับไปใช้ HTTPS):</p>
-<pre><code class="language-yaml">stages: [test, build, deploy]
+<p>
+  วางไฟล์นี้ไว้ที่ Root ของ Repo — ตัวอย่างนี้เขียนแบบใช้ <strong>HTTPS เป็นค่าเริ่มต้น</strong> (ดูหมายเหตุท้ายโค้ดสำหรับการสลับกลับไปใช้ Insecure Registry) คอมเมนต์ในโค้ดอธิบายทุกบรรทัดไว้แล้วว่าทำไมต้องเขียนแบบนี้:
+</p>
+<pre><code class="language-yaml">stages: [test, "build and push", deploy]
 
 # ===== Global variables =====
 variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: "/certs"
-  IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
-  API_IMAGE: "${CI_REGISTRY}/pes-api:${IMAGE_TAG}"
-  FRONTEND_IMAGE: "${CI_REGISTRY}/pes-frontend:${IMAGE_TAG}"
+  DOCKER_DRIVER: overlay2            # ให้ Docker-in-Docker ใช้ storage driver แบบ overlay2 (เร็วและเสถียรกว่า default)
+  DOCKER_TLS_CERTDIR: "/certs"        # เปิด TLS ระหว่าง docker client กับ dind service (ค่ามาตรฐานของ image docker:26-dind)
+  IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}" # tag ของ image ที่ build = short SHA ของ commit นี้ (ไล่ย้อนได้ว่า image มาจาก commit ไหน)
+  BACKEND_IMAGE: "${CI_REGISTRY}/vecskill-backend:${IMAGE_TAG}"   # ชื่อเต็มของ backend image ที่จะ push ขึ้น registry
+  FRONTEND_IMAGE: "${CI_REGISTRY}/vecskill-frontend:${IMAGE_TAG}" # ชื่อเต็มของ frontend image ที่จะ push ขึ้น registry
 
   # === Deploy target (Production) ===
-  DEPLOY_HOST: "192.168.100.102"
-  DEPLOY_PORT: "22"
-  DEPLOY_USER: "devops"
-  DEPLOY_PATH: "/opt/pes"
+  DEPLOY_HOST: "192.168.100.102"  # IP/host ของเครื่อง production ที่จะ ssh เข้าไป deploy
+  DEPLOY_PORT: "22"               # พอร์ต SSH ของเครื่อง production
+  DEPLOY_USER: "devops"           # user ที่ใช้ ssh เข้าเครื่อง production
+  DEPLOY_PATH: "/opt/vecskill"    # โฟลเดอร์ปลายทางบนเครื่อง production ที่เก็บไฟล์ compose/deploy
 
 default:
-  tags: [docker]
+  tags: [docker]                  # ใช้ runner ที่มี tag "docker" เท่านั้น (ต้องรองรับการรัน docker)
   cache:
-    key: ${CI_COMMIT_REF_SLUG}
+    key: ${CI_COMMIT_REF_SLUG}    # แยก cache ต่อ branch/tag เพื่อไม่ให้ branch อื่นมาทับ cache กัน
     paths:
-      - frontend/node_modules
-      - backend/node_modules
+      - frontend/node_modules     # cache node_modules ของ frontend ไว้ ให้ npm ci รอบถัดไปเร็วขึ้น
+      - backend/node_modules      # cache node_modules ของ backend ไว้เช่นกัน
 
 # ===== TEST =====
 test_backend:
   stage: test
-  image: node:20-alpine
+  image: node:20-alpine                 # ใช้ Node เวอร์ชันเบา ๆ สำหรับรันเทส ไม่ต้องมี Docker
   script:
-    - cd backend
-    - npm ci
-    - npm run lint --if-present
-    - npm test --if-present
+    - cd backend                        # เข้าไปที่โฟลเดอร์ backend ก่อนรันคำสั่ง npm
+    - npm ci                            # ติดตั้ง dependency ตาม package-lock.json แบบ reproducible (เร็ว/นิ่งกว่า npm install)
+    - npm run lint --if-present         # รัน lint ถ้ามีสคริปต์ "lint" ใน package.json เท่านั้น ไม่มีก็ข้ามไปเฉย ๆ
+    - npm test --if-present             # รัน unit test ถ้ามีสคริปต์ "test" ใน package.json เท่านั้น
   rules:
-    - changes: ["backend/**"]
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - changes: ["backend/**"]                          # รันเฉพาะตอนมีการแก้ไฟล์ใน backend/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # หรือรันเสมอเมื่อเป็น pipeline ของ merge request
 
 test_frontend:
   stage: test
   image: node:20-alpine
   script:
-    - cd frontend
-    - npm ci
-    - npm run lint --if-present
-    - npm test --if-present
+    - cd frontend                       # เข้าไปที่โฟลเดอร์ frontend ก่อนรันคำสั่ง npm
+    - npm ci                            # ติดตั้ง dependency ตาม package-lock.json
+    - npm run lint --if-present         # รัน lint ถ้ามีสคริปต์ "lint"
+    - npm test --if-present             # รัน unit test ถ้ามีสคริปต์ "test"
   rules:
-    - changes: ["frontend/**"]
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - changes: ["frontend/**"]                          # รันเฉพาะตอนมีการแก้ไฟล์ใน frontend/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"  # หรือรันเสมอเมื่อเป็น pipeline ของ merge request
 
-# ===== BUILD & PUSH (Docker-in-Docker) =====
+# ===== BUILD AND PUSH (Docker-in-Docker) =====
+# Registry is reached over HTTPS (registry.vecskill.ovec, no port, via the Caddy
+# internal CA) — if you switch CI_REGISTRY back to the insecure :5000 form, add
+# `command: ["--insecure-registry=registry.vecskill.ovec:5000"]` to the dind service.
 .build_template:
-  image: docker:26
+  image: docker:26                # ใช้ docker CLI image เพื่อสั่ง build/push
   services:
-    - name: docker:26-dind
-      command: ["--insecure-registry=registry.vecskill.ovec:5000"] # ลบบรรทัดนี้ทิ้งถ้าใช้ HTTPS (ดูหมายเหตุด้านล่าง)
+    - docker:26-dind              # รัน Docker daemon แยกเป็น service ข้างใน job (Docker-in-Docker) ให้ docker CLI คุยด้วย
   before_script:
     - |
-      if [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ]; then
-        echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+      if [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ]; then  # ถ้ามีตัวแปร credential ของ registry (ตั้งไว้ใน CI/CD Variables)
+        echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin  # login เข้า registry โดยส่ง password ผ่าน stdin (ไม่หลุดไปอยู่ใน process list/log)
       fi
 
-build_api:
-  stage: build
+build_backend:
+  stage: "build and push"
   extends: .build_template
-  needs: ["test_backend"]
+  needs: ["test_backend"]          # รอให้ test_backend ผ่านก่อน ถึงจะเริ่ม build
   script:
-    - docker build -t "$API_IMAGE" ./backend
-    - docker push "$API_IMAGE"
+    - docker build -t "$BACKEND_IMAGE" ./backend   # build image ของ backend จาก backend/Dockerfile ตั้ง tag ตาม commit sha
+    - docker push "$BACKEND_IMAGE"                 # push image ที่เพิ่ง build ขึ้น registry
     - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        docker tag "$API_IMAGE" "${CI_REGISTRY}/pes-api:latest"
-        docker push "${CI_REGISTRY}/pes-api:latest"
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then                                  # เฉพาะ branch main เท่านั้นที่จะอัปเดต tag "latest"
+        docker tag "$BACKEND_IMAGE" "${CI_REGISTRY}/vecskill-backend:latest"     # ตั้งชื่อ tag เพิ่มเป็น :latest ให้ image เดียวกัน
+        docker push "${CI_REGISTRY}/vecskill-backend:latest"                    # push tag :latest ขึ้น registry ด้วย
       fi
   rules:
     - if: $CI_COMMIT_BRANCH
-      changes: ["backend/**"]
+      changes: ["backend/**"]      # build เฉพาะตอนมีการแก้ไฟล์ใน backend/ และอยู่บน branch ใดก็ได้
 
 build_frontend:
-  stage: build
+  stage: "build and push"
   extends: .build_template
-  needs: ["test_frontend"]
+  needs: ["test_frontend"]         # รอให้ test_frontend ผ่านก่อน ถึงจะเริ่ม build
   script:
-    - docker build -t "$FRONTEND_IMAGE" ./frontend
-    - docker push "$FRONTEND_IMAGE"
+    - docker build -t "$FRONTEND_IMAGE" ./frontend # build image ของ frontend จาก frontend/Dockerfile
+    - docker push "$FRONTEND_IMAGE"                # push image ที่เพิ่ง build ขึ้น registry
     - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        docker tag "$FRONTEND_IMAGE" "${CI_REGISTRY}/pes-frontend:latest"
-        docker push "${CI_REGISTRY}/pes-frontend:latest"
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then                                   # เฉพาะ branch main เท่านั้นที่จะอัปเดต tag "latest"
+        docker tag "$FRONTEND_IMAGE" "${CI_REGISTRY}/vecskill-frontend:latest"    # ตั้งชื่อ tag เพิ่มเป็น :latest ให้ image เดียวกัน
+        docker push "${CI_REGISTRY}/vecskill-frontend:latest"                     # push tag :latest ขึ้น registry ด้วย
       fi
   rules:
     - if: $CI_COMMIT_BRANCH
-      changes: ["frontend/**"]
+      changes: ["frontend/**"]     # build เฉพาะตอนมีการแก้ไฟล์ใน frontend/
 
 # ===== DEPLOY (SSH to Production with docker compose) =====
 deploy_prod:
   stage: deploy
   image: alpine:3.20
   needs:
-    - job: build_api
-      optional: true
+    - job: build_backend
+      optional: true              # ถ้า build_backend ไม่ได้รัน (เช่นไม่ได้แก้ backend/) ก็ยัง deploy ต่อได้
     - job: build_frontend
-      optional: true
+      optional: true              # เช่นเดียวกันกับฝั่ง frontend
   environment:
     name: production
     url: http://$DEPLOY_HOST:3000
-    on_stop: stop_prod
+    on_stop: stop_prod            # ถ้ากด Stop environment ใน GitLab จะเรียก job stop_prod ให้แทน
   before_script:
-    - apk add --no-cache openssh-client rsync bash
-    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - echo "$DEPLOY_PRIV_KEY" > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan -p "${DEPLOY_PORT}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts || true
-    - export REMOTE_DIR="${DEPLOY_PATH}"
+    - apk add --no-cache openssh-client rsync bash   # ติดตั้งเครื่องมือที่ต้องใช้ (ssh, rsync) บน alpine image ที่เบามาก ๆ
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh            # เตรียมโฟลเดอร์เก็บ ssh key ให้สิทธิ์ตามที่ ssh ต้องการ
+    - echo "$DEPLOY_PRIV_KEY" > ~/.ssh/id_ed25519    # เขียน private key (เก็บเป็น CI/CD Variable แบบ masked/protected) ลงไฟล์
+    - chmod 600 ~/.ssh/id_ed25519                    # จำกัดสิทธิ์ไฟล์ key ให้อ่านได้เฉพาะเจ้าของ ไม่งั้น ssh จะปฏิเสธใช้ key นี้
+    - ssh-keyscan -p "${DEPLOY_PORT}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts || true  # เพิ่ม host key ของปลายทางล่วงหน้า กันค้างรอ prompt yes/no (|| true กันพังถ้า keyscan ล้มเหลว)
+    - export REMOTE_DIR="${DEPLOY_PATH}"             # ตั้งตัวแปรย่อไว้ใช้อ้างอิงต่อในขั้นตอนถัดไป
   script:
-    - ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "sudo mkdir -p $REMOTE_DIR/deploy && sudo chown -R \$USER:\$USER $REMOTE_DIR"
-    - rsync -avz -e "ssh -p ${DEPLOY_PORT} -i ~/.ssh/id_ed25519" docker-compose.prod.yml "${DEPLOY_USER}@${DEPLOY_HOST}:$REMOTE_DIR/"
-    - rsync -avz -e "ssh -p ${DEPLOY_PORT} -i ~/.ssh/id_ed25519" deploy/ "${DEPLOY_USER}@${DEPLOY_HOST}:$REMOTE_DIR/deploy/"
+    # Only docker-compose.prod.yml + deploy/ go to Production — never the source
+    # tree, since Production just pulls ready-made images from the registry.
+    - ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "sudo mkdir -p $REMOTE_DIR/deploy && sudo chown -R \$USER:\$USER $REMOTE_DIR"  # สร้างโฟลเดอร์ปลายทางถ้ายังไม่มี แล้วเปลี่ยนเจ้าของให้ user ที่ deploy ใช้ จะได้ rsync ได้โดยไม่ต้อง sudo ทุกครั้ง
+    - rsync -avz -e "ssh -p ${DEPLOY_PORT} -i ~/.ssh/id_ed25519" docker-compose.prod.yml "${DEPLOY_USER}@${DEPLOY_HOST}:$REMOTE_DIR/"  # ส่งไฟล์ compose สำหรับ production ไปที่เครื่องปลายทาง
+    - rsync -avz -e "ssh -p ${DEPLOY_PORT} -i ~/.ssh/id_ed25519" deploy/schema.sql deploy/.env.example "${DEPLOY_USER}@${DEPLOY_HOST}:$REMOTE_DIR/deploy/"  # ส่งไฟล์ schema ตั้งต้นและไฟล์ตัวอย่าง .env ไปด้วย (ไม่ใช่ .env จริงที่มี secret)
     - |
-      if [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ]; then
-        ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "echo \"$CI_REGISTRY_PASSWORD\" | docker login -u \"$CI_REGISTRY_USER\" \"$CI_REGISTRY\" --password-stdin"
+      if [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ]; then  # ถ้ามี credential ของ registry
+        ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "echo \"$CI_REGISTRY_PASSWORD\" | docker login -u \"$CI_REGISTRY_USER\" \"$CI_REGISTRY\" --password-stdin"  # ให้เครื่อง production login เข้า registry ด้วย (จำเป็นถ้า registry เป็น private)
       fi
-    - >
-      ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}"
-      "cd $REMOTE_DIR &&
-       IMAGE_TAG='latest' NUXT_PUBLIC_API_BASE='http://${DEPLOY_HOST}:7000'
-       docker compose -f docker-compose.prod.yml pull &&
-       IMAGE_TAG='latest' NUXT_PUBLIC_API_BASE='http://${DEPLOY_HOST}:7000'
-       docker compose -f docker-compose.prod.yml up -d --remove-orphans"
+    # .env.production (DB secrets + deploy/.env itself) is created once, by hand,
+    # on the Production host — it is never generated or overwritten by this job.
+    - ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "cd $REMOTE_DIR && CI_REGISTRY='${CI_REGISTRY}' IMAGE_TAG='latest' NUXT_PUBLIC_API_BASE='http://${DEPLOY_HOST}:7000' docker compose -f docker-compose.prod.yml --env-file .env.production pull"  # ให้เครื่อง production ดึง (pull) image เวอร์ชันล่าสุดจาก registry มาเตรียมไว้ก่อน
+    - ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "cd $REMOTE_DIR && CI_REGISTRY='${CI_REGISTRY}' IMAGE_TAG='latest' NUXT_PUBLIC_API_BASE='http://${DEPLOY_HOST}:7000' docker compose -f docker-compose.prod.yml --env-file .env.production up -d --remove-orphans"  # รัน/รีสตาร์ท container ด้วย image ที่เพิ่ง pull มา และลบ container เก่าที่ไม่อยู่ใน compose แล้วทิ้ง (--remove-orphans)
   rules:
-    # Deploy เฉพาะ Branch main และเป็น Manual (กันพลาด) — ไปกดปุ่ม Play เองที่หน้า Pipelines
+    # Deploy only on main, and only manually (Play button on the Pipelines page) —
+    # guards against an accidental push to Production.
     - if: '$CI_COMMIT_BRANCH == "main"'
-      when: manual
-      allow_failure: false
+      when: manual                # ต้องกดรันเองจากหน้า Pipelines เท่านั้น ไม่ deploy อัตโนมัติ
+      allow_failure: false        # ถ้า job นี้ fail ให้ pipeline แสดงว่า fail จริง ๆ ไม่ข้ามเฉย ๆ
 
-# ===== STOP Production (ทางเลือก) =====
+# ===== STOP Production (optional) =====
 stop_prod:
   stage: deploy
   image: alpine:3.20
   environment:
     name: production
-    action: stop
+    action: stop                  # บอก GitLab ว่า job นี้คือการ "หยุด" environment production
   before_script:
-    - apk add --no-cache openssh-client
-    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - echo "$DEPLOY_PRIV_KEY" > ~/.ssh/id_ed25519
-    - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan -p "${DEPLOY_PORT}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts || true
+    - apk add --no-cache openssh-client          # ติดตั้งแค่ ssh client (ไม่ต้องใช้ rsync ในขั้นตอนนี้)
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh         # เตรียมโฟลเดอร์เก็บ ssh key
+    - echo "$DEPLOY_PRIV_KEY" > ~/.ssh/id_ed25519 # เขียน private key ลงไฟล์
+    - chmod 600 ~/.ssh/id_ed25519                 # จำกัดสิทธิ์ไฟล์ key
+    - ssh-keyscan -p "${DEPLOY_PORT}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts || true  # เพิ่ม host key ล่วงหน้า กันค้างรอ prompt
   script:
-    - ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && docker compose -f docker-compose.prod.yml down"
+    - ssh -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 "${DEPLOY_USER}@${DEPLOY_HOST}" "cd ${DEPLOY_PATH} && docker compose -f docker-compose.prod.yml down"  # สั่งหยุดและลบ container ทั้งหมดของ production (docker compose down)
   rules:
-    - when: manual
-      allow_failure: true</code></pre>
+    - when: manual                # ต้องกดรันเองเท่านั้น ไม่มีทางรันอัตโนมัติ
+      allow_failure: true         # ถ้า fail ก็ไม่ทำให้ pipeline โดยรวมแสดงว่า fail</code></pre>
 <p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
-  <strong>สลับไปใช้ HTTPS แทน Insecure:</strong> แก้แค่ 2 จุด — (1) ลบบรรทัด <code>command: ["--insecure-registry=..."]</code> ออกจาก <code>.build_template</code> ทั้งหมด
-  (2) เปลี่ยนค่า Group Variable <code>CI_REGISTRY</code> จาก <code>registry.vecskill.ovec:5000</code> เป็น <code>registry.vecskill.ovec</code> (ไม่มี Port) — ที่เหลือไม่ต้องแก้อะไรเลย
-  เพราะชื่อ Image ทุกจุดอ้างอิงผ่านตัวแปร <code>$CI_REGISTRY</code> อยู่แล้ว (อย่าลืมติดตั้ง Root CA บน Production ตามที่อธิบายในข้อ 1.1 แบบที่ 2 ด้วย)
+  <strong>สลับกลับไปใช้ Insecure Registry แทน HTTPS:</strong> แก้แค่ 2 จุด — (1) เพิ่มบรรทัด <code>command: ["--insecure-registry=registry.vecskill.ovec:5000"]</code> เข้าไปใต้
+  <code>services: - docker:26-dind</code> ใน <code>.build_template</code> (2) เปลี่ยนค่า Group Variable <code>CI_REGISTRY</code> จาก <code>registry.vecskill.ovec</code> เป็น
+  <code>registry.vecskill.ovec:5000</code> — ที่เหลือไม่ต้องแก้อะไรเลย เพราะชื่อ Image ทุกจุดอ้างอิงผ่านตัวแปร <code>$CI_REGISTRY</code> อยู่แล้ว
 </p>
 
 <hr style="margin: 40px 0" />
@@ -547,12 +559,20 @@ stop_prod:
   </thead>
   <tbody>
     <tr>
+      <td><code>DOCKER_DRIVER: overlay2</code></td>
+      <td>ให้ Docker-in-Docker ใช้ Storage Driver แบบ <code>overlay2</code> (เร็วและเสถียรกว่าแบบ Default)</td>
+    </tr>
+    <tr>
+      <td><code>DOCKER_TLS_CERTDIR: "/certs"</code></td>
+      <td>เปิด TLS ระหว่าง Docker Client กับ dind Service — เป็นค่ามาตรฐานของ Image <code>docker:26-dind</code> (คนละเรื่องกับ TLS ของ Registry ที่คุยกันในข้อ 1.1)</td>
+    </tr>
+    <tr>
       <td><code>IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"</code></td>
       <td>ใช้ Hash ของ Commit (ย่อ) เป็น Tag ของ Image แต่ละรอบ Build แทนการใช้ <code>latest</code> ตลอด เพื่อให้ Image แต่ละเวอร์ชันแยกจากกันชัดเจน ย้อนดู/ย้อนกลับได้</td>
     </tr>
     <tr>
-      <td><code>API_IMAGE</code> / <code>FRONTEND_IMAGE</code></td>
-      <td>ประกอบชื่อ Image เต็มจาก <code>$CI_REGISTRY</code> (Group Variable ที่ตั้งไว้) + ชื่อ Image แบบชั้นเดียว (<code>pes-api</code>, <code>pes-frontend</code>) + Tag — ใช้ชื่อแบบชั้นเดียวเพื่อไม่ให้สับสนกับ
+      <td><code>BACKEND_IMAGE</code> / <code>FRONTEND_IMAGE</code></td>
+      <td>ประกอบชื่อ Image เต็มจาก <code>$CI_REGISTRY</code> (Group Variable ที่ตั้งไว้) + ชื่อ Image แบบชั้นเดียว (<code>vecskill-backend</code>, <code>vecskill-frontend</code>) + Tag — ใช้ชื่อแบบชั้นเดียวเพื่อไม่ให้สับสนกับ
       Path ของ Registry UI</td>
     </tr>
     <tr>
@@ -592,7 +612,7 @@ stop_prod:
   </tbody>
 </table>
 
-<h3>4.3 Stage: build_api / build_frontend (Docker-in-Docker)</h3>
+<h3>4.3 Stage: build_backend / build_frontend (Docker-in-Docker)</h3>
 <table class="spec-table">
   <thead>
     <tr>
@@ -602,8 +622,9 @@ stop_prod:
   </thead>
   <tbody>
     <tr>
-      <td><code>services: - name: docker:26-dind<br />&nbsp;&nbsp;command: ["--insecure-registry=..."]</code></td>
-      <td>เปิด Docker Daemon ชั่วคราวขึ้นมาให้ Job นี้ พร้อมสั่งให้ Daemon ชั่วคราวนั้นยอมรับ Registry ที่ไม่มี Certificate ถูกต้อง (จำเป็นสำหรับแบบ Insecure เท่านั้น — ลบทิ้งถ้าใช้ HTTPS)</td>
+      <td><code>services:<br />&nbsp;&nbsp;- docker:26-dind</code></td>
+      <td>เปิด Docker Daemon ชั่วคราวขึ้นมาให้ Job นี้ (ไม่มี Flag เสริมใดๆ) เพราะ Registry อยู่หลัง HTTPS/Caddy Internal CA แล้ว dind เชื่อถือได้ตามปกติ — ถ้าสลับไปใช้ Insecure Registry
+      ต้องเพิ่ม <code>command: ["--insecure-registry=registry.vecskill.ovec:5000"]</code> เข้ามาด้วย (ดูหมายเหตุท้ายโค้ดในข้อ 3.5)</td>
     </tr>
     <tr>
       <td><code>if [ -n "$CI_REGISTRY_USER" ] ...</code></td>
@@ -615,7 +636,7 @@ stop_prod:
     </tr>
     <tr>
       <td>Tag <code>:latest</code> เฉพาะ Branch <code>main</code></td>
-      <td>Nontag ชั่วคราว (ตาม Commit) ถูก Push ทุกครั้ง แต่ Tag <code>latest</code> (ที่ฝั่ง Deploy จะไปดึงมาใช้) จะถูกอัปเดตเฉพาะตอน Push เข้า <code>main</code> เท่านั้น กัน Branch ทดลองไปทับ Production
+      <td>Tag ชั่วคราว (ตาม Commit) ถูก Push ทุกครั้ง แต่ Tag <code>latest</code> (ที่ฝั่ง Deploy จะไปดึงมาใช้) จะถูกอัปเดตเฉพาะตอน Push เข้า <code>main</code> เท่านั้น กัน Branch ทดลองไปทับ Production
       โดยไม่ได้ตั้งใจ</td>
     </tr>
   </tbody>
@@ -631,9 +652,9 @@ stop_prod:
   </thead>
   <tbody>
     <tr>
-      <td><code>needs: - job: build_api<br />&nbsp;&nbsp;optional: true</code></td>
+      <td><code>needs: - job: build_backend<br />&nbsp;&nbsp;optional: true</code></td>
       <td><strong>จุดสำคัญ:</strong> ใช้ <code>optional: true</code> แทนการบังคับทั้งคู่แบบเดิม เพราะถ้า Commit นั้นแก้แค่ <code>frontend/</code> (ตาม <code>rules: changes</code> ในข้อ 4.3) Job
-      <code>build_api</code> จะไม่ถูกสร้างขึ้นมาเลยในรอบนั้น ถ้าใช้ <code>needs</code> แบบบังคับ Pipeline จะ Error ทันทีว่าหา Job ที่ต้องรอไม่เจอ</td>
+      <code>build_backend</code> จะไม่ถูกสร้างขึ้นมาเลยในรอบนั้น ถ้าใช้ <code>needs</code> แบบบังคับ Pipeline จะ Error ทันทีว่าหา Job ที่ต้องรอไม่เจอ</td>
     </tr>
     <tr>
       <td><code>environment: name: production ... on_stop: stop_prod</code></td>
@@ -648,12 +669,19 @@ stop_prod:
       <td>สร้างโฟลเดอร์ปลายทางอัตโนมัติ (ต้องมี NOPASSWD sudo ตามข้อ 1.2 ไม่งั้นค้างตรงนี้ทันที) แล้วเปลี่ยนเจ้าของเป็น User <code>devops</code> เอง เพื่อให้ rsync ครั้งถัดไปเขียนไฟล์ได้โดยไม่ต้อง sudo</td>
     </tr>
     <tr>
-      <td><code>rsync ... docker-compose.prod.yml ...</code><br /><code>rsync ... deploy/ ...</code></td>
-      <td>ส่งเฉพาะไฟล์ที่จำเป็นสำหรับรัน Production ไปที่เครื่องปลายทาง (ไม่ส่งซอร์สโค้ด <code>backend/</code>/<code>frontend/</code> ไปด้วย เพราะ Production ใช้ Image สำเร็จรูปจาก Registry อยู่แล้ว)</td>
+      <td><code>rsync ... docker-compose.prod.yml ...</code><br /><code>rsync ... deploy/schema.sql deploy/.env.example ...</code></td>
+      <td>ส่งเฉพาะไฟล์ที่จำเป็นสำหรับรัน Production ไปที่เครื่องปลายทาง (ไม่ส่งซอร์สโค้ด <code>backend/</code>/<code>frontend/</code> ไปด้วย เพราะ Production ใช้ Image สำเร็จรูปจาก Registry อยู่แล้ว) —
+      สังเกตว่าส่งแค่ <code>.env.example</code> (เทมเพลตเปล่า) ไม่ใช่ <code>.env</code> ตัวจริง เพราะไฟล์ลับจริงต้องตั้งไว้ที่เครื่อง Production เองแล้วตั้งแต่แรก (ดูข้อ 3.1)</td>
     </tr>
     <tr>
-      <td><code>IMAGE_TAG='latest' ... docker compose -f docker-compose.prod.yml pull</code></td>
-      <td>สั่งให้ Production ดึง Image Tag <code>latest</code> เสมอ (ไม่ใช่ Tag ตาม Commit Hash ของรอบนี้) เพื่อให้ตรงกับ Tag ที่ Job Build อัปเดตไว้ในข้อ 4.3 โดยไม่ต้องส่งค่า Commit Hash ข้ามมาให้ตรงกันเป๊ะ</td>
+      <td><code>docker compose ... --env-file .env.production pull</code></td>
+      <td>สั่งให้ Production ดึง Image Tag <code>latest</code> เสมอ (ไม่ใช่ Tag ตาม Commit Hash ของรอบนี้) เพื่อให้ตรงกับ Tag ที่ Job Build อัปเดตไว้ในข้อ 4.3 โดยไม่ต้องส่งค่า Commit Hash ข้ามมาให้ตรงกันเป๊ะ
+      Flag <code>--env-file .env.production</code> บอก Docker Compose ให้อ่านค่าตัวแปร (เช่น <code>DB_ROOT_PASSWORD</code>) จากไฟล์ที่สร้างไว้ด้วยมือบนเครื่องนี้แล้ว (ไม่ใช่จากไฟล์ที่ Pipeline ส่งมา)</td>
+    </tr>
+    <tr>
+      <td><code>CI_REGISTRY='${CI_REGISTRY}' IMAGE_TAG='latest' NUXT_PUBLIC_API_BASE='...'</code></td>
+      <td>Export ตัวแปรเหล่านี้ไว้ในฝั่ง Shell ของเครื่อง Production ก่อนเรียก <code>docker compose</code> เพื่อให้ Docker Compose แทนค่า <code>${CI_REGISTRY}</code>/<code>${IMAGE_TAG}</code>
+      ใน <code>image:</code> ของ <code>docker-compose.prod.yml</code> ได้ถูกต้อง (คนละตัวแปรกับที่มาจาก <code>--env-file .env.production</code> ด้านบน)</td>
     </tr>
     <tr>
       <td><code>rules: if: $CI_COMMIT_BRANCH == "main"<br />&nbsp;&nbsp;when: manual</code></td>
