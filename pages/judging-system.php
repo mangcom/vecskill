@@ -6,6 +6,27 @@
   วงเดียวกันด้วยมือถือ/โน้ตบุ๊กของตัวเอง <strong>ไม่ต้องใช้อินเทอร์เน็ตระหว่างแข่งขัน</strong>
 </p>
 
+<div style="background-color: #e8f6ec; border-left: 5px solid #28a745; padding: 15px; margin: 20px 0">
+  <h3 style="margin-top: 0">🖥️ ดูตัวอย่างระบบออนไลน์</h3>
+  <p>
+    เปิดดูระบบตัวอย่างได้ที่
+    <a href="https://vecskill-judge.bncc.ac.th/" target="_blank" rel="noopener">vecskill-judge.bncc.ac.th</a>
+    (ต้องเชื่อมต่ออินเทอร์เน็ต)
+  </p>
+  <div style="display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0">
+    <a href="https://vecskill-judge.bncc.ac.th/" target="_blank" rel="noopener" style="background-color: #2980b9; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold">
+      <i class="fas fa-desktop"></i> เข้าดูระบบตัวอย่าง
+    </a>
+    <a href="https://vecskill-judge.bncc.ac.th/public_criteria" target="_blank" rel="noopener" style="background-color: #1abc9c; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold">
+      <i class="fas fa-clipboard-list"></i> ดูเกณฑ์การให้คะแนน (ไม่ต้องเข้าสู่ระบบ)
+    </a>
+  </div>
+  <ul style="margin-bottom: 0">
+    <li><strong>หน้าเกณฑ์การให้คะแนน</strong> เปิดได้ทันที เลือกดูตามทักษะ (ปวช. / ปวส.) เลือกกลุ่มเกณฑ์แล้วสร้างเอกสารเพื่อพิมพ์หรือบันทึกเป็น PDF ได้</li>
+    <li><strong>หน้าให้คะแนนและจัดการข้อมูล</strong> ต้องเข้าสู่ระบบด้วยบัญชีผู้ใช้</li>
+  </ul>
+</div>
+
 <div style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px; margin: 20px 0">
   <h3 style="margin-top: 0">📥 ดาวน์โหลด Source Code</h3>
   <p>
