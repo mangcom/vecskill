@@ -309,13 +309,64 @@ test('E2E-001b (กรณีผิด): กรอกรหัสผ่านผ�
   <code>page.locator('.v-field', { hasText: '...' })</code> แทนการหาด้วย Label
 </p>
 
-<h3>3.4 รัน E2E Test จากเครื่องนักพัฒนา</h3>
-<p>ต้องมี Node.js 20–22 บนเครื่อง (ดูบท <a href="#" onclick="document.querySelector('a[data-page=\'nodejs-install\']').click();">การติดตั้ง Node.js</a>) และระบบจากส่วนที่ 2 ต้องรันอยู่ ครั้งแรกต้องติดตั้ง Package และ Browser (ใช้อินเทอร์เน็ต ในสนามแข่งขันควรติดตั้งไว้ล่วงหน้า):</p>
-<pre><code class="language-powershell">cd frontend
-npm ci
-npx playwright install chromium</code></pre>
-<p>รันเทสต์:</p>
+<h3>3.4 รัน E2E Test บนเครื่องนักพัฒนา</h3>
+<p>
+  ขั้นตอนนี้รันบนเครื่องนักพัฒนาโดยตรง ไม่ใช่ใน CI (การรันใน Pipeline ดูส่วนที่ 8) ต้องมี Node.js 20–22 บนเครื่อง (ดูบท <a href="#" onclick="document.querySelector('a[data-page=\'nodejs-install\']').click();">การติดตั้ง Node.js</a>)
+</p>
+<p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
+  <strong>ทำไมต้องติดตั้ง Chromium แยก:</strong> Package <code>@playwright/test</code> มีเฉพาะตัวรันเทสต์และตัวควบคุมเบราว์เซอร์ ไม่ได้รวมตัวเบราว์เซอร์มาด้วย จึงต้องดาวน์โหลดเพิ่มอีกขั้นหนึ่ง
+  และ E2E Test สั่งผ่าน <code>docker compose exec</code> เหมือนข้อ 3.1–3.2 ไม่ได้ เพราะ Container ของโปรเจกต์ใช้ Alpine Linux ซึ่ง Playwright ไม่รองรับการรันเบราว์เซอร์
+</p>
+
+<p><strong>ขั้นที่ 1: เปิดระบบทั้งชุดให้รันอยู่จริง</strong> E2E Test ใช้ Frontend, Backend และฐานข้อมูลจริง ไม่มีการจำลอง (Mock) ให้รันในโฟลเดอร์ <code>pes-main</code> (ครั้งแรกทำตามส่วนที่ 2 ก่อน)</p>
+<pre><code>docker compose up -d
+docker compose ps</code></pre>
+<p>ฐานข้อมูลต้องมีข้อมูลจาก <code>schema.sql</code> ซึ่งปกติถูกโหลดให้อัตโนมัติตอนสร้าง Container <code>db</code> ครั้งแรก รอจน <code>db</code> ขึ้นสถานะ <code>healthy</code></p>
+
+<p><strong>ขั้นที่ 2: เข้าโฟลเดอร์ <code>frontend</code></strong></p>
+<pre><code>cd frontend</code></pre>
+
+<p><strong>ขั้นที่ 3: ติดตั้ง Package</strong> (ข้ามได้ถ้าเคยสั่ง <code>npm ci</code> หรือ <code>npm install</code> ในโฟลเดอร์นี้แล้ว)</p>
+<pre><code>npm ci</code></pre>
+
+<p><strong>ขั้นที่ 4: ติดตั้ง Chromium ของ Playwright</strong> ทำครั้งเดียวต่อเครื่อง ไม่ต้องทำซ้ำทุกครั้งที่รันเทสต์ แต่ต้องสั่งใหม่เมื่อเวอร์ชันของ Playwright เปลี่ยน</p>
+<pre><code>npx playwright install chromium</code></pre>
+<ul>
+  <li>ติดตั้งแค่ <code>chromium</code> ก็พอ เพราะ <code>frontend/playwright.config.ts</code> กำหนด <code>projects</code> ไว้ตัวเดียว ไม่ได้ใช้ Firefox หรือ WebKit (สั่ง <code>npx playwright install</code> โดยไม่ระบุชื่อจะติดตั้งทุกเบราว์เซอร์ ซึ่งโปรเจกต์นี้ไม่จำเป็น)</li>
+  <li>บน Linux ที่ยังไม่มี Library ของระบบครบ ให้ใช้ <code>npx playwright install --with-deps chromium</code> (ต้องใช้สิทธิ์ <code>sudo</code>)</li>
+  <li>ไฟล์เบราว์เซอร์ถูกเก็บไว้ที่โฟลเดอร์ด้านล่าง (บน Windows กับ Playwright 1.65.1 ใช้พื้นที่ราว 750 MB)</li>
+</ul>
+<table class="spec-table">
+  <thead>
+    <tr>
+      <th>ระบบปฏิบัติการ</th>
+      <th>ตำแหน่งที่เก็บ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Windows</td>
+      <td><code>%USERPROFILE%\AppData\Local\ms-playwright</code></td>
+    </tr>
+    <tr>
+      <td>Linux</td>
+      <td><code>~/.cache/ms-playwright</code></td>
+    </tr>
+    <tr>
+      <td>macOS</td>
+      <td><code>~/Library/Caches/ms-playwright</code></td>
+    </tr>
+  </tbody>
+</table>
+<p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+  <strong>สนามแข่งขันที่ไม่มีอินเทอร์เน็ต:</strong> ขั้นที่ 3 และ 4 ต้องดาวน์โหลดไฟล์ ควรติดตั้งไว้ล่วงหน้า หรือคัดลอกโฟลเดอร์ <code>ms-playwright</code> จากเครื่องที่ใช้ระบบปฏิบัติการและเวอร์ชัน Playwright เดียวกัน
+  ส่วน <code>npm ci</code> ใช้ NPM Registry ภายในได้ (ดูบท <a href="#" onclick="document.querySelector('a[data-page=\'verdaccio\']').click();">Verdaccio</a>)
+</p>
+
+<p><strong>ขั้นที่ 5: รันเทสต์</strong></p>
 <pre><code>npm run test:e2e</code></pre>
+<p>หรือถ้าต้องการเห็นเบราว์เซอร์ทำงานทีละขั้นเพื่อช่วยหาจุดผิด (Debug) ให้เปิดหน้าต่าง Playwright UI:</p>
+<pre><code>npm run test:e2e:ui</code></pre>
 <p>ตัวอย่างผลลัพธ์เมื่อผ่านทั้งหมด (เวลาของแต่ละเครื่องไม่เท่ากัน):</p>
 <pre><code>Running 3 tests using 1 worker
 
@@ -325,19 +376,23 @@ npx playwright install chromium</code></pre>
 
   3 passed (37.8s)</code></pre>
 <p>คำสั่งช่วยตรวจสอบเมื่อเทสต์ไม่ผ่าน:</p>
-<pre><code class="language-powershell"># ดูการทำงานทีละขั้นผ่านหน้าต่าง Playwright UI
-npm run test:e2e:ui
-
-# ลองใหม่อัตโนมัติ 1 ครั้ง (ช่วยกรณีหน้าแรกคอมไพล์ช้าจนเกินเวลา 30 วินาที)
+<pre><code class="language-powershell"># ลองใหม่อัตโนมัติ 1 ครั้ง (ช่วยกรณีหน้าแรกคอมไพล์ช้าจนเกินเวลา 30 วินาที)
 npm run test:e2e -- --retries=1
 
 # เปิดดู Trace ของเทสต์ที่ไม่ผ่าน (แทนชื่อโฟลเดอร์ตามที่แสดงในผลเทสต์)
 npx playwright show-trace test-results/ชื่อโฟลเดอร์/trace.zip</code></pre>
-<p>ทดสอบระบบที่อยู่เครื่องอื่น (เช่น หลัง Deploy ขึ้น Production) ให้กำหนด <code>E2E_BASE_URL</code>:</p>
-<pre><code class="language-powershell"># Windows PowerShell
+<p>
+  <strong>ทดสอบ URL อื่น:</strong> ค่าเริ่มต้นคือ <code>http://localhost:3000</code> ถ้าเปลี่ยน <code>FRONTEND_PORT</code> ใน <code>.env</code> หรือจะทดสอบระบบบนเครื่องอื่น (เช่น หลัง Deploy ขึ้น Production) ต้องกำหนด
+  <code>E2E_BASE_URL</code> ให้ตรงก่อนรัน
+</p>
+<pre><code class="language-powershell"># Windows PowerShell: เปลี่ยนพอร์ตของ Frontend เป็น 3001
+$env:E2E_BASE_URL="http://localhost:3001"; npm run test:e2e</code></pre>
+<pre><code class="language-powershell"># Windows PowerShell: ทดสอบเครื่อง Production
 $env:E2E_BASE_URL="http://192.168.100.102:3000"; npm run test:e2e</code></pre>
 <pre><code class="language-bash"># Linux / macOS / Git Bash
 E2E_BASE_URL=http://192.168.100.102:3000 npm run test:e2e</code></pre>
+<p>ใน PowerShell ค่าที่กำหนดจะค้างอยู่จนกว่าจะปิดหน้าต่าง ก่อนกลับมาทดสอบบนเครื่องตัวเองให้ล้างค่าก่อน ไม่อย่างนั้นเทสต์จะยังวิ่งไปที่ URL เดิม:</p>
+<pre><code class="language-powershell">Remove-Item Env:E2E_BASE_URL</code></pre>
 <p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
   <strong>ข้อควรระวังของ E2E-002:</strong><br />
   1) คำสั่งลบข้อมูลหลังเทสต์ใน <code>upload.e2e.spec.ts</code> ระบุพอร์ต <code>7000</code> ไว้ตายตัว ถ้าเปลี่ยน <code>BACKEND_PORT</code> ต้องแก้บรรทัดนั้นด้วย<br />
@@ -1535,7 +1590,7 @@ $DC exec db mysql -uroot -p</code></pre>
   <tbody>
     <tr>
       <td><code>Executable doesn't exist</code></td>
-      <td>ยังไม่ได้ติดตั้ง Browser หรือ Image ใน CI คนละเวอร์ชันกับ Package</td>
+      <td>ยังไม่ได้ติดตั้ง Browser, เพิ่งเปลี่ยนเวอร์ชัน Playwright หรือ Image ใน CI คนละเวอร์ชันกับ Package</td>
       <td><code>npx playwright install chromium</code> หรือปรับ Tag ของ Image</td>
     </tr>
     <tr>
