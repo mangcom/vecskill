@@ -3,7 +3,7 @@
   GitLab Runner คือแอปพลิเคชันที่ทำงานแยกต่างหากจาก GitLab Server ทำหน้าที่รับ "งาน" (Jobs) จาก Pipeline ที่เรากำหนดไว้ในไฟล์
   <code>.gitlab-ci.yml</code> ไปประมวลผล เช่น การคอมไพล์โค้ด, การรัน Unit Test, หรือการสร้าง Docker Image
 </p>
-<p>ในคู่มือนี้ เราจะติดตั้ง GitLab Runner แบบ Docker Container และตั้งค่าให้มันสามารถใช้คำสั่ง Docker ได้ (Docker Socket Binding) เพื่อใช้ในการ Build Image</p>
+<p>ในคู่มือนี้ เราจะติดตั้ง GitLab Runner แบบ Docker Container และตั้งค่าให้ Job สามารถใช้คำสั่ง Docker ได้ (Docker-in-Docker) เพื่อใช้ในการ Build Image</p>
 
 <hr style="margin: 40px 0" />
 
@@ -214,7 +214,7 @@ volumes:
     disable_entrypoint_overwrite = false
     oom_kill_disable = false
     disable_cache = false
-    volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"] # (3) Mount Socket
+    volumes = ["/cache"] # (3) สำหรับ Docker-in-Docker ต้องไม่มี docker.sock (ดูกล่องคำอธิบายด้านล่าง)
     network_mode = "app_net" # (4) สำคัญมาก! ถ้าไม่ใส่ Container ลูกที่รันงานแต่ละ Job จะถูกสร้างใน Network แยกต่างหาก
                               #     มองไม่เห็น gitlab/registry เลย ทำให้ Clone/Push ไม่ได้แม้ Register สำเร็จแล้วก็ตาม
     # extra_hosts = ["gitlab.vecskill.ovec:10.20.30.101", "registry.vecskill.ovec:10.20.30.101"]
@@ -223,13 +223,22 @@ volumes:
     # ...</code></pre>
     <div class="image-container">
       <img src="./images/runner/runner-04-01.png" alt="config.toml" class="content-image" />
-      <p>หน้าจอแสดงตัวอย่าง config.toml</p>
+      <p>หน้าจอแสดงตัวอย่าง config.toml (ภาพนี้ยังมี <code>docker.sock</code> ในบรรทัด <code>volumes</code> ซึ่งใช้กับแบบ Socket Binding เท่านั้น)</p>
     </div>
+
+    <p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
+      <strong>เลือกบรรทัด <code>volumes</code> ให้ตรงกับ Pipeline ที่ใช้:</strong><br />
+      • <strong>Docker-in-Docker</strong> (Pipeline ประกาศ <code>services: docker:26-dind</code> ตามบท <a href="#" onclick="document.querySelector('a[data-page=\'cicd\']').click();">การใช้งาน Gitlab CI/CD</a>):
+      ใช้ <code>volumes = ["/cache"]</code> ถ้ามี <code>docker.sock</code> อยู่ Service dind จะสร้าง Socket ของตัวเองไม่ได้ (<code>device or resource busy</code>)<br />
+      • <strong>Socket Binding</strong> (Pipeline สั่ง <code>docker build</code> โดยไม่มี Service dind เช่น <a href="#" onclick="document.querySelector('a[data-page=\'cicd-example-1\']').click();">ตัวอย่าง Pipeline 1</a> และ
+      <a href="#" onclick="document.querySelector('a[data-page=\'cicd-example-2\']').click();">2</a>): ใช้ <code>volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]</code><br />
+      ใช้ทั้งสองแบบพร้อมกันใน Runner ตัวเดียวไม่ได้ ส่วน <code>docker.sock</code> ใน Stack ของข้อ 2.1 (ของตัว <code>gitlab-runner</code> เอง) ต้องมีไว้ทั้งสองแบบ
+    </p>
 
     <p style="background-color: #d1ecf1; border-left: 5px solid #0c5460; padding: 15px">
       <strong>ทำไมต้องมี <code>network_mode = "app_net"</code>:</strong> Executor แบบ <code>docker</code> ของ GitLab Runner ปกติจะสร้าง Network แยกใหม่ให้แต่ละ Job โดยอัตโนมัติ (ไม่ใช่ <code>app_net</code>)
       ถ้าไม่ระบุค่านี้ Container ที่รันงานจริง (ไม่ใช่ตัว <code>gitlab-runner</code> container ที่เราเพิ่ง Deploy) จะต่อเน็ตเวิร์กคนละวงกับ GitLab/Registry โดยสิ้นเชิง ทำให้ <code>git clone http://gitlab/...</code>
-      หรือ <code>docker push registry.vecskill.ovec/...</code> ที่รันอยู่ใน Job ล้มเหลวด้วย Error ประมาณ <code>could not resolve host</code> แม้ว่าตัว Runner เองจะ Register สำเร็จและสถานะ Online ก็ตาม
+      หรือ <code>docker push registry:5000/...</code> ที่รันอยู่ใน Job ล้มเหลวด้วย Error ประมาณ <code>could not resolve host</code> แม้ว่าตัว Runner เองจะ Register สำเร็จและสถานะ Online ก็ตาม
     </p>
   </li>
   <li>
@@ -264,15 +273,19 @@ test-job:
     - docker # ต้องตรงกับ Tags ของ Runner
   script:
     - echo "Hello from GitLab Runner!"
-    - docker info # ทดสอบว่าเรียกใช้ Docker ได้ไหม
 
 build-job:
   stage: build
   tags:
     - docker
-  image: docker:24.0.5
+  image: docker:26
+  services:
+    - docker:26-dind # Docker-in-Docker (ถ้าใช้แบบ Socket Binding ให้ลบ services และ variables ออก)
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: "tcp://docker:2375"
   script:
-    - echo "Building Docker Image..."
+    - docker info # ทดสอบว่าเรียกใช้ Docker ได้ไหม
     # ใส่คำสั่ง build จริงที่นี่
 </code></pre>
 <p>
@@ -293,13 +306,14 @@ build-job:
 
 <h3>6.1 กรณีไม่ใช้ HTTPS (Insecure Registry — ตั้งค่าเร็ว เหมาะกับทดสอบ/Lab ภายใน)</h3>
 <p>
-  วิธีนี้ตรงกับที่อธิบายไว้แล้วในบท <a href="#" onclick="document.querySelector('a[data-page=\'cicd\']').click();">การใช้งาน Gitlab CI/CD</a> หัวข้อ "1.1 ตั้งค่า Insecure Registry" และวิธีสำรองในบท
+  วิธีนี้ตรงกับวิธีสำรองในบท
   <a href="#" onclick="document.querySelector('a[data-page=\'registry\']').click();">การติดตั้ง Registry & UI</a> — ข้อควรระวังเฉพาะฝั่ง Runner ที่มักถูกมองข้ามคือ:
 </p>
 <p style="background-color: #fff3cd; border-left: 5px solid #ffeeba; padding: 15px">
   <strong>ข้อควรระวัง: การตั้งค่าฝั่ง Build กับฝั่ง Pull ไม่ได้ใช้วิธีเดียวกัน:</strong> ถ้า Job Build ของคุณใช้เทคนิค <strong>Docker-in-Docker</strong> (ประกาศ <code>services: [docker:26-dind]</code> ใน
   <code>.gitlab-ci.yml</code> ตามบท <a href="#" onclick="document.querySelector('a[data-page=\'cicd\']').click();">การใช้งาน Gitlab CI/CD</a>) Daemon ที่ใช้ Build/Push จะเป็น Container ชั่วคราวใหม่ทุก Job
-  ซึ่ง<strong>ไม่อ่านไฟล์ <code>/etc/docker/daemon.json</code> ของเครื่อง Host เลย</strong> ต้องส่ง Flag <code>--insecure-registry=registry.vecskill.ovec:5000</code> ให้ Service นั้นโดยตรงแทน (ดูตัวอย่างเต็มในบท CI/CD)
+  ซึ่ง<strong>ไม่อ่านไฟล์ <code>/etc/docker/daemon.json</code> ของเครื่อง Host เลย</strong> ต้องส่ง Flag <code>--insecure-registry</code> ให้ Service นั้นโดยตรงแทน โดยในบท CI/CD ใช้ <code>--insecure-registry=registry:5000</code>
+  (ชื่อ Container ของ Registry ใน <code>app_net</code> เดียวกัน)
   — ส่วนไฟล์ <code>/etc/docker/daemon.json</code> แบบปกติยังจำเป็นอยู่ แต่ใช้กับ <strong>เครื่อง Production (Server 2)</strong> ที่รัน <code>docker compose pull</code> ผ่าน Daemon จริงของเครื่องนั้น (ไม่ใช่ dind)
 </p>
 
@@ -311,7 +325,7 @@ build-job:
 <ul>
   <li>
     <strong>ขั้นตอนที่ 3.4 (ติดตั้งบนเครื่อง Production) เท่านั้นที่จำเป็นสำหรับ Runner:</strong> ทำบน <strong>Server 2</strong> เพื่อให้ <code>docker compose pull</code> ตอน Deploy ดึง Image จาก
-    <code>https://registry.vecskill.ovec</code> ได้โดยไม่ติด TLS Error
+    <code>https://registry.vecskill.ovec</code> ได้โดยไม่ติด TLS Error (หลังติดตั้งให้สั่ง <code>sudo systemctl restart docker</code> ด้วย)
   </li>
   <li>
     <strong>ไม่จำเป็นต้องทำขั้นตอนที่ 3.3 บน Server 1 เพื่อการ Build/Push:</strong> เพราะ Job Build ใช้เทคนิค Docker-in-Docker (Container ชั่วคราวที่ถูกสร้าง/ทำลายทุก Job) การให้ Container ชั่วคราวนี้เชื่อถือ
@@ -320,8 +334,8 @@ build-job:
   </li>
 </ul>
 <p>
-  เมื่อทำครบทั้ง 2 ขั้นตอนแล้ว ให้เปลี่ยน <code>IMAGE_NAME</code> ในบท CI/CD จาก <code>registry.vecskill.ovec:5000/...</code> (แบบ Insecure) เป็น <code>registry.vecskill.ovec/...</code>
-  (ไม่มี Port ต่อท้าย — ตามวิธีที่แนะนำในบท Registry & UI) และลบการตั้งค่า <code>insecure-registries</code> ออกจากทั้ง 2 เครื่องได้เลย เพราะไม่จำเป็นอีกต่อไป
+  บท CI/CD ใช้แนวทางนี้อยู่แล้ว คือ Build/Push ผ่าน <code>registry:5000</code> ภายใน Server 1 และให้ Production Pull ผ่าน <code>registry.vecskill.ovec</code>
+  (ไม่มี Port ต่อท้าย) เครื่อง Production จึงไม่ต้องตั้งค่า <code>insecure-registries</code>
 </p>
 
 <h3>6.3 เช็กลิสต์ตรวจสอบความพร้อมก่อนเริ่มงาน CI/CD</h3>

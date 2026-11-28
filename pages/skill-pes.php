@@ -5,9 +5,12 @@
 <p>
     คุณสามารถดาวน์โหลดซอร์สโค้ดของโปรเจกต์เพื่อนำไปศึกษาและทดสอบบนเครื่องของคุณเองได้
 </p>
-<div style="text-align: center; margin: 30px 0;">
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 30px 0;">
     <a href="./files/PES.zip" download style="background-color: #1abc9c; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 1.1em;">
         <i class="fas fa-download"></i> ดาวน์โหลดไฟล์ PES.zip
+    </a>
+    <a href="./files/pes-main.zip" download style="background-color: #2980b9; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 1.1em;">
+        <i class="fas fa-download"></i> ดาวน์โหลดไฟล์ PES-MAIN.zip
     </a>
 </div>
 <ul>
